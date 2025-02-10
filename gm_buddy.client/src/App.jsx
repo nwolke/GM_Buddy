@@ -1,52 +1,38 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import './App.css';
 import NpcGrid from './NpcGrid';
+import Auth from './Auth';
+import { NavContext } from './contexts/contexts.js';
 
 function App() {
-
-    const [calledBack, setCalledBack] = useState();
-    const [isActive, setIsActive] = useState('main');
-    const [isLoading, setIsLoading] = useState(true);
-
-    useEffect(() => {
-        if (isLoading) {
-            get_test_npcs();
-        }
-    }, []);
-    let oldActive = 'main';
-
-    const changeActive = (newActive) => {
-        if (newActive !== oldActive) {
-            setIsActive(newActive);
-            oldActive = newActive;
-        }
+    const [isActive, setIsActive] = useState('home');
+    const changeActive = (p) => {
+        setIsActive(p);
     }
-
+    NavContext.changePage = changeActive;
+    let currentPage;
+    switch (isActive) {
+        case 'grid':
+            currentPage = <NpcGrid></NpcGrid>;
+            break;
+        case 'login':
+            currentPage = <Auth></Auth>;
+            break;
+        case 'home':
+            currentPage = <div>
+                <div>Hello</div>
+                <button onClick={() => changeActive('grid')}>Go To Grid</button>
+            </div>
+            break;
+    }
     return (
         <div>
             <h1 id="tableLabel">GM Buddy</h1>
-           
-                {/*<div>*/}
-                {/*<span>Hello</span>*/}
-                {/*<button onClick={changeActive('grid')}></button>*/}
-            {/*</div>*/}
-
-            <NpcGrid allNpcs={calledBack}></NpcGrid>
-            
+            <NavContext.Provider value={changeActive}>
+                {currentPage}
+            </NavContext.Provider>
         </div>
     );
-
-    
-    async function get_test_npcs() {
-        const response = await fetch('https://localhost:7256/Npcs?account_id=1');
-        if (response.ok) {
-            const data = await response.json();
-            setCalledBack(data);
-            setIsLoading(false);
-        } else {
-            console.error('Failed to fetch data', response.status);
-        }
-    }
 }
 
 export default App;
