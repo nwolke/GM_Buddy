@@ -1,5 +1,6 @@
 ﻿using Contracts;
 using GM_Buddy.Server.DbContexts;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
@@ -19,6 +20,7 @@ namespace GM_Buddy.Server.Controllers
         }
 
         [HttpGet]
+       // [Authorize]
         public IEnumerable<NpcDto> Npcs(int account_id)
         {
             var allNpcs = from npc in _dbContext.Npcs
