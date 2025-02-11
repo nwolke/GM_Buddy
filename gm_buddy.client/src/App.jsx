@@ -22,6 +22,7 @@ function App() {
             currentPage = <div>
                 <div>Hello</div>
                 <button onClick={() => changeActive('grid')}>Go To Grid</button>
+                <button onClick={() => changeActive('login')}>Go To Login</button>
             </div>
             break;
     }
