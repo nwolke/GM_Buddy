@@ -37,7 +37,7 @@ function NpcGrid() {
     );
      
     async function get_test_npcs() {
-        const response = await fetch('https://localhost:7256/Npcs?account_id=1');
+        const response = await fetch('https://localhost:32771/Npcs?account_id=1');
         if (response.ok) {
             const data = await response.json();
             setNpcData(data);

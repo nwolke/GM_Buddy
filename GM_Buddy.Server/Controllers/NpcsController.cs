@@ -1,8 +1,6 @@
-﻿using Contracts;
-using GM_Buddy.Server.DbContexts;
-using Microsoft.AspNetCore.Authorization;
+﻿using GM_Buddy.Contracts.DTOs;
+using GM_Buddy.Contracts.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using System.Text.Json;
 
 namespace GM_Buddy.Server.Controllers
 {
@@ -11,32 +9,20 @@ namespace GM_Buddy.Server.Controllers
     public class NpcsController : Controller
     {
         private readonly ILogger<NpcController> _logger;
-        private readonly GmBuddyDbContext _dbContext;
+        private readonly INpcLogic _npcLogic;
 
-        public NpcsController(ILogger<NpcController> logger, GmBuddyDbContext gmBuddyDbContext)
+        public NpcsController(ILogger<NpcController> logger, INpcLogic npcLogic)
         {
             _logger = logger;
-            _dbContext = gmBuddyDbContext;
+            _npcLogic = npcLogic;
         }
 
-        [HttpGet]
-       // [Authorize]
-        public IEnumerable<NpcDto> Npcs(int account_id)
-        {
-            var allNpcs = from npc in _dbContext.Npcs
-                          where npc.account.account_id == account_id
-                    select new NpcDto
-                    {
-                        npc_id = npc.npc_id,
-                        account = npc.account.account_name,
-                        name = npc.name,
-                        stats = JsonSerializer.Deserialize<DnDStats>(npc.stats ?? "{}", JsonSerializerOptions.Default),
-                        description = npc.description,
-                        lineage = npc.lineage.lineage_name,
-                        occupation = npc.occupation.occupation_name,
-                        system = npc.game_system.game_system_name
-                    };
-            return allNpcs;
-        }
+       // [HttpGet]
+       //// [Authorize]
+       // public IEnumerable<NpcDto> Npcs(int account_id)
+       // {
+       //     var allNpcs = _npcLogic.GetNpcList(account_id);
+       //     return allNpcs;
+       // }
     }
 }

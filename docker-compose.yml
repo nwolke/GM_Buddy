@@ -1,0 +1,6 @@
+services:
+  gm_buddy.server:
+    image: ${DOCKER_REGISTRY-}gmbuddyserver
+    build:
+      context: .
+      dockerfile: GM_Buddy.Server/Dockerfile
