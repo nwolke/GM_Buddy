@@ -1,10 +1,17 @@
 import PropTypes from 'prop-types';
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import { NavContext } from './contexts/contexts.js';
 
 function NpcGrid() {
     const [npcData, setNpcData] = useState(undefined);
     const changePage = useContext(NavContext);
+    useEffect(() => {
+
+        get_test_npcs();
+
+    },[])
+
+
     const grid = <div>
         <table id='npcGridTable' style={{ border: '1px solid black' }} >
             <tbody>
@@ -28,7 +35,6 @@ function NpcGrid() {
         </table>
     </div>;
     const loading = <div>I&apo;m loading. Chill.</div>;
-    get_test_npcs();
     return (
         <div>
             <button onClick={()=> changePage('home')}>Go Home</button>
@@ -37,7 +43,7 @@ function NpcGrid() {
     );
      
     async function get_test_npcs() {
-        const response = await fetch('https://localhost:32771/Npcs?account_id=1');
+        const response = await fetch('https://localhost:5001/Npcs?account_id=1');
         if (response.ok) {
             const data = await response.json();
             setNpcData(data);

@@ -1,57 +1,54 @@
-﻿using Dapper;
-using GM_Buddy.Business.Mappers;
-using GM_Buddy.Contracts;
-using GM_Buddy.Contracts.DbModels;
-using GM_Buddy.Contracts.DTOs;
+﻿using GM_Buddy.Contracts.DTOs;
 using GM_Buddy.Contracts.Interfaces;
-using GM_Buddy.Data;
-using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
-using Npgsql;
-using NpgsqlTypes;
+using System;
+using System.Collections.Generic;
 using System.Data;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Dapper;
+using GM_Buddy.Contracts.DbModels;
 
-namespace GM_Buddy.Business
+namespace GM_Buddy.Data
 {
-    public class NpcLogic : INpcLogic
+    public class NpgRepository
     {
         public required IDbConnector _dbConnector;
-        private DbSettings _dbSettings;
-        public NpcLogic(IDbConnector dbConnector, IOptions<DbSettings> dbSettings)
+        public NpgRepository(IDbConnector dbConnector)
         {
             _dbConnector = dbConnector;
-            _dbSettings = dbSettings.Value;
         }
 
-
-        public async Task<IEnumerable<NpcDto>> GetNpcList(int account_id)
+        public async Task<IEnumerable<npc_type>> GetNpcList(int account_id)
         {
-            var connectionString = $"Host={_dbSettings.Host};Port={_dbSettings.Port};Database={_dbSettings.Database};Username={_dbSettings.Username};Password={_dbSettings.Password};Timeout=300;CommandTimeout=300;Pooling=false";
-            Console.WriteLine(connectionString);
-            var builder = new NpgsqlDataSourceBuilder(connectionString);
-            builder.MapComposite<npc_type>("npc_type");
-            SqlMapper.AddTypeMap(typeof(npc_type), DbType.Object);
-            await using var connection = builder.Build();
-            var con = connection.CreateConnection();
-            var allNpcs = await con.QueryAsync<npc_type>(sql: $"SELECT get_npcs({account_id})", commandType: CommandType.Text);
+            using IDbConnection dbConnection = _dbConnector.CreateConnection();
 
-            return allNpcs.Select(NpcMapper.MapToNpcDto);
-        }
+            var allNpcs = await dbConnection.QueryAsync<npc_type>($"select n.npc_id, " +
+                $"a.account_name,gs.game_system_name,l.lineage_name,o.occupation_name," +
+                $"n.name,n.stats,n.description,n.gender" +
+                $"from npc as n" +
+                $"join lineage as l on n.lineage_id = l.lineage_id" +
+                $"join occupation as o on n.occupation_id = o.occupation_id " +
+                $"join game_system as gs on n.game_system_id = gs.game_system_id" +
+                $"join account as a on n.account_id = a.account_id" +
+                $"where a.account_id = accountid" +
+                $"order by n.npc_id");
 
-        public async Task<dynamic?> GetNpc(int npc_id)
-        {
-            try
-            {
-                using (var con = _dbConnector.CreateConnection())
-                {
-                    var singleNpc = await con.QueryFirstAsync($"select * from npc where npc_id = {npc_id}");
-                    return singleNpc;
-                }
-            }
-            catch (Exception ex)
-            {
-                return null;
-            }
+
+            //var allNpcs = from npc in _gmBuddyDbContext.Npcs
+            //              where npc.account.account_id == account_id
+            //              select new NpcDto
+            //              {
+            //                  npc_id = npc.npc_id,
+            //                  account = npc.account.account_name,
+            //                  name = npc.name,
+            //                  stats = JsonSerializer.Deserialize<DnDStats>(npc.stats ?? "{}", JsonSerializerOptions.Default),
+            //                  description = npc.description,
+            //                  lineage = npc.lineage.lineage_name,
+            //                  occupation = npc.occupation.occupation_name,
+            //                  system = npc.game_system.game_system_name
+            //              };
+            return allNpcs;
         }
 
         //public async Task<NpcDto?> GetNpc(int npc_id)

@@ -10,19 +10,20 @@ namespace GM_Buddy.Server.Controllers
     public class NpcController : ControllerBase
     {
         private readonly ILogger<NpcController> _logger;
-       // private readonly INpcLogic _logic;
+        private readonly INpcLogic _logic;
 
-        public NpcController(ILogger<NpcController> logger)
+        public NpcController(ILogger<NpcController> logger, INpcLogic npcLogic)
         {
             _logger = logger;
-            //_logic = npcLogic;
+            _logic = npcLogic;
         }
 
         [Authorize]
         [HttpGet]
-        public string Get()
+        public async Task<dynamic?> Get()
         {
-            return "test";
+            var result = await _logic.GetNpc(1);
+            return result;
             
         }
 

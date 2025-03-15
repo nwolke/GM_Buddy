@@ -16,7 +16,7 @@ public class AuthController : ControllerBase
         {
             return BadRequest("Invalid client request");
         }
-        if (user.UserName == "johndoe" && user.Password == "def@123")
+        if (user.UserName == "johndoe" && user.Password == "12345")
         {
             var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("superSecretKey@345superSecretKey@345superSecretKey@345superSecretKey@345"));
             var signinCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
@@ -24,7 +24,7 @@ public class AuthController : ControllerBase
                 issuer: "https://localhost:5001",
                 audience: "https://localhost:5001",
                 claims: new List<Claim>(),
-                expires: DateTime.Now.AddMinutes(5),
+                expires: DateTime.Now.AddMinutes(1),
                 signingCredentials: signinCredentials
             );
             var tokenString = new JwtSecurityTokenHandler().WriteToken(tokeOptions);

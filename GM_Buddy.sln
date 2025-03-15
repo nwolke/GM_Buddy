@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.12.35527.113
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GM_Buddy.Server", "GM_Buddy.Server\GM_Buddy.Server.csproj", "{6A679473-74F4-4D4A-A82F-29EDDE37D28D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{73BDCA08-827B-476F-A6E3-1D70DA1574C7} = {73BDCA08-827B-476F-A6E3-1D70DA1574C7}
+	EndProjectSection
 EndProject
 Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "gm_buddy.client", "gm_buddy.client\gm_buddy.client.esproj", "{2086E110-266F-4621-9598-9428B4D4B482}"
 EndProject
@@ -12,6 +15,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GM_Buddy.Data", "GM_Buddy.Data\GM_Buddy.Data.csproj", "{73BDCA08-827B-476F-A6E3-1D70DA1574C7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GM_Buddy.Contracts", "GM_Buddy.Contracts\GM_Buddy.Contracts.csproj", "{F32FD7A9-6EB6-4C70-A1B3-595FFB5D205F}"
+EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{04727691-160D-4099-9CA5-45508B4B2328}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,6 +46,10 @@ Global
 		{F32FD7A9-6EB6-4C70-A1B3-595FFB5D205F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F32FD7A9-6EB6-4C70-A1B3-595FFB5D205F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F32FD7A9-6EB6-4C70-A1B3-595FFB5D205F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{04727691-160D-4099-9CA5-45508B4B2328}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{04727691-160D-4099-9CA5-45508B4B2328}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{04727691-160D-4099-9CA5-45508B4B2328}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{04727691-160D-4099-9CA5-45508B4B2328}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
