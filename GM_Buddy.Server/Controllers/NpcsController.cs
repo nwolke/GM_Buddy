@@ -22,7 +22,7 @@ public class NpcsController : Controller
     public async Task<IEnumerable<NpcDto>> Npcs(int account_id)
     {
         _logger.LogInformation("getting npcs");
-        var result = await _logic.GetNpcList(account_id);
+        IEnumerable<NpcDto> result = await _logic.GetNpcList(account_id);
         _logger.LogInformation($"retrieved {result.Count()} logs");
         return result;
     }

@@ -18,6 +18,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GM_Buddy.Contracts", "GM_Bu
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{04727691-160D-4099-9CA5-45508B4B2328}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C056A72B-6137-44F7-9307-55F628A65C90}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GM_Buddy.Authorization", "GM_Buddy.Authorization\GM_Buddy.Authorization.csproj", "{87F7A7CE-F532-4FF0-92CF-BE7A95D817A4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -50,6 +57,10 @@ Global
 		{04727691-160D-4099-9CA5-45508B4B2328}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{04727691-160D-4099-9CA5-45508B4B2328}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{04727691-160D-4099-9CA5-45508B4B2328}.Release|Any CPU.Build.0 = Release|Any CPU
+		{87F7A7CE-F532-4FF0-92CF-BE7A95D817A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{87F7A7CE-F532-4FF0-92CF-BE7A95D817A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{87F7A7CE-F532-4FF0-92CF-BE7A95D817A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{87F7A7CE-F532-4FF0-92CF-BE7A95D817A4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

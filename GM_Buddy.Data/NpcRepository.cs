@@ -1,20 +1,14 @@
-﻿using GM_Buddy.Contracts.DTOs;
-using GM_Buddy.Contracts.Interfaces;
-using System;
-using System.Collections.Generic;
+﻿using GM_Buddy.Contracts.Interfaces;
 using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Dapper;
 using GM_Buddy.Contracts.DbModels;
 
 namespace GM_Buddy.Data
 {
-    public class NpgRepository
+    public class NpcRepository
     {
         public required IDbConnector _dbConnector;
-        public NpgRepository(IDbConnector dbConnector)
+        public NpcRepository(IDbConnector dbConnector)
         {
             _dbConnector = dbConnector;
         }

@@ -7,6 +7,14 @@ services:
     networks:
       - postgres-network
 
+  gm_buddy.authorization:
+    image: ${DOCKER_REGISTRY-}gmbuddyauthorization
+    build:
+      context: .
+      dockerfile: GM_Buddy.Authorization/Dockerfile
+    networks:
+      - postgres-network
+
   gm_buddy.postgres:
     image: 'postgres:latest'
     ports:
