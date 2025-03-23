@@ -9,7 +9,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.3" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GM_Buddy.Business\GM_Buddy.Business.csproj" />
+    <ProjectReference Include="..\GM_Buddy.Contracts\GM_Buddy.Contracts.csproj" />
+    <ProjectReference Include="..\GM_Buddy.Data\GM_Buddy.Data.csproj" />
   </ItemGroup>
 
 </Project>
