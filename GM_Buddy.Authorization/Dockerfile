@@ -13,6 +13,9 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["GM_Buddy.Authorization/GM_Buddy.Authorization.csproj", "GM_Buddy.Authorization/"]
+COPY ["GM_Buddy.Business/GM_Buddy.Business.csproj", "GM_Buddy.Business/"]
+COPY ["GM_Buddy.Data/GM_Buddy.Data.csproj", "GM_Buddy.Data/"]
+COPY ["GM_Buddy.Contracts/GM_Buddy.Contracts.csproj", "GM_Buddy.Contracts/"]
 RUN dotnet restore "./GM_Buddy.Authorization/GM_Buddy.Authorization.csproj"
 COPY . .
 WORKDIR "/src/GM_Buddy.Authorization"

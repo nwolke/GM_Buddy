@@ -6,6 +6,7 @@ namespace GM_Buddy.Contracts.Interfaces
     {
         Task DeactiveSigningKey();
         Task<SigningKey?> GetActiveSigningKeyAsync();
+        Task<IEnumerable<SigningKey?>> GetAllActiveSigningKeyAsync();
         Task InsertSigningKey(SigningKey signingKey);
         Task<int> InsertNewUser(User user);
         Task<User?> GetUserByEmail(string email);

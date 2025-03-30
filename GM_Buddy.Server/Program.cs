@@ -2,33 +2,96 @@ using GM_Buddy.Business;
 using GM_Buddy.Contracts;
 using GM_Buddy.Contracts.Interfaces;
 using GM_Buddy.Data;
-using GM_Buddy.Server.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Net;
 using System.Text;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddAuthentication(opt =>
+builder.Services.ConfigureHttpClientDefaults(config =>
 {
-    opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-    .AddJwtBearer(options =>
+    config.ConfigurePrimaryHttpMessageHandler(() =>
     {
-        options.TokenValidationParameters = new TokenValidationParameters
+        var handler = new HttpClientHandler
         {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = "https://localhost:5001",
-            ValidAudience = "https://localhost:5001",
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("superSecretKey@345superSecretKey@345superSecretKey@345superSecretKey@345"))
+            AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+            ServerCertificateCustomValidationCallback = (sender, certificate, chain, errors) =>
+            {
+#if DEBUG
+                return true; // DEV
+#else
+                         if (string.IsNullOrEmpty (config.AppBaseInfo.CertThumbprint)) {
+                             return errors == SslPolicyErrors.None;
+                         } else {
+                             return errors == SslPolicyErrors.None &&
+                                 certificate.Thumbprint.Equals (config.AppBaseInfo.CertThumbprint, StringComparison.OrdinalIgnoreCase);
+                         }
+#endif
+            }
         };
+        return handler;
     });
+});
+
+// Add services to the container.
+builder.Services.AddAuthentication(options =>
+{
+    // This indicates the authentication scheme that will be used by default when the app attempts to authenticate a user.
+    // Which authentication handler to use for verifying who the user is by default.
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    // This indicates the authentication scheme that will be used by default when the app encounters an authentication challenge. 
+    // Which authentication handler to use for responding to failed authentication or authorization attempts.
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    // Define token validation parameters to ensure tokens are valid and trustworthy
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true, // Ensure the token was issued by a trusted issuer
+        ValidIssuer = builder.Configuration["Jwt:Issuer"], // The expected issuer value from configuration
+        ValidateAudience = false, // Disable audience validation (can be enabled as needed)
+        ValidateLifetime = true, // Ensure the token has not expired
+        ValidateIssuerSigningKey = true, // Ensure the token's signing key is valid
+                                         // Define a custom IssuerSigningKeyResolver to dynamically retrieve signing keys from the JWKS endpoint
+        IssuerSigningKeyResolver = (token, securityToken, kid, parameters) =>
+        {
+            //Console.WriteLine($"Received Token: {token}");
+            //Console.WriteLine($"Token Issuer: {securityToken.Issuer}");
+            //Console.WriteLine($"Key ID: {kid}");
+            //Console.WriteLine($"Validate Lifetime: {parameters.ValidateLifetime}");
+            // Initialize an HttpClient instance for fetching the JWKS
+            var httpClient = new HttpClient(new HttpClientHandler
+            {
+                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+                ServerCertificateCustomValidationCallback = (sender, certificate, chain, errors) =>
+                {
+#if DEBUG
+                    return true; // DEV
+#else
+                    if (string.IsNullOrEmpty(config.AppBaseInfo.CertThumbprint))
+                    {
+                        return errors == SslPolicyErrors.None;
+                    }
+                    else
+                    {
+                        return errors == SslPolicyErrors.None &&
+                               certificate.Thumbprint.Equals(config.AppBaseInfo.CertThumbprint, StringComparison.OrdinalIgnoreCase);
+                    }
+#endif
+                }
+            });
+            // Synchronously fetch the JWKS (JSON Web Key Set) from the specified URL
+            var jwks = httpClient.GetStringAsync($"{builder.Configuration["Jwt:Issuer"]}/.well-known/jwks.json").Result;
+            // Parse the fetched JWKS into a JsonWebKeySet object
+            var keys = new JsonWebKeySet(jwks);
+            // Return the collection of JsonWebKey objects for token validation
+            return keys.Keys;
+        }
+    };
+});
 builder.Services.AddAuthorization();
 builder.Services.AddControllers();
 
@@ -42,7 +105,7 @@ builder.Services.AddScoped<IAuthObjectResolver, AuthObjectResolver>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Server", Version = "v1" });
 
     // Add Security Definition
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -50,7 +113,8 @@ builder.Services.AddSwaggerGen(c =>
         In = ParameterLocation.Header,
         Description = "Please insert JWT with Bearer into field",
         Name = "Authorization",
-        Type = SecuritySchemeType.Http
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer"
     });
 
     // Add Security Requirement
@@ -63,7 +127,8 @@ builder.Services.AddSwaggerGen(c =>
        {
          Type = ReferenceType.SecurityScheme,
          Id = "Bearer"
-       }
+       },
+       Scheme = "oauth2"
       },
             new List<string>()
         }
@@ -79,7 +144,6 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddHostedService<KeyRotationService>();
 
 WebApplication app = builder.Build();
 

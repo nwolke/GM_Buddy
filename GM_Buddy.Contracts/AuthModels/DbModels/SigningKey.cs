@@ -3,11 +3,11 @@
     public record SigningKey
     {
         public int Id { get; set; }
-        public required string KeyId { get; set; }
-        public required string PrivateKey { get; set; }
-        public required string PublicKey { get; set; }
-        public bool IsActive { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime ExpiresAt { get; set; }
+        public required string Key_Id { get; set; }
+        public required string Private_Key { get; set; }
+        public required string Public_Key { get; set; }
+        public bool Is_Active { get; set; }
+        public DateTime Created_At { get; set; }
+        public DateTime Expires_At { get; set; }
     }
 }

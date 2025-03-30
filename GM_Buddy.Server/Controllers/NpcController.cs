@@ -1,4 +1,5 @@
 using GM_Buddy.Contracts.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GM_Buddy.Server.Controllers;
@@ -16,7 +17,7 @@ public class NpcController : ControllerBase
         _logic = npcLogic;
     }
 
-    //[Authorize]
+    [Authorize]
     [HttpGet]
     public async Task<dynamic?> Get()
     {
