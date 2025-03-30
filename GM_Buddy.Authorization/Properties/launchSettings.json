@@ -27,7 +27,9 @@
         "ASPNETCORE_HTTP_PORTS": "6001"
       },
       "publishAllPorts": true,
-      "useSSL": true
+      "useSSL": true,
+      "httpPort": 6000,
+      "sslPort": 6001
     }
   },
   "$schema": "https://json.schemastore.org/launchsettings.json"

@@ -2,7 +2,7 @@
 using GM_Buddy.Contracts.Interfaces;
 using System.Security.Cryptography;
 
-namespace GM_Buddy.Server.Services;
+namespace GM_Buddy.Authorization.Services;
 
 // This class defines a background service that periodically rotates cryptographic keys.
 public class KeyRotationService : BackgroundService
@@ -38,7 +38,7 @@ public class KeyRotationService : BackgroundService
         SigningKey? activeKey = await _authRepository.GetActiveSigningKeyAsync();
 
         // Check if there’s no active key or if the active key is about to expire.
-        if (activeKey == null || activeKey.ExpiresAt <= DateTime.UtcNow.AddDays(10))
+        if (activeKey == null || activeKey.Expires_At <= DateTime.UtcNow.AddDays(10))
         {
             // If there's an active key, mark it as inactive.
             if (activeKey != null)
@@ -61,12 +61,12 @@ public class KeyRotationService : BackgroundService
             // Create a new SigningKey entity with the new RSA key details.
             SigningKey newKey = new()
             {
-                KeyId = newKeyId,
-                PrivateKey = privateKey,
-                PublicKey = publicKey,
-                IsActive = true,
-                CreatedAt = DateTime.UtcNow,
-                ExpiresAt = DateTime.UtcNow.AddYears(1) // Set the new key to expire in one year.
+                Key_Id = newKeyId,
+                Private_Key = privateKey,
+                Public_Key = publicKey,
+                Is_Active = true,
+                Created_At = DateTime.UtcNow,
+                Expires_At = DateTime.UtcNow.AddYears(1) // Set the new key to expire in one year.
             };
 
             // Insert the new signing key into the database.

@@ -8,7 +8,7 @@ public class Client
     // Unique identifier for the client application.
     [Required]
     [MaxLength(100)]
-    public required string ClientId { get; set; }
+    public required string Client_Id { get; set; }
     // Name of the client application.
     [Required]
     [MaxLength(100)]
@@ -16,5 +16,5 @@ public class Client
     // URL for the client application.
     [Required]
     [MaxLength(200)]
-    public required string ClientURL { get; set; }
+    public required string Client_URL { get; set; }
 }

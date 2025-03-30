@@ -1,6 +1,6 @@
 ﻿namespace GM_Buddy.Contracts.AuthModels.DbModels;
 public record UserRole
 {
-    public int UserId { get; set; }
-    public int RoleId { get; set; }
+    public int User_Id { get; set; }
+    public int Role_Id { get; set; }
 }

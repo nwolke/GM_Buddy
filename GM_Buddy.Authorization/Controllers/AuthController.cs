@@ -8,7 +8,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 
-namespace GM_Buddy.Server.Controllers;
+namespace GM_Buddy.Authorization.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -42,7 +42,7 @@ public class AuthController : ControllerBase
         }
 
         // Query the Clients table to verify if the provided ClientId exists
-        var client = await _authRepository.GetClient(loginDto.ClientId);
+        Client? client = await _authRepository.GetClient(loginDto.ClientId);
         // If the client does not exist, return a 401 Unauthorized response
         if (client == null)
         {
@@ -51,7 +51,7 @@ public class AuthController : ControllerBase
 
         // Retrieve the user from the Users table by matching the email (case-insensitive)
         // Also include the UserRoles and associated Roles for later use
-        var user = await _authRepository.GetUserByEmail(loginDto.Email);
+        User? user = await _authRepository.GetUserByEmail(loginDto.Email);
 
         // If the user does not exist, return a 401 Unauthorized response
         if (user == null)
@@ -71,7 +71,7 @@ public class AuthController : ControllerBase
         }
 
         // At this point, authentication is successful. Proceed to generate a JWT token.
-        var token = GenerateJwtToken(user, client);
+        string token = await GenerateJwtToken(user, client);
 
         // Return the generated token in a 200 OK response
         return Ok(new { Token = token });
@@ -81,7 +81,7 @@ public class AuthController : ControllerBase
     private async Task<string> GenerateJwtToken(User user, Client client)
     {
         // Retrieve the active signing key from the SigningKeys table
-        var signingKey = await _authRepository.GetActiveSigningKeyAsync();
+        SigningKey? signingKey = await _authRepository.GetActiveSigningKeyAsync();
 
         // If no active signing key is found, throw an exception
         if (signingKey == null)
@@ -90,27 +90,27 @@ public class AuthController : ControllerBase
         }
 
         // Convert the Base64-encoded private key string back to a byte array
-        var privateKeyBytes = Convert.FromBase64String(signingKey.PrivateKey);
+        byte[] privateKeyBytes = Convert.FromBase64String(signingKey.Private_Key);
 
         // Create a new RSA instance for cryptographic operations
-        var rsa = RSA.Create();
+        RSA rsa = RSA.Create();
 
         // Import the RSA private key into the RSA instance
         rsa.ImportRSAPrivateKey(privateKeyBytes, out _);
 
         // Create a new RsaSecurityKey using the RSA instance
-        var rsaSecurityKey = new RsaSecurityKey(rsa)
+        RsaSecurityKey rsaSecurityKey = new(rsa)
         {
             // Assign the Key ID to link the JWT with the correct public key
-            KeyId = signingKey.KeyId
+            KeyId = signingKey.Key_Id
         };
 
         // Define the signing credentials using the RSA security key and specifying the algorithm
-        var creds = new SigningCredentials(rsaSecurityKey, SecurityAlgorithms.RsaSha256);
+        SigningCredentials creds = new(rsaSecurityKey, SecurityAlgorithms.RsaSha256);
 
         // Initialize a list of claims to include in the JWT
-        var claims = new List<Claim>
-            {
+        List<Claim> claims =
+        [
                 // Subject (sub) claim with the user's ID
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
 
@@ -118,37 +118,37 @@ public class AuthController : ControllerBase
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
 
                 // Name claim with the user's first name
-                new Claim(ClaimTypes.Name, user.FirstName),
+                new Claim(ClaimTypes.Name, user.First_Name),
 
                 // NameIdentifier claim with the user's email
                 new Claim(ClaimTypes.NameIdentifier, user.Email),
 
                 // Email claim with the user's email
                 new Claim(ClaimTypes.Email, user.Email)
-            };
+            ];
 
-        var roles = await _authRepository.GetAllUserRoles(user.Id);
+        IEnumerable<Role> roles = await _authRepository.GetAllUserRoles(user.Id);
 
         // Iterate through the user's roles and add each as a Role claim
-        foreach (var userRole in roles)
+        foreach (Role userRole in roles)
         {
             claims.Add(new Claim(ClaimTypes.Role, userRole.Name));
         }
 
         // Define the JWT token's properties, including issuer, audience, claims, expiration, and signing credentials
-        var tokenDescriptor = new JwtSecurityToken(
+        JwtSecurityToken tokenDescriptor = new(
             issuer: _configuration["Jwt:Issuer"], // The token issuer, typically your application's URL
-            audience: client.ClientURL, // The intended recipient of the token, typically the client's URL
+            audience: client.Client_URL, // The intended recipient of the token, typically the client's URL
             claims: claims, // The list of claims to include in the token
             expires: DateTime.UtcNow.AddHours(1), // Token expiration time set to 1 hour from now
             signingCredentials: creds // The credentials used to sign the token
         );
 
         // Create a JWT token handler to serialize the token
-        var tokenHandler = new JwtSecurityTokenHandler();
+        JwtSecurityTokenHandler tokenHandler = new();
 
         // Serialize the token to a string
-        var token = tokenHandler.WriteToken(tokenDescriptor);
+        string token = tokenHandler.WriteToken(tokenDescriptor);
 
         // Return the serialized JWT token
         return token;

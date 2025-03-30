@@ -22,8 +22,8 @@ public class AuthObjectResolver : IAuthObjectResolver
         var profile = new ProfileDTO
         {
             Id = user.Id,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
+            FirstName = user.First_Name,
+            LastName = user.Last_Name,
             Email = user.Email,
             Roles = roles.Select(r => r.Name).ToList()
         };
