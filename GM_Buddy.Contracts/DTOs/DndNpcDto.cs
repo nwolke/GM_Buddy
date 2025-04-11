@@ -14,5 +14,9 @@ public class DndNpcDto : BaseNpc
                 
             };
         }
+        else
+        {
+            return new DndNpcDto { };
+        }
     }
 }

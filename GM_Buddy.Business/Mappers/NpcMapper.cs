@@ -7,9 +7,9 @@ namespace GM_Buddy.Business.Mappers;
 
 public class NpcMapper
 {
-    public static BaseNpc MapToNpcDto(npc_type npc)
+    public static DndNpcDto MapToNpcDto(npc_type npc)
     {
-        return new BaseNpc
+        return new DndNpcDto
         {
             Npc_Id = npc.npc_id,
             UserId = npc.user_id,
