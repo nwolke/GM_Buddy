@@ -24,7 +24,7 @@ namespace GM_Buddy.Business
         }
 
 
-        public async Task<IEnumerable<NpcDto>> GetNpcList(int account_id)
+        public async Task<IEnumerable<npc_type>> GetNpcList(int user_id)
         {
             var connectionString = $"Host={_dbSettings.Host};Port={_dbSettings.Port};Database={_dbSettings.Database};Username={_dbSettings.Username};Password={_dbSettings.Password};Timeout=300;CommandTimeout=300;Pooling=false";
             Console.WriteLine(connectionString);
@@ -33,9 +33,9 @@ namespace GM_Buddy.Business
             SqlMapper.AddTypeMap(typeof(npc_type), DbType.Object);
             await using var connection = builder.Build();
             var con = connection.CreateConnection();
-            var allNpcs = await con.QueryAsync<npc_type>(sql: $"SELECT get_npcs({account_id})", commandType: CommandType.Text);
+            var allNpcs = await con.QueryAsync<npc_type>(sql: $"SELECT get_npcs({user_id})", commandType: CommandType.Text);
 
-            return allNpcs.Select(NpcMapper.MapToNpcDto);
+            return allNpcs;
         }
 
         public async Task<dynamic?> GetNpc(int npc_id)

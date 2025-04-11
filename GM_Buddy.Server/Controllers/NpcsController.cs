@@ -19,10 +19,10 @@ public class NpcsController : Controller
 
     [HttpGet]
     // [Authorize]
-    public async Task<IEnumerable<NpcDto>> Npcs(int account_id)
+    public async Task<IEnumerable<BaseNpc>> Npcs(int account_id)
     {
         _logger.LogInformation("getting npcs");
-        IEnumerable<NpcDto> result = await _logic.GetNpcList(account_id);
+        IEnumerable<BaseNpc> result = await _logic.GetNpcList(account_id);
         _logger.LogInformation($"retrieved {result.Count()} logs");
         return result;
     }

@@ -1,10 +1,10 @@
-﻿using GM_Buddy.Contracts.DTOs;
+﻿using GM_Buddy.Contracts.DbModels;
 
 namespace GM_Buddy.Contracts.Interfaces;
 
 public interface INpcLogic
 {
-    Task<IEnumerable<NpcDto>> GetNpcList(int account_id);
+    Task<IEnumerable<npc_type>> GetNpcList(int account_id);
     Task<dynamic?> GetNpc(int npc_id);
     //Task<bool> AddNewNpc(NpcDto newNpc);
     //Task<bool> UpdateNpc(NpcDto updatedNpc);
