@@ -1,5 +1,4 @@
-﻿using GM_Buddy.Contracts.DbModels;
-using GM_Buddy.Contracts.DTOs;
+﻿using GM_Buddy.Contracts.DTOs;
 
 namespace GM_Buddy.Contracts.Interfaces;
 

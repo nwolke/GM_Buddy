@@ -3,10 +3,8 @@ using GM_Buddy.Business;
 using GM_Buddy.Contracts;
 using GM_Buddy.Contracts.Interfaces;
 using GM_Buddy.Data;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 // Configure Authentication using JWT Bearer tokens
 //builder.Services.AddAuthentication(options =>
 //{

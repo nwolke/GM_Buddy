@@ -1,6 +1,6 @@
 ﻿using GM_Buddy.Contracts;
-using GM_Buddy.Contracts.DbModels;
 using GM_Buddy.Contracts.DTOs;
+using GM_Buddy.Contracts.Entities;
 using System.Text.Json;
 
 namespace GM_Buddy.Business.Mappers;

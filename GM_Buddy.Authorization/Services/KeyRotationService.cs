@@ -1,4 +1,4 @@
-﻿using GM_Buddy.Contracts.AuthModels.DbModels;
+﻿using GM_Buddy.Contracts.AuthModels.Entities;
 using GM_Buddy.Contracts.Interfaces;
 using System.Security.Cryptography;
 

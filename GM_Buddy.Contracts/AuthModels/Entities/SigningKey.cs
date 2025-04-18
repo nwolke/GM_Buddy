@@ -1,4 +1,4 @@
-﻿namespace GM_Buddy.Contracts.AuthModels.DbModels;
+﻿namespace GM_Buddy.Contracts.AuthModels.Entities;
 
 public record SigningKey
 {

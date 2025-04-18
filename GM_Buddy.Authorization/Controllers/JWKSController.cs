@@ -1,4 +1,5 @@
-﻿using GM_Buddy.Contracts.Interfaces;
+﻿using GM_Buddy.Contracts.AuthModels.Entities;
+using GM_Buddy.Contracts.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Cryptography;
@@ -9,7 +10,7 @@ namespace GM_Buddy.Authorization.Controllers;
 [ApiController]
 public class JWKSController : ControllerBase
 {
-    private IAuthRepository _authRepository;
+    private readonly IAuthRepository _authRepository;
 
     // Constructor that injects the ApplicationDbContext via dependency injection
     public JWKSController(IAuthRepository authRepository)
@@ -22,7 +23,7 @@ public class JWKSController : ControllerBase
     public IActionResult GetJWKS()
     {
         // Retrieve all active signing keys from the database
-        var keys = _authRepository.GetAllActiveSigningKeyAsync().Result;
+        IEnumerable<SigningKey?> keys = _authRepository.GetAllActiveSigningKeyAsync().Result;
 
         // Construct the JWKS (JSON Web Key Set) object
         var jwks = new
@@ -47,13 +48,13 @@ public class JWKSController : ControllerBase
     private byte[] GetModulus(string publicKey)
     {
         // Create a new RSA instance for cryptographic operations
-        var rsa = RSA.Create();
+        RSA rsa = RSA.Create();
 
         // Import the RSA public key from its Base64-encoded representation
         rsa.ImportRSAPublicKey(Convert.FromBase64String(publicKey), out _);
 
         // Export the RSA parameters without including the private key
-        var parameters = rsa.ExportParameters(false);
+        RSAParameters parameters = rsa.ExportParameters(false);
 
         // Dispose of the RSA instance to free up resources and prevent memory leaks
         rsa.Dispose();
@@ -71,13 +72,13 @@ public class JWKSController : ControllerBase
     private byte[] GetExponent(string publicKey)
     {
         // Create a new RSA instance for cryptographic operations
-        var rsa = RSA.Create();
+        RSA rsa = RSA.Create();
 
         // Import the RSA public key from its Base64-encoded representation
         rsa.ImportRSAPublicKey(Convert.FromBase64String(publicKey), out _);
 
         // Export the RSA parameters without including the private key
-        var parameters = rsa.ExportParameters(false);
+        RSAParameters parameters = rsa.ExportParameters(false);
 
         // Dispose of the RSA instance to free up resources and prevent memory leaks
         rsa.Dispose();

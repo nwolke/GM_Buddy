@@ -1,6 +1,7 @@
 ﻿using GM_Buddy.Business;
-using GM_Buddy.Contracts.AuthModels.DbModels;
-using GM_Buddy.Contracts.AuthModels.DTOs;
+using GM_Buddy.Contracts.AuthModels.Entities;
+using GM_Buddy.Contracts.AuthModels.Requests;
+using GM_Buddy.Contracts.AuthModels.Responses;
 using GM_Buddy.Contracts.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -21,7 +22,7 @@ public class UsersController : ControllerBase
     }
     // Registers a new user.
     [HttpPost("Register")]
-    public async Task<IActionResult> Register([FromBody] RegisterDTO registerDto)
+    public async Task<IActionResult> Register([FromBody] RegisterRequest registerDto)
     {
         // Validate the incoming model.
         if (!ModelState.IsValid)
@@ -71,13 +72,13 @@ public class UsersController : ControllerBase
         }
         string userEmail = emailClaim.Value;
         // Retrieve the user from the database, including roles.
-        ProfileDTO? profile = await _authObjectResolver.GetUserProfile(userEmail);
+        ProfileResponse? profile = await _authObjectResolver.GetUserProfile(userEmail);
         return profile == null ? NotFound(new { message = "User not found." }) : Ok(profile);
     }
     // Updates the authenticated user's profile.
     [HttpPut("UpdateProfile")]
     [Authorize]
-    public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileDTO updateDto)
+    public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequest updateDto)
     {
         // Validate the incoming model.
         if (!ModelState.IsValid)

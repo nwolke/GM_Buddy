@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Net;
-using System.Text;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -14,7 +13,7 @@ builder.Services.ConfigureHttpClientDefaults(config =>
 {
     config.ConfigurePrimaryHttpMessageHandler(() =>
     {
-        var handler = new HttpClientHandler
+        HttpClientHandler handler = new()
         {
             AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
             ServerCertificateCustomValidationCallback = (sender, certificate, chain, errors) =>
@@ -63,7 +62,7 @@ builder.Services.AddAuthentication(options =>
             //Console.WriteLine($"Key ID: {kid}");
             //Console.WriteLine($"Validate Lifetime: {parameters.ValidateLifetime}");
             // Initialize an HttpClient instance for fetching the JWKS
-            var httpClient = new HttpClient(new HttpClientHandler
+            HttpClient httpClient = new(new HttpClientHandler
             {
                 AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
                 ServerCertificateCustomValidationCallback = (sender, certificate, chain, errors) =>
@@ -84,9 +83,9 @@ builder.Services.AddAuthentication(options =>
                 }
             });
             // Synchronously fetch the JWKS (JSON Web Key Set) from the specified URL
-            var jwks = httpClient.GetStringAsync($"{builder.Configuration["Jwt:Issuer"]}/.well-known/jwks.json").Result;
+            string jwks = httpClient.GetStringAsync($"{builder.Configuration["Jwt:Issuer"]}/.well-known/jwks.json").Result;
             // Parse the fetched JWKS into a JsonWebKeySet object
-            var keys = new JsonWebKeySet(jwks);
+            JsonWebKeySet keys = new(jwks);
             // Return the collection of JsonWebKey objects for token validation
             return keys.Keys;
         }

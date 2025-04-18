@@ -1,7 +1,7 @@
-﻿using GM_Buddy.Contracts.Interfaces;
+﻿using Dapper;
+using GM_Buddy.Contracts.AuthModels.Entities;
+using GM_Buddy.Contracts.Interfaces;
 using System.Data;
-using Dapper;
-using GM_Buddy.Contracts.AuthModels.DbModels;
 
 namespace GM_Buddy.Data;
 
@@ -25,7 +25,7 @@ public class AuthRepository : IAuthRepository
     public async Task<IEnumerable<SigningKey?>> GetAllActiveSigningKeyAsync()
     {
         using IDbConnection dbConnection = _dbConnector.CreateConnection();
-        var signingKey = await dbConnection.QueryAsync<SigningKey>(
+        IEnumerable<SigningKey> signingKey = await dbConnection.QueryAsync<SigningKey>(
             "SELECT * FROM auth.signing_key WHERE is_active = true");
         return signingKey;
     }
@@ -33,7 +33,7 @@ public class AuthRepository : IAuthRepository
     public async Task DeactiveSigningKey()
     {
         using IDbConnection dbConnection = _dbConnector.CreateConnection();
-        await dbConnection.ExecuteAsync("UPDATE auth.signing_key SET is_active = false WHERE is_active = true");
+        _ = await dbConnection.ExecuteAsync("UPDATE auth.signing_key SET is_active = false WHERE is_active = true");
     }
 
     public async Task InsertSigningKey(SigningKey signingKey)
@@ -78,21 +78,21 @@ public class AuthRepository : IAuthRepository
     public async Task<Role?> GetRole(string name)
     {
         using IDbConnection dbConnection = _dbConnector.CreateConnection();
-        var sproc = $"SELECT id, name, description FROM auth.role WHERE name = '{name}' LIMIT 1";
+        string sproc = $"SELECT id, name, description FROM auth.role WHERE name = '{name}' LIMIT 1";
         return await dbConnection.QueryFirstOrDefaultAsync<Role>(sproc);
     }
 
     public async Task<IEnumerable<Role>> GetAllRoles()
     {
         using IDbConnection dbConnection = _dbConnector.CreateConnection();
-        var sproc = $"SELECT id, name, description FROM auth.role";
+        string sproc = $"SELECT id, name, description FROM auth.role";
         return await dbConnection.QueryAsync<Role>(sproc);
     }
 
     public async Task<IEnumerable<Role>> GetAllUserRoles(int userId)
     {
         using IDbConnection dbConnection = _dbConnector.CreateConnection();
-        var sproc = $"SELECT r.* FROM auth.user_role ur " + 
+        string sproc = $"SELECT r.* FROM auth.user_role ur " +
             $"JOIN auth.role r ON ur.role_id = r.id " +
             $"where ur.user_id = {userId}";
         return await dbConnection.QueryAsync<Role>(sproc);
@@ -105,9 +105,9 @@ public class AuthRepository : IAuthRepository
     public async Task InsertUserRole(int userId, int roleId)
     {
         using IDbConnection dbConnection = _dbConnector.CreateConnection();
-        var sproc = $"INSERT INTO auth.user_role (user_id, role_id) " +
+        string sproc = $"INSERT INTO auth.user_role (user_id, role_id) " +
             $"VALUES ({userId}, {roleId})";
-        await dbConnection.ExecuteAsync(sproc);
+        _ = await dbConnection.ExecuteAsync(sproc);
     }
 
     #endregion
@@ -117,7 +117,7 @@ public class AuthRepository : IAuthRepository
     public async Task<Client?> GetClient(string clientId)
     {
         using IDbConnection dbConnection = _dbConnector.CreateConnection();
-        var sproc = $"SELECT * FROM auth.client WHERE client_id = '{clientId}' LIMIT 1";
+        string sproc = $"SELECT * FROM auth.client WHERE client_id = '{clientId}' LIMIT 1";
         return await dbConnection.QueryFirstOrDefaultAsync<Client>(sproc);
     }
 

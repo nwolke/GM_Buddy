@@ -1,6 +1,6 @@
 ﻿using GM_Buddy.Business;
-using GM_Buddy.Contracts.AuthModels.DbModels;
-using GM_Buddy.Contracts.AuthModels.DTOs;
+using GM_Buddy.Contracts.AuthModels.Entities;
+using GM_Buddy.Contracts.AuthModels.Requests;
 using GM_Buddy.Contracts.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -32,7 +32,7 @@ public class AuthController : ControllerBase
 
     // Define the Login endpoint that responds to POST requests at 'api/Auth/Login'
     [HttpPost("Login")]
-    public async Task<IActionResult> Login([FromBody] LoginDTO loginDto)
+    public async Task<IActionResult> Login([FromBody] LoginRequest loginRequest)
     {
         // Validate the incoming model based on data annotations in LoginDTO
         if (!ModelState.IsValid)
@@ -42,7 +42,7 @@ public class AuthController : ControllerBase
         }
 
         // Query the Clients table to verify if the provided ClientId exists
-        Client? client = await _authRepository.GetClient(loginDto.ClientId);
+        Client? client = await _authRepository.GetClient(loginRequest.ClientId);
         // If the client does not exist, return a 401 Unauthorized response
         if (client == null)
         {
@@ -51,7 +51,7 @@ public class AuthController : ControllerBase
 
         // Retrieve the user from the Users table by matching the email (case-insensitive)
         // Also include the UserRoles and associated Roles for later use
-        User? user = await _authRepository.GetUserByEmail(loginDto.Email);
+        User? user = await _authRepository.GetUserByEmail(loginRequest.Email);
 
         // If the user does not exist, return a 401 Unauthorized response
         if (user == null)
@@ -61,7 +61,7 @@ public class AuthController : ControllerBase
         }
 
         // Verify the provided password against the stored hashed password using BCrypt
-        bool isPasswordValid = PasswordHasher.VerifyPassword(loginDto.Password, user.Password);
+        bool isPasswordValid = PasswordHasher.VerifyPassword(loginRequest.Password, user.Password);
 
         // If the password is invalid, return a 401 Unauthorized response
         if (!isPasswordValid)

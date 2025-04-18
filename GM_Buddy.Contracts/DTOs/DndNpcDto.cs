@@ -1,4 +1,4 @@
-﻿using GM_Buddy.Contracts.DbModels;
+﻿using GM_Buddy.Contracts.Entities;
 
 namespace GM_Buddy.Contracts.DTOs;
 public class DndNpcDto : BaseNpc
@@ -7,16 +7,11 @@ public class DndNpcDto : BaseNpc
 
     public static DndNpcDto CreateDnDNpc(npc_type npc)
     {
-        if(npc == null)
-        {
-            return new DndNpcDto
+        return npc == null
+            ? new DndNpcDto
             {
-                
-            };
-        }
-        else
-        {
-            return new DndNpcDto { };
-        }
+
+            }
+            : new DndNpcDto { };
     }
 }

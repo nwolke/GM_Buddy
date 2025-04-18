@@ -1,6 +1,6 @@
-﻿namespace GM_Buddy.Contracts.AuthModels.DTOs;
+﻿namespace GM_Buddy.Contracts.AuthModels.Responses;
 
-public class ProfileDTO
+public class ProfileResponse
 {
     public int Id { get; set; }
     public required string Email { get; set; }

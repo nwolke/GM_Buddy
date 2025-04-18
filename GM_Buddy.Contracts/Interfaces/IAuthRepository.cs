@@ -1,4 +1,4 @@
-﻿using GM_Buddy.Contracts.AuthModels.DbModels;
+﻿using GM_Buddy.Contracts.AuthModels.Entities;
 
 namespace GM_Buddy.Contracts.Interfaces;
 

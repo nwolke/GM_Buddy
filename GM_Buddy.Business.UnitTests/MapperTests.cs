@@ -1,6 +1,6 @@
 ﻿using GM_Buddy.Business.Mappers;
 using GM_Buddy.Contracts;
-using GM_Buddy.Contracts.DbModels;
+using GM_Buddy.Contracts.Entities;
 using System.Text.Json;
 
 namespace GM_Buddy.Business.UnitTests;
@@ -24,7 +24,7 @@ public class MapperTests
             gender = "dude"
         };
         // Act
-        var result = NpcMapper.MapToNpcDto(npc);
+        Contracts.DTOs.DndNpcDto result = NpcMapper.MapToNpcDto(npc);
         // Assert
         Assert.Equal(npc.npc_id, result.Npc_Id);
         Assert.Equal(npc.user_id, result.UserId);

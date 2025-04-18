@@ -1,4 +1,4 @@
-﻿namespace GM_Buddy.Contracts.DbModels;
+﻿namespace GM_Buddy.Contracts.Entities;
 
 public class Lineage
 {

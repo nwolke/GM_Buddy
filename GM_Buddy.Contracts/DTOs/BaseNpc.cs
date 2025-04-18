@@ -2,7 +2,7 @@
 
 public class BaseNpc
 {
-    public int Npc_Id { get; set; }
+    public int? Npc_Id { get; set; }
     public int UserId { get; set; }
     public string? Name { get; set; }
     public string? Lineage { get; set; }
