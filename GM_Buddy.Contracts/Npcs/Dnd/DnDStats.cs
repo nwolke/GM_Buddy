@@ -1,16 +1,16 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace GM_Buddy.Contracts;
+namespace GM_Buddy.Contracts.Npcs.Dnd;
 
 public class DnDStats
 {
     [JsonPropertyName("attributes")]
-    public required Attributes Attributes { get; set; }
+    public required DndAttributes Attributes { get; set; }
     [JsonPropertyName("languages")]
     public required string[] Languages { get; set; }
 }
 
-public class Attributes
+public class DndAttributes
 {
     [JsonPropertyName("strength")]
     public int Strength { get; set; }

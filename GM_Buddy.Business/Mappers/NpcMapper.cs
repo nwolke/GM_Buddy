@@ -1,18 +1,17 @@
-﻿using GM_Buddy.Contracts;
-using GM_Buddy.Contracts.DTOs;
-using GM_Buddy.Contracts.Entities;
+﻿using GM_Buddy.Contracts.DbEntities;
+using GM_Buddy.Contracts.Npcs.Dnd;
 using System.Text.Json;
 
 namespace GM_Buddy.Business.Mappers;
 
 public class NpcMapper
 {
-    public static DndNpcDto MapToNpcDto(npc_type npc)
+    public static DndNpc MapToNpcDto(Npc npc)
     {
-        return new DndNpcDto
+        return new DndNpc
         {
             Npc_Id = npc.npc_id,
-            UserId = npc.user_id,
+            User_Id = npc.user_id,
             Name = npc.name,
             Lineage = npc.lineage_name,
             Occupation = npc.occupation_name,

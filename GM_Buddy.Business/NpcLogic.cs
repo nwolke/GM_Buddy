@@ -1,115 +1,38 @@
-﻿using Dapper;
-using GM_Buddy.Business.Mappers;
-using GM_Buddy.Contracts;
-using GM_Buddy.Contracts.DTOs;
-using GM_Buddy.Contracts.Entities;
-using GM_Buddy.Contracts.Interfaces;
-using Microsoft.Extensions.Options;
-using Npgsql;
-using System.Data;
+﻿using GM_Buddy.Contracts.Interfaces;
+using GM_Buddy.Contracts.Npcs.Dnd;
+using Microsoft.Extensions.Logging;
 
 namespace GM_Buddy.Business;
 
 public class NpcLogic : INpcLogic
 {
-    public required IDbConnector _dbConnector;
-    private readonly DbSettings _dbSettings;
-    public NpcLogic(IDbConnector dbConnector, IOptions<DbSettings> dbSettings)
+    private readonly INpcRepository _npcRepository;
+    private readonly ILogger<NpcLogic> _logger;
+
+    public NpcLogic(INpcRepository npcRepository, ILogger<NpcLogic> logger)
     {
-        _dbConnector = dbConnector;
-        _dbSettings = dbSettings.Value;
+        _npcRepository = npcRepository;
+        _logger = logger;
     }
 
-
-    public async Task<IEnumerable<DndNpcDto>> GetNpcList(int user_id)
+    public async Task<IEnumerable<DndNpc>> GetNpcList(int user_id, CancellationToken ct = default)
     {
-        string connectionString = $"Host={_dbSettings.Host};Port={_dbSettings.Port};Database={_dbSettings.Database};Username={_dbSettings.Username};Password={_dbSettings.Password};Timeout=300;CommandTimeout=300;Pooling=false";
-        Console.WriteLine(connectionString);
-        NpgsqlDataSourceBuilder builder = new(connectionString);
-        _ = builder.MapComposite<npc_type>("npc_type");
-        SqlMapper.AddTypeMap(typeof(npc_type), DbType.Object);
-        await using NpgsqlDataSource connection = builder.Build();
-        NpgsqlConnection con = connection.CreateConnection();
-        IEnumerable<npc_type> allNpcs = await con.QueryAsync<npc_type>(sql: $"SELECT get_npcs({user_id})", commandType: CommandType.Text);
-
-        return allNpcs == null ? Enumerable.Empty<DndNpcDto>() : allNpcs.Select(NpcMapper.MapToNpcDto);
+        var allNpcs = await _npcRepository.GetNpcsByAccountId(user_id, ct);
+        return allNpcs?.Select(Mappers.NpcMapper.MapToNpcDto) ?? [];
     }
 
-    public async Task<dynamic?> GetNpc(int npc_id)
+    public async Task<DndNpc?> GetNpc(int npc_id, CancellationToken ct = default)
     {
         try
         {
-            using IDbConnection con = _dbConnector.CreateConnection();
-            dynamic singleNpc = await con.QueryFirstAsync($"select * from npc where npc_id = {npc_id}");
-            return singleNpc;
+            var npc = await _npcRepository.GetNpcById(npc_id, ct);
+            if (npc is null) return null;
+            return Mappers.NpcMapper.MapToNpcDto(npc);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            _logger.LogError(ex, "Error fetching NPC {NpcId}", npc_id);
             return null;
         }
     }
-
-    //public async Task<NpcDto?> GetNpc(int npc_id)
-    //{
-    //    var singleNpc = await (from npc in _gmBuddyDbContext.Npcs
-    //                     where npc.npc_id == npc_id
-    //                     select new NpcDto
-    //                     {
-    //                         npc_id = npc.npc_id,
-    //                         account = npc.account.account_name,
-    //                         name = npc.name,
-    //                         stats = JsonSerializer.Deserialize<DnDStats>(npc.stats ?? "{}", JsonSerializerOptions.Default),
-    //                         description = npc.description,
-    //                         lineage = npc.lineage.lineage_name,
-    //                         occupation = npc.occupation.occupation_name,
-    //                         system = npc.game_system.game_system_name
-    //                     }).FirstOrDefaultAsync();
-    //    return singleNpc;
-    //}
-
-    //public async Task<bool> AddNewNpc(NpcDto newNpc)
-    //{
-    //    _gmBuddyDbContext.Npcs.Add(new Npc
-    //    {
-    //        account = _gmBuddyDbContext.Accounts.Where(x => x.account_name == newNpc.account).First(),
-    //        name = newNpc.name,
-    //        description = newNpc.description,
-    //        stats = JsonSerializer.Serialize(newNpc.stats),
-    //        lineage = _gmBuddyDbContext.Lineages.Where(x => x.lineage_name.Equals(newNpc.lineage)).First(),
-    //        occupation = _gmBuddyDbContext.Occupations.Where(x => x.occupation_name.Equals(newNpc.occupation)).First(),
-    //        game_system = _gmBuddyDbContext.GameSystems.Where(x => x.game_system_name.Equals(newNpc.system)).First(),
-    //    });
-
-    //    var result = await _gmBuddyDbContext.SaveChangesAsync();
-    //    return result > 0;
-    //}
-
-    //public async Task<bool> UpdateNpc(NpcDto updatedNpc)
-    //{
-    //    var npcToUpdate = _gmBuddyDbContext.Npcs.FirstOrDefault(x => x.npc_id == updatedNpc.npc_id);
-    //    if (npcToUpdate != null)
-    //    {
-    //        npcToUpdate.description = updatedNpc.description;
-    //        npcToUpdate.name = updatedNpc.name;
-    //        npcToUpdate.stats = JsonSerializer.Serialize(updatedNpc.stats);
-    //        npcToUpdate.lineage = _gmBuddyDbContext.Lineages.First(x => x.lineage_name == updatedNpc.lineage);
-    //        npcToUpdate.occupation = _gmBuddyDbContext.Occupations.First(x => x.occupation_name == updatedNpc.occupation);
-
-    //        var result = await _gmBuddyDbContext.SaveChangesAsync();
-    //        return result > 0;
-    //    }
-    //    return false;
-    //}
-
-    //public async Task<bool> DeleteNpc(int npc_id)
-    //{
-    //    var toRemove = await _gmBuddyDbContext.Npcs.Where(x => x.npc_id == npc_id).FirstOrDefaultAsync();
-    //    if (toRemove != null)
-    //    {
-    //        _gmBuddyDbContext.Npcs.Remove(toRemove);
-    //        await _gmBuddyDbContext.SaveChangesAsync();
-    //        return true;
-    //    }    
-    //    return false;
-    //}
 }

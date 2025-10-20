@@ -1,9 +1,9 @@
-﻿namespace GM_Buddy.Contracts.DTOs;
+﻿namespace GM_Buddy.Contracts.Npcs;
 
 public class BaseNpc
 {
     public int? Npc_Id { get; set; }
-    public int UserId { get; set; }
+    public int User_Id { get; set; }
     public string? Name { get; set; }
     public string? Lineage { get; set; }
     public string? Occupation { get; set; }

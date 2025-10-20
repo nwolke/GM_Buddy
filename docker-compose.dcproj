@@ -16,5 +16,6 @@
     </None>
     <None Include="docker-compose.yml" />
     <None Include=".dockerignore" />
+    <None Include="psql GM_Buddy.Data\StoredProcedures\Get_Npcs.psql" />
   </ItemGroup>
 </Project>

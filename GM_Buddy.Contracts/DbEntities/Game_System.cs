@@ -1,4 +1,4 @@
-﻿namespace GM_Buddy.Contracts.Entities;
+﻿namespace GM_Buddy.Contracts.DbEntities;
 
 public class Game_System
 {

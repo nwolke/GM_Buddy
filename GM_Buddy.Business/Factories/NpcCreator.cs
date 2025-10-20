@@ -1,5 +1,10 @@
-﻿namespace GM_Buddy.Business.Factories;
-internal abstract class NpcCreator
+﻿using GM_Buddy.Contracts.Npcs;
+
+namespace GM_Buddy.Business.Factories;
+public abstract class NpcCreator
 {
-   //public
+   public abstract BaseNpc CreateNpc();
+    public abstract BaseNpc GenerateRandomNpc();
+
+
 }
