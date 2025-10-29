@@ -1,44 +1,94 @@
+version: '3.8'
+name: gm_buddy_application
+
 services:
-  gm_buddy.server:
+  gm_buddy_server:
     image: ${DOCKER_REGISTRY-}gmbuddyserver
+    container_name: gm_buddy_server
     build:
       context: .
       dockerfile: GM_Buddy.Server/Dockerfile
+    environment:
+      - DbSettings__Host=gm_buddy_postgres
+      - DbSettings__Port=5432
+      - DbSettings__Database=gm_buddy
+      - DbSettings__Username=postgres
+      - DbSettings__Password=12345
+    depends_on:
+      - gm_buddy_postgres
     networks:
       - postgres-network
 
-  gm_buddy.authorization:
+  gm_buddy_client:
+    image: node:18-alpine
+    container_name: gm_buddy_client
+    working_dir: /app
+    volumes:
+      - ./gm_buddy.client:/app
+      - /app/node_modules
+    command: sh -c "npm install --silent && npm run dev -- --host 0.0.0.0 --port 49505"
+    ports:
+      - 49505:49505
+    depends_on:
+      - gm_buddy_server
+    networks:
+      - postgres-network
+
+  gm_buddy_authorization:
     image: ${DOCKER_REGISTRY-}gmbuddyauthorization
+    container_name: gm_buddy_authorization
     build:
       context: .
       dockerfile: GM_Buddy.Authorization/Dockerfile
+    environment:
+      - DbSettings__Host=gm_buddy_postgres
+      - DbSettings__Port=5432
+      - DbSettings__Database=gm_buddy
+      - DbSettings__Username=postgres
+      - DbSettings__Password=12345
+    depends_on:
+      - gm_buddy_postgres
     networks:
       - postgres-network
 
-  gm_buddy.postgres:
+  gm_buddy_postgres:
     image: 'postgres:latest'
+    container_name: gm_buddy_postgres
     ports:
       - 15432:5432
     env_file:
       - .env
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=12345
+      - POSTGRES_DB=gm_buddy
     networks:
       - postgres-network
     volumes:
-      - ${PWD}/db-data/:/var/lib/postgresql/data/
+      - ${PWD}/db-data:/var/lib/postgresql
       - ${PWD}/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-gm_buddy}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
   
-  pgadmin:
+  gm_buddy_pgadmin:
     image: dpage/pgadmin4
+    container_name: gm_buddy_pgadmin
     ports:
       - 15435:80
     env_file:
       - .env
     depends_on:
-      - gm_buddy.postgres
+      - gm_buddy_postgres
     networks:
       - postgres-network
     volumes:
       - ${PWD}/pgadmin-data/:/var/lib/pgadmin/
+      - ${PWD}/servers.json:/pgadmin4/servers.json
 
 networks: 
   postgres-network:

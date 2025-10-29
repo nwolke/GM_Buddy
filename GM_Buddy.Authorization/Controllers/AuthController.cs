@@ -20,6 +20,7 @@ public class AuthController : ControllerBase
 
     // Database context for interacting with the database
     private readonly IAuthRepository _authRepository;
+    private readonly PollyRetry _pollyRetry = new();
 
     // Constructor that injects IConfiguration and ApplicationDbContext via dependency injection
     public AuthController(IConfiguration configuration, IAuthRepository authRepository)
@@ -81,7 +82,7 @@ public class AuthController : ControllerBase
     private async Task<string> GenerateJwtToken(User user, Client client)
     {
         // Retrieve the active signing key from the SigningKeys table
-        SigningKey? signingKey = await _authRepository.GetActiveSigningKeyAsync();
+        SigningKey? signingKey = await _pollyRetry._retryPolicy.ExecuteAsync(() => _authRepository.GetActiveSigningKeyAsync());
 
         // If no active signing key is found, throw an exception
         if (signingKey == null)

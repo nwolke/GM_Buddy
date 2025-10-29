@@ -14,7 +14,7 @@ public class MapperTests
     //    var npc = new Npc
     //    {
     //        npc_id = 1,
-    //        user_id = 1,
+    //        account_id = 1,
     //        name = "Test NPC",
     //        lineage_name = "Human",
     //        occupation_name = "Warrior",
@@ -27,7 +27,7 @@ public class MapperTests
     //    Contracts.DTOs.DndNpcDto result = NpcMapper.MapToNpcDto(npc);
     //    // Assert
     //    Assert.Equal(npc.npc_id, result.Npc_Id);
-    //    Assert.Equal(npc.user_id, result.UserId);
+    //    Assert.Equal(npc.account_id, result.UserId);
     //    Assert.Equal(npc.name, result.Name);
     //    Assert.Equal(npc.lineage_name, result.Lineage);
     //    Assert.Equal(npc.occupation_name, result.Occupation);

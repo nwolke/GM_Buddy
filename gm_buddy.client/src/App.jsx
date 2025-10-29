@@ -1,34 +1,33 @@
 import { useState } from 'react';
 import './App.css';
+import './theme.css';
+import Header from './components/Header';
 import NpcGrid from './NpcGrid';
 import Auth from './Auth';
 import { NavContext } from './contexts/contexts.js';
 
 function App() {
     const [isActive, setIsActive] = useState('home');
-    const changeActive = (p) => {
-        setIsActive(p);
-    }
+    const changeActive = (p) => setIsActive(p);
     NavContext.changePage = changeActive;
     let currentPage;
     switch (isActive) {
-        case 'grid':
-            currentPage = <NpcGrid></NpcGrid>;
-            break;
-        case 'login':
-            currentPage = <Auth></Auth>;
-            break;
-        case 'home':
-            currentPage = <div>
-                <div>Hello</div>
-                <button onClick={() => changeActive('grid')}>Go To Grid</button>
-                <button onClick={() => changeActive('login')}>Go To Login</button>
-            </div>
-            break;
+        case 'grid': currentPage = <NpcGrid />; break;
+        case 'login': currentPage = <Auth />; break;
+        default:
+            currentPage = (
+                <div className="container">
+                    <p>Welcome, GM — choose a panel to begin.</p>
+                    <div style={{display:'flex', gap:'.5rem', marginTop:'1rem'}}>
+                        <button className="btn primary" onClick={() => changeActive('grid')}>NPCs</button>
+                        <button className="btn" onClick={() => changeActive('login')}>Login</button>
+                    </div>
+                </div>
+            );
     }
     return (
         <div>
-            <h1 id="tableLabel">GM Buddy</h1>
+            <Header />
             <NavContext.Provider value={changeActive}>
                 {currentPage}
             </NavContext.Provider>

@@ -21,6 +21,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C056A72B-6137-44F7-9307-55F628A65C90}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		init.sql = init.sql
+		servers.json = servers.json
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GM_Buddy.Authorization", "GM_Buddy.Authorization\GM_Buddy.Authorization.csproj", "{87F7A7CE-F532-4FF0-92CF-BE7A95D817A4}"
@@ -70,5 +72,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {37260959-B1AE-4B2E-9E76-F057E071A96B}
 	EndGlobalSection
 EndGlobal

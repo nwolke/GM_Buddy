@@ -121,7 +121,7 @@ public class AuthRepository : IAuthRepository
         const string sql = @"SELECT r.id, r.name, r.description
                              FROM auth.user_role ur
                              JOIN auth.role r ON ur.role_id = r.id
-                             WHERE ur.user_id = @UserId";
+                             WHERE ur.account_id = @UserId";
         return await dbConnection.QueryAsync<Role>(sql, new { UserId = userId });
     }
     #endregion
@@ -130,7 +130,7 @@ public class AuthRepository : IAuthRepository
     public async Task InsertUserRole(int userId, int roleId)
     {
         using IDbConnection dbConnection = _dbConnector.CreateConnection();
-        const string sql = "INSERT INTO auth.user_role (user_id, role_id) VALUES (@UserId, @RoleId)";
+        const string sql = "INSERT INTO auth.user_role (account_id, role_id) VALUES (@UserId, @RoleId)";
         _ = await dbConnection.ExecuteAsync(sql, new { UserId = userId, RoleId = roleId });
     }
     #endregion

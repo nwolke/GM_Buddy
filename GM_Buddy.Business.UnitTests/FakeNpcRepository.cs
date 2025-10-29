@@ -23,7 +23,7 @@ internal class FakeNpcRepository : INpcRepository
 
     public Task<IEnumerable<Npc>> GetNpcsByAccountId(int accountId, CancellationToken ct = default)
     {
-        var result = _npcs.Where(n => n.user_id == accountId);
+        var result = _npcs.Where(n => n.account_id == accountId);
         return Task.FromResult(result.AsEnumerable());
     }
 
@@ -42,8 +42,8 @@ public class NpcLogicTests
         // Arrange
         var npcs = new[]
         {
-            new Npc { npc_id = 1, user_id = 10, name = "A", stats = "{}", description = "d", gender = "m", game_system_id = 1, lineage_id =1, occupation_id=1 },
-            new Npc { npc_id = 2, user_id = 10, name = "B", stats = "{}", description = "d2", gender = "f", game_system_id = 1, lineage_id =1, occupation_id=1 }
+            new Npc { npc_id = 1, account_id = 10, game_system_id = 1, stats = string.Empty},
+            new Npc { npc_id = 2, account_id = 10, game_system_id = 1, stats = string.Empty }
         };
         var repo = new FakeNpcRepository(npcs);
         var logic = new NpcLogic(repo, NullLogger<NpcLogic>.Instance);
@@ -55,8 +55,6 @@ public class NpcLogicTests
         Assert.NotNull(result);
         var list = result.ToList();
         Assert.Equal(2, list.Count);
-        Assert.Contains(list, x => x.Name == "A");
-        Assert.Contains(list, x => x.Name == "B");
     }
 
     [Fact]
@@ -77,7 +75,7 @@ public class NpcLogicTests
     public async Task GetNpc_ReturnsMappedNpc_WhenFound()
     {
         // Arrange
-        var npc = new Npc { npc_id = 42, user_id = 5, name = "Found", stats = "{}", description = "ok", gender = "m", game_system_id = 1, lineage_id =1, occupation_id=1 };
+        var npc = new Npc { npc_id = 42, account_id = 5, game_system_id = 1, stats = string.Empty };
         var repo = new FakeNpcRepository(new[] { npc });
         var logic = new NpcLogic(repo, NullLogger<NpcLogic>.Instance);
 
@@ -87,6 +85,5 @@ public class NpcLogicTests
         // Assert
         Assert.NotNull(result);
         Assert.Equal(42, result!.Npc_Id);
-        Assert.Equal("Found", result.Name);
     }
 }

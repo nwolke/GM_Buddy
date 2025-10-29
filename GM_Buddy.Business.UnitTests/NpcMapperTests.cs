@@ -30,17 +30,10 @@ public class NpcMapperTests
         var npc = new Npc
         {
             npc_id = 1,
-            user_id = 2,
-            name = "Test NPC",
-            lineage_name = "Human",
-            occupation_name = "Warrior",
+            account_id = 2,
             game_system_name = "D&D",
             stats = statsJson,
-            description = "desc",
-            gender = "male",
-            game_system_id = 1,
-            lineage_id = 1,
-            occupation_id = 1
+            game_system_id = 1
         };
 
         // Act
@@ -49,13 +42,7 @@ public class NpcMapperTests
         // Assert
         Assert.NotNull(dto);
         Assert.Equal(npc.npc_id, dto.Npc_Id);
-        Assert.Equal(npc.user_id, dto.User_Id);
-        Assert.Equal("Test NPC", dto.Name);
-        Assert.Equal("Human", dto.Lineage);
-        Assert.Equal("Warrior", dto.Occupation);
-        Assert.Equal("D&D", dto.System);
-        Assert.Equal("desc", dto.Description);
-        Assert.Equal("male", dto.Gender);
+        Assert.Equal(npc.account_id, dto.Account_Id);
         Assert.NotNull(dto.Stats);
         Assert.Equal(14, dto.Stats.Attributes.Constitution);
         Assert.Single(dto.Stats.Languages);
@@ -69,14 +56,9 @@ public class NpcMapperTests
         var npc = new Npc
         {
             npc_id = 3,
-            user_id = 4,
-            name = "Broken Stats NPC",
+            account_id = 4,
             stats = "not a json",
-            description = "desc",
-            gender = "other",
-            game_system_id = 1,
-            lineage_id = 1,
-            occupation_id = 1
+            game_system_id = 1
         };
 
         // Act

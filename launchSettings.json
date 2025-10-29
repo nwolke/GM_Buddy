@@ -4,8 +4,8 @@
       "commandName": "DockerCompose",
       "commandVersion": "1.0",
       "serviceActions": {
-        "gm_buddy.server": "StartDebugging",
-        "gm_buddy.authorization": "StartDebugging"
+        "gm_buddy_server": "StartDebugging",
+        "gm_buddy_authorization": "StartDebugging"
       }
     }
   }

@@ -17,9 +17,7 @@ public abstract class BaseNpcTemplate
     {
         return new BaseNpc
         {
-            Npc_Id = npc_id,
-            Name = name,
-            Description = description
+            Npc_Id = npc_id
         };
     }
 }

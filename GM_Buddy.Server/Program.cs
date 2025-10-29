@@ -99,6 +99,7 @@ builder.Services.AddTransient<IDbConnector, DbConnector>();
 builder.Services.AddScoped<INpcLogic, NpcLogic>();
 builder.Services.AddSingleton<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IAuthObjectResolver, AuthObjectResolver>();
+builder.Services.AddScoped<INpcRepository, NpcRepository>();
 
 
 builder.Services.AddEndpointsApiExplorer();
@@ -133,39 +134,47 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
+
+// CORS Configuration - allow both HTTP and HTTPS for local dev
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowSpecificOrigins", builder =>
+    options.AddPolicy("AllowSpecificOrigins", policy =>
     {
-        _ = builder.WithOrigins("https://localhost:49505") // Add your React app's URL
-        .AllowAnyHeader()
-        .AllowAnyMethod();
+        policy.WithOrigins(
+                "https://localhost:49505",  // HTTPS Vite dev server
+                "http://localhost:49505"    // HTTP Vite dev server (fallback)
+              )
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials(); // Allow credentials (cookies, auth headers)
     });
 });
 
-
 WebApplication app = builder.Build();
 
-app.UseAuthentication();
-app.UseAuthorization();
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    _ = app.UseSwagger();
-    _ = app.UseSwaggerUI();
-    _ = app.UseExceptionHandler("/error-development");
+    app.UseSwagger();
+    app.UseSwaggerUI();
+    app.UseExceptionHandler("/error-development");
 }
 else
 {
-    _ = app.UseExceptionHandler("/error");
+    app.UseExceptionHandler("/error");
 }
 
 app.UseHttpsRedirection();
 
+// CORS must come BEFORE Authentication/Authorization and MapControllers
 app.UseCors("AllowSpecificOrigins");
+
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapControllers();
 
 app.Run();

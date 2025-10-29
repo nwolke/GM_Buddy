@@ -10,6 +10,7 @@ public class KeyRotationService : BackgroundService
     // Sets how frequently keys should be rotated; here it’s every 7 days.
     private readonly TimeSpan _rotationInterval = TimeSpan.FromDays(7);
     private readonly IAuthRepository _authRepository;
+    private readonly PollyRetry _pollyRetry = new();
 
     // Constructor that accepts a service provider for dependency injection.
     public KeyRotationService(IAuthRepository authRepository)
@@ -35,7 +36,7 @@ public class KeyRotationService : BackgroundService
     private async Task RotateKeysAsync()
     {
         // Query the database for the currently active signing key.
-        SigningKey? activeKey = await _authRepository.GetActiveSigningKeyAsync();
+        SigningKey? activeKey = await _pollyRetry._retryPolicy.ExecuteAsync(()=> _authRepository.GetActiveSigningKeyAsync());
 
         // Check if there’s no active key or if the active key is about to expire.
         if (activeKey == null || activeKey.Expires_At <= DateTime.UtcNow.AddDays(10))

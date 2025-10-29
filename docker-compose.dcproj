@@ -7,15 +7,19 @@
     <ProjectGuid>04727691-160d-4099-9ca5-45508b4b2328</ProjectGuid>
     <DockerLaunchAction>LaunchBrowser</DockerLaunchAction>
     <DockerServiceUrl>{Scheme}://{ServiceHost}:{ServicePort}/swagger</DockerServiceUrl>
-    <DockerServiceName>gm_buddy.server</DockerServiceName>
+    <DockerServiceName>gm_buddy_server</DockerServiceName>
   </PropertyGroup>
   <ItemGroup>
     <None Include=".env" />
+    <None Include=".env.example" />
+    <None Include="DEV_SETUP.md" />
     <None Include="docker-compose.override.yml">
       <DependentUpon>docker-compose.yml</DependentUpon>
     </None>
     <None Include="docker-compose.yml" />
     <None Include=".dockerignore" />
+    <None Include="MIGRATION_ENV.md" />
     <None Include="psql GM_Buddy.Data\StoredProcedures\Get_Npcs.psql" />
+    <None Include="README.md" />
   </ItemGroup>
 </Project>

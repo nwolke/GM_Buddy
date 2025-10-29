@@ -20,16 +20,11 @@ public class NpcRepository : INpcRepository
         using IDbConnection dbConnection = _dbConnector.CreateConnection();
         const string sql = @"
             SELECT n.npc_id,
-                   n.user_id,
+                   n.account_id,
                    n.game_system_id,
-                   n.lineage_id,
-                   n.occupation_id,
-                   n.name,
-                   n.stats,
-                   n.description,
-                   n.gender
+                   n.stats
             FROM npc AS n
-            WHERE n.user_id = @AccountId
+            WHERE n.account_id = @AccountId
             ORDER BY n.npc_id";
         var cmd = new CommandDefinition(sql, new { AccountId = account_id }, cancellationToken: ct);
         return await dbConnection.QueryAsync<Npc>(cmd);
@@ -40,14 +35,9 @@ public class NpcRepository : INpcRepository
         using IDbConnection dbConnection = _dbConnector.CreateConnection();
         const string sql = @"
             SELECT n.npc_id,
-                   n.user_id,
+                   n.account_id,
                    n.game_system_id,
-                   n.lineage_id,
-                   n.occupation_id,
-                   n.name,
-                   n.stats,
-                   n.description,
-                   n.gender
+                   n.stats
             FROM npc AS n
             WHERE n.npc_id = @NpcId";
         var cmd = new CommandDefinition(sql, new { NpcId = npc_id }, cancellationToken: ct);

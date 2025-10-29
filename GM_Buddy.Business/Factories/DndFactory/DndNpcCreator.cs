@@ -31,7 +31,6 @@ public class DndNpcCreator : NpcCreator
                 },
                 Languages = ["Common"]
             },
-            Description = "A generic D&D NPC",
         };
         return newNpc;
     }

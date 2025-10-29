@@ -140,7 +140,6 @@ _TeamCity*
 
 # AxoCover is a Code Coverage Tool
 .axoCover/*
-!.axoCover/settings.json
 
 # Coverlet is a free, cross platform Code Coverage Tool
 coverage*.json
@@ -396,4 +395,10 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# Environment files with secrets
+.env
+
+# Docker volume data directories (PostgreSQL data, pgAdmin config)
+/db-data
 /pgadmin-data

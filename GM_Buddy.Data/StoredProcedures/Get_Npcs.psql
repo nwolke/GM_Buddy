@@ -12,10 +12,10 @@ CREATE OR REPLACE FUNCTION public.get_npcs(
 
 AS $BODY$
 select n.npc_id,
-n.user_id,n.game_system_id,n.lineage_id,n.occupation_id,
+n.account_id,n.game_system_id,n.lineage_id,n.occupation_id,
             n.name, n.stats ,n.description,n.gender
             from npc as n
-            where n.id = user_id 
+            where n.id = account_id 
                 order by n.npc_id
 $BODY$;
 

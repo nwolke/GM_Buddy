@@ -25,14 +25,9 @@ public class NpcMapper
         return new DndNpc
         {
             Npc_Id = npc.npc_id,
-            User_Id = npc.user_id,
-            Name = npc.name,
-            Lineage = npc.lineage_name,
-            Occupation = npc.occupation_name,
+            Account_Id = npc.account_id,
             System = npc.game_system_name,
-            Stats = stats,
-            Description = npc.description,
-            Gender = npc.gender
+            Stats = stats
         };
     }
 }
