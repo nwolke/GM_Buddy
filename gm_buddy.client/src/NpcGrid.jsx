@@ -27,41 +27,58 @@ function NpcGrid() {
     }
 
     return (
-        <div className="container">
-            <div style={{display:'flex', gap:'0.5rem', marginBottom:'1rem'}}>
+        <div className="page-content">
+            <h2 className="page-title">NPC Collection</h2>
+
+            {/* Action Buttons */}
+            <div className="page-actions">
                 <button className="btn" onClick={() => changePage('home')}>Go Home</button>
-                <button className="btn" onClick={() => setNpcData(undefined)}>Refresh</button>
+                <button className="btn" onClick={() => get_test_npcs()}>Refresh</button>
             </div>
 
             {/* Cards for mobile */}
             <div className="cards-only">
-                {npcData ? npcData.map((n, i) => <NpcCard key={i} npc={n} />) : <div>Loading...</div>}
+                {npcData ? npcData.map((n, i) => <NpcCard key={n.Npc_Id ?? i} npc={n} />) : <div>Loading...</div>}
             </div>
 
             {/* Table for desktop */}
             <div className="table-only">
-                <table className="npc-table">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Lineage</th>
-                            <th>Occupation</th>
-                            <th>Strength</th>
-                            <th>Description</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {npcData && npcData.map((data, i) => (
-                            <tr key={i}>
-                                <td>{data.name}</td>
-                                <td>{data.lineage}</td>
-                                <td>{data.occupation}</td>
-                                <td>{data.stats?.attributes?.strength ?? '-'}</td>
-                                <td>{data.description}</td>
+                <div className="table-wrapper">
+                    <table className="npc-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Lineage</th>
+                                <th>Occupation</th>
+                                <th>STR</th>
+                                <th>DEX</th>
+                                <th>CON</th>
+                                <th>INT</th>
+                                <th>WIS</th>
+                                <th>CHA</th>
+                                <th>System</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {npcData && npcData.map((npc) => (
+                                <tr key={npc.npc_id}>
+                                    <td>{npc.npc_id ?? '-'}</td>
+                                    <td>{npc.stats?.name ?? '-'}</td>
+                                    <td>{npc.stats?.lineage ?? '-'}</td>
+                                    <td>{npc.stats?.occupation ?? '-'}</td>
+                                    <td>{npc.stats?.attributes?.strength ?? '-'}</td>
+                                    <td>{npc.stats?.attributes?.dexterity ?? '-'}</td>
+                                    <td>{npc.stats?.attributes?.constitution ?? '-'}</td>
+                                    <td>{npc.stats?.attributes?.intelligence ?? '-'}</td>
+                                    <td>{npc.stats?.attributes?.wisdom ?? '-'}</td>
+                                    <td>{npc.stats?.attributes?.charisma ?? '-'}</td>
+                                    <td>{npc.system ?? '-'}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     );

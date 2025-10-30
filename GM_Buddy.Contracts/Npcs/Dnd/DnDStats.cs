@@ -4,8 +4,24 @@ namespace GM_Buddy.Contracts.Npcs.Dnd;
 
 public class DnDStats
 {
+    [JsonPropertyName("name")]
+    public string? Name { get; set; }
+    
+    [JsonPropertyName("lineage")]
+    public string? Lineage { get; set; }
+    
+    [JsonPropertyName("occupation")]
+    public string? Occupation { get; set; }
+    
+    [JsonPropertyName("description")]
+    public string? Description { get; set; }
+    
+    [JsonPropertyName("gender")]
+    public string? Gender { get; set; }
+    
     [JsonPropertyName("attributes")]
     public required DndAttributes Attributes { get; set; }
+    
     [JsonPropertyName("languages")]
     public required string[] Languages { get; set; }
 }

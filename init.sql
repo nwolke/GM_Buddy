@@ -117,13 +117,18 @@ VALUES
 ON CONFLICT (game_system_name) DO NOTHING;
 
 -- Insert sample NPC(s)
--- Note: the JSON below follows the shape of DnDStats (attributes + languages)
+-- Note: the JSON below follows the shape of DnDStats (name, lineage, occupation, description, gender, attributes, languages)
 INSERT INTO public.npc (account_id, game_system_id, stats)
 VALUES
   (
     1,
     (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
     jsonb_build_object(
+      'name', 'Roth the Wanderer',
+      'lineage', 'Human',
+      'occupation', 'Sellsword',
+      'description', 'A grizzled sellsword who travels between towns, taking contracts from the highest bidder.',
+      'gender', 'Male',
       'attributes', jsonb_build_object(
         'strength', 14,
         'dexterity', 12,
@@ -133,6 +138,26 @@ VALUES
         'charisma', 9
       ),
       'languages', jsonb_build_array('Common', 'Thieves'' Cant')
+    )
+  ),
+  (
+    1,
+    (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
+    jsonb_build_object(
+      'name', 'Elara Moonwhisper',
+      'lineage', 'Elf',
+      'occupation', 'Wizard',
+      'description', 'A scholarly mage who studies ancient arcane texts in her tower.',
+      'gender', 'Female',
+      'attributes', jsonb_build_object(
+        'strength', 8,
+        'dexterity', 14,
+        'constitution', 10,
+        'intelligence', 17,
+        'wisdom', 13,
+        'charisma', 12
+      ),
+      'languages', jsonb_build_array('Common', 'Elvish', 'Draconic')
     )
   )
 ON CONFLICT DO NOTHING;
@@ -144,6 +169,11 @@ VALUES
   1,
   (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
   jsonb_build_object(
+    'name', 'Roth the Wanderer',
+    'lineage', 'Human',
+    'occupation', 'Sellsword',
+    'description', 'A grizzled sellsword who travels between towns.',
+    'gender', 'Male',
     'attributes', jsonb_build_object(
       'strength', 14,
       'dexterity', 12,

@@ -51,6 +51,17 @@ body, #root {
   margin: 0;
 }
 
+/* header logo */
+.header-logo {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(30,27,24,0.12);
+  background: linear-gradient(135deg, rgba(207,168,74,0.08), rgba(30,70,47,0.04));
+  padding: 4px;
+}
+
 /* rune/glyph accent */
 .brand-glyph {
   width: 48px;
@@ -63,11 +74,54 @@ body, #root {
   border: 1px solid rgba(0,0,0,0.04);
 }
 
-/* page container */
+/* App-wide centered container */
+.app-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+/* Shared page content styling */
+.page-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.page-title {
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  color: var(--ink);
+  font-size: 2rem;
+  letter-spacing: .08em;
+  margin: 0 0 1.5rem 0;
+  text-align: center;
+}
+
+.page-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  justify-content: center;
+}
+
+/* page container (legacy - kept for compatibility) */
 .container {
   max-width: 1100px;
   margin: 1.5rem auto;
   padding: 1rem 1.25rem;
+}
+
+/* Table Wrapper for centering */
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  background: linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.45));
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1rem;
+  border: 1px solid rgba(0,0,0,0.04);
 }
 
 /* buttons */
@@ -91,7 +145,6 @@ body, #root {
 .npc-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 1rem;
   background: transparent;
 }
 .npc-table thead th {
@@ -117,6 +170,8 @@ body, #root {
   margin-bottom: 1rem;
   border: 1px solid rgba(0,0,0,0.04);
   transition: transform .12s ease, box-shadow .12s ease;
+  width: 100%;
+  max-width: 500px;
 }
 .npc-card:hover { transform: translateY(-6px); box-shadow: 0 14px 30px rgba(30,27,24,0.18); }
 
@@ -156,9 +211,26 @@ body, #root {
 /* responsive: show table on wide screens, cards on narrow */
 @media (min-width: 900px) {
   .cards-only { display: none; }
-  .table-only { display: table; }
+  .table-only { display: block; width: 100%; }
 }
 @media (max-width: 899px) {
-  .cards-only { display: block; }
+  .cards-only { display: flex; flex-direction: column; align-items: center; width: 100%; }
   .table-only { display: none; }
+  
+  .header-logo {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .site-title {
+    font-size: 1.3rem;
+  }
+  
+  .page-title {
+    font-size: 1.5rem;
+  }
+  
+  .app-container {
+    padding: 1rem;
+  }
 }

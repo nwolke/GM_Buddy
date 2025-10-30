@@ -16,9 +16,10 @@ function App() {
         case 'login': currentPage = <Auth />; break;
         default:
             currentPage = (
-                <div className="container">
-                    <p>Welcome, GM — choose a panel to begin.</p>
-                    <div style={{display:'flex', gap:'.5rem', marginTop:'1rem'}}>
+                <div className="page-content">
+                    <h2 className="page-title">Welcome, GM</h2>
+                    <p>Choose a panel to begin.</p>
+                    <div style={{display:'flex', gap:'.5rem', marginTop:'1rem', justifyContent:'center'}}>
                         <button className="btn primary" onClick={() => changeActive('grid')}>NPCs</button>
                         <button className="btn" onClick={() => changeActive('login')}>Login</button>
                     </div>
@@ -29,7 +30,9 @@ function App() {
         <div>
             <Header />
             <NavContext.Provider value={changeActive}>
-                {currentPage}
+                <div className="app-container">
+                    {currentPage}
+                </div>
             </NavContext.Provider>
         </div>
     );
