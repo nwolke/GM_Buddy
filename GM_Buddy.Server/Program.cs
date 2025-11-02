@@ -6,29 +6,25 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Net;
+using System.Net.Security;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.Services.ConfigureHttpClientDefaults(config =>
 {
-    config.ConfigurePrimaryHttpMessageHandler(() =>
+ config.ConfigurePrimaryHttpMessageHandler(() =>
     {
         HttpClientHandler handler = new()
         {
             AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
-            ServerCertificateCustomValidationCallback = (sender, certificate, chain, errors) =>
+       ServerCertificateCustomValidationCallback = (sender, certificate, chain, errors) =>
             {
 #if DEBUG
-                return true; // DEV
+                return true; // DEV - Accept all certificates in development
 #else
-                         if (string.IsNullOrEmpty (config.AppBaseInfo.CertThumbprint)) {
-                             return errors == SslPolicyErrors.None;
-                         } else {
-                             return errors == SslPolicyErrors.None &&
-                                 certificate.Thumbprint.Equals (config.AppBaseInfo.CertThumbprint, StringComparison.OrdinalIgnoreCase);
-                         }
+                return errors == SslPolicyErrors.None;
 #endif
-            }
+        }
         };
         return handler;
     });
@@ -40,7 +36,7 @@ builder.Services.AddAuthentication(options =>
     // This indicates the authentication scheme that will be used by default when the app attempts to authenticate a user.
     // Which authentication handler to use for verifying who the user is by default.
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    // This indicates the authentication scheme that will be used by default when the app encounters an authentication challenge. 
+  // This indicates the authentication scheme that will be used by default when the app encounters an authentication challenge. 
     // Which authentication handler to use for responding to failed authentication or authorization attempts.
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 })
@@ -51,43 +47,35 @@ builder.Services.AddAuthentication(options =>
     {
         ValidateIssuer = true, // Ensure the token was issued by a trusted issuer
         ValidIssuer = builder.Configuration["Jwt:Issuer"], // The expected issuer value from configuration
-        ValidateAudience = false, // Disable audience validation (can be enabled as needed)
+ ValidateAudience = false, // Disable audience validation (can be enabled as needed)
         ValidateLifetime = true, // Ensure the token has not expired
         ValidateIssuerSigningKey = true, // Ensure the token's signing key is valid
-                                         // Define a custom IssuerSigningKeyResolver to dynamically retrieve signing keys from the JWKS endpoint
-        IssuerSigningKeyResolver = (token, securityToken, kid, parameters) =>
+      // Define a custom IssuerSigningKeyResolver to dynamically retrieve signing keys from the JWKS endpoint
+IssuerSigningKeyResolver = (token, securityToken, kid, parameters) =>
         {
-            //Console.WriteLine($"Received Token: {token}");
+  //Console.WriteLine($"Received Token: {token}");
             //Console.WriteLine($"Token Issuer: {securityToken.Issuer}");
             //Console.WriteLine($"Key ID: {kid}");
             //Console.WriteLine($"Validate Lifetime: {parameters.ValidateLifetime}");
             // Initialize an HttpClient instance for fetching the JWKS
-            HttpClient httpClient = new(new HttpClientHandler
-            {
-                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+     HttpClient httpClient = new(new HttpClientHandler
+       {
+        AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
                 ServerCertificateCustomValidationCallback = (sender, certificate, chain, errors) =>
-                {
+        {
 #if DEBUG
-                    return true; // DEV
+          return true; // DEV - Accept all certificates in development
 #else
-                    if (string.IsNullOrEmpty(config.AppBaseInfo.CertThumbprint))
-                    {
-                        return errors == SslPolicyErrors.None;
-                    }
-                    else
-                    {
-                        return errors == SslPolicyErrors.None &&
-                               certificate.Thumbprint.Equals(config.AppBaseInfo.CertThumbprint, StringComparison.OrdinalIgnoreCase);
-                    }
+return errors == SslPolicyErrors.None;
 #endif
                 }
             });
-            // Synchronously fetch the JWKS (JSON Web Key Set) from the specified URL
+        // Synchronously fetch the JWKS (JSON Web Key Set) from the specified URL
             string jwks = httpClient.GetStringAsync($"{builder.Configuration["Jwt:Issuer"]}/.well-known/jwks.json").Result;
-            // Parse the fetched JWKS into a JsonWebKeySet object
-            JsonWebKeySet keys = new(jwks);
-            // Return the collection of JsonWebKey objects for token validation
-            return keys.Keys;
+ // Parse the fetched JWKS into a JsonWebKeySet object
+ JsonWebKeySet keys = new(jwks);
+      // Return the collection of JsonWebKey objects for token validation
+       return keys.Keys;
         }
     };
 });
@@ -167,7 +155,15 @@ else
     app.UseExceptionHandler("/error");
 }
 
-app.UseHttpsRedirection();
+// Only use HTTPS redirection if not running in Docker (where we use HTTP internally)
+// or if explicitly enabled via configuration
+var runningInDocker = Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true";
+var enableHttpsRedirect = app.Configuration.GetValue<bool>("EnableHttpsRedirect", !runningInDocker);
+
+if (enableHttpsRedirect)
+{
+    app.UseHttpsRedirection();
+}
 
 // CORS must come BEFORE Authentication/Authorization and MapControllers
 app.UseCors("AllowSpecificOrigins");

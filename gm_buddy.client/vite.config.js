@@ -87,10 +87,23 @@ export default defineConfig(async () => {
         useHttps = false;
     }
 
+    // Detect if running in Docker
+    const runningInDocker = fs.existsSync('/.dockerenv') || fs.existsSync('/.dockerinit') || env.IN_DOCKER === 'true';
+
     // Read backend URLs from environment (for proxy targets in dev)
-    // Use the correct ports: 7279 for auth, 5001 for API (see launchSettings.json)
-    const authTarget = env.VITE_AUTH_API_BASE_URL || 'https://localhost:7279';
-    const apiTarget = env.VITE_API_BASE_URL || 'https://localhost:5001';
+    // In Docker: Use Docker service names with internal container ports
+    // Outside Docker: Use localhost URLs with host-exposed ports
+    const authTarget = runningInDocker 
+        ? (env.VITE_AUTH_API_BASE_URL || 'http://gm_buddy_authorization:6000')
+        : (env.VITE_AUTH_API_BASE_URL || 'https://localhost:7279');
+    
+    const apiTarget = runningInDocker 
+  ? (env.VITE_API_BASE_URL || 'http://gm_buddy_server:5000')
+        : (env.VITE_API_BASE_URL || 'https://localhost:5001');
+
+    console.log(`[Vite Config] Running in Docker: ${runningInDocker}`);
+    console.log(`[Vite Config] Auth Proxy Target: ${authTarget}`);
+    console.log(`[Vite Config] API Proxy Target: ${apiTarget}`);
 
     return {
         plugins: [plugin()],

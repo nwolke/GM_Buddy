@@ -14,7 +14,9 @@ function NpcGrid() {
 
     async function get_test_npcs() {
         try {
-            const response = await fetch(`${API_BASE}/Npcs?account_id=1`);
+            const url = `${API_BASE}/Npcs?account_id=1`;
+            console.log('[NpcGrid] Fetching from URL:', url);
+            const response = await fetch(url);
             if (response.ok) {
                 const data = await response.json();
                 setNpcData(data);
