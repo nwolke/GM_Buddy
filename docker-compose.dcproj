@@ -18,9 +18,15 @@
     </None>
     <None Include="docker-compose.yml" />
     <None Include=".dockerignore" />
+    <None Include="docs\ACCOUNT_CONSOLIDATION.md" />
+    <None Include="docs\DATABASE_SCHEMA.md" />
+    <None Include="docs\ERD_GENERATION_GUIDE.md" />
     <None Include="MIGRATION_ENV.md" />
     <None Include="NPC_STRUCTURE_UPDATE.md" />
     <None Include="psql GM_Buddy.Data\StoredProcedures\Get_Npcs.psql" />
     <None Include="README.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="migrations\" />
   </ItemGroup>
 </Project>

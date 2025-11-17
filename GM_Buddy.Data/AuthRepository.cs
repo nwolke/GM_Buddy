@@ -60,9 +60,9 @@ public class AuthRepository : IAuthRepository
     public async Task<int> InsertNewUser(User user)
     {
         using IDbConnection dbConnection = _dbConnector.CreateConnection();
-        const string sql = @"INSERT INTO auth.user (first_name, last_name, email, password, salt)
+        const string sql = @"INSERT INTO auth.account (first_name, last_name, email, password, salt)
                              VALUES (@FirstName, @LastName, @Email, @Password, @Salt)
-                             RETURNING id";
+     RETURNING id";
         var parameters = new
         {
             FirstName = user.First_Name,
@@ -78,24 +78,24 @@ public class AuthRepository : IAuthRepository
     {
         using IDbConnection dbConnection = _dbConnector.CreateConnection();
         const string sql = @"SELECT id, first_name as First_Name, last_name as Last_Name, email, password, salt
-                             FROM auth.user WHERE email = @Email LIMIT 1";
+     FROM auth.account WHERE email = @Email LIMIT 1";
         return await dbConnection.QueryFirstOrDefaultAsync<User>(sql, new { Email = email });
     }
 
     public async Task UpdateUser(User user)
     {
         using IDbConnection dbConnection = _dbConnector.CreateConnection();
-        const string sql = @"UPDATE auth.user
-                             SET first_name = @FirstName, last_name = @LastName, email = @Email, password = @Password
-                             WHERE id = @Id";
+        const string sql = @"UPDATE auth.account
+   SET first_name = @FirstName, last_name = @LastName, email = @Email, password = @Password
+      WHERE id = @Id";
         var parameters = new
         {
             FirstName = user.First_Name,
-            LastName = user.Last_Name,
+LastName = user.Last_Name,
             Email = user.Email,
-            Password = user.Password,
-            Id = user.Id
-        };
+    Password = user.Password,
+    Id = user.Id
+     };
         await dbConnection.ExecuteAsync(sql, parameters);
     }
     #endregion

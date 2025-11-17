@@ -79,16 +79,19 @@ services:
     image: dpage/pgadmin4
     container_name: gm_buddy_pgadmin
     ports:
-      - 15435:80
+        - 15435:80
     env_file:
-      - .env
+        - .env
     depends_on:
-      - gm_buddy_postgres
+        - gm_buddy_postgres
     networks:
-      - postgres-network
+        - postgres-network
     volumes:
-      - ${PWD}/pgadmin-data/:/var/lib/pgadmin/
-      - ${PWD}/servers.json:/pgadmin4/servers.json
+        - pgadmin-data:/var/lib/pgadmin
+        - ${PWD}/servers.json:/pgadmin4/servers.json
+
+volumes:
+    pgadmin-data:
 
 networks: 
   postgres-network:
