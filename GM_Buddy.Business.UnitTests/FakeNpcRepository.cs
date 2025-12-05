@@ -1,14 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using GM_Buddy.Business;
 using GM_Buddy.Contracts.DbEntities;
 using GM_Buddy.Contracts.Interfaces;
-using GM_Buddy.Contracts.Npcs.Dnd;
 using Microsoft.Extensions.Logging.Abstractions;
-using Xunit;
 
 namespace GM_Buddy.Business.UnitTests;
 
@@ -42,8 +34,8 @@ public class NpcLogicTests
         // Arrange
         var npcs = new[]
         {
-            new Npc { npc_id = 1, account_id = 10, game_system_id = 1, stats = string.Empty},
-            new Npc { npc_id = 2, account_id = 10, game_system_id = 1, stats = string.Empty }
+            new Npc { name="test", npc_id = 1, account_id = 10, game_system_id = 1, stats = string.Empty},
+            new Npc { name="test2",npc_id = 2, account_id = 10, game_system_id = 1, stats = string.Empty }
         };
         var repo = new FakeNpcRepository(npcs);
         var logic = new NpcLogic(repo, NullLogger<NpcLogic>.Instance);
@@ -75,7 +67,7 @@ public class NpcLogicTests
     public async Task GetNpc_ReturnsMappedNpc_WhenFound()
     {
         // Arrange
-        var npc = new Npc { npc_id = 42, account_id = 5, game_system_id = 1, stats = string.Empty };
+        var npc = new Npc { name = "SupGirl", npc_id = 42, account_id = 5, game_system_id = 1, stats = string.Empty };
         var repo = new FakeNpcRepository(new[] { npc });
         var logic = new NpcLogic(repo, NullLogger<NpcLogic>.Instance);
 

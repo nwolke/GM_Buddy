@@ -1,5 +1,5 @@
 ﻿using GM_Buddy.Contracts.Interfaces;
-using GM_Buddy.Contracts.Npcs.Dnd;
+using GM_Buddy.Contracts.Models.Npcs.Dnd;
 using Microsoft.Extensions.Logging;
 
 namespace GM_Buddy.Business;

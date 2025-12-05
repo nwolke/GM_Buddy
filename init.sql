@@ -59,6 +59,19 @@ CREATE TABLE IF NOT EXISTS public.game_system (
     game_system_name text NOT NULL UNIQUE
 );
 
+-- Campaign table
+CREATE TABLE IF NOT EXISTS public.campaign (
+    campaign_id     int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    account_id      int NOT NULL,
+    game_system_id  int NOT NULL,
+    name            text NOT NULL,
+    description     text,
+    created_at      timestamptz NOT NULL DEFAULT now(),
+    updated_at      timestamptz NOT NULL DEFAULT now(),
+    FOREIGN KEY (account_id) REFERENCES auth.account(id) ON DELETE CASCADE,
+    FOREIGN KEY (game_system_id) REFERENCES public.game_system(game_system_id)
+);
+
 -- NPC table:
 -- Keep a lightweight `stats` column for backward compatibility / quick reads,
 -- and store strongly-typed or system-specific JSON in `npc_additional_data`.
@@ -66,6 +79,8 @@ CREATE TABLE IF NOT EXISTS public.npc (
     npc_id          int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     account_id      int NOT NULL,
     game_system_id  int NOT NULL,
+    name            text NOT NULL,
+    description     text,
     -- Use jsonb for the stats blob to enable JSON queries/indexing.
     stats  jsonb NOT NULL DEFAULT '{}'::jsonb,
     created_at      timestamptz NOT NULL DEFAULT now(),
@@ -74,27 +89,90 @@ CREATE TABLE IF NOT EXISTS public.npc (
     FOREIGN KEY (game_system_id) REFERENCES public.game_system(game_system_id)
 );
 
--- Separate table for system-specific JSON blobs.
--- This is useful if:
---  - you want one NPC to have multiple blobs (e.g., versions or blobs per system)
---  - you want to index/query JSON specific to the system
---  - you prefer normalized design / lifecycle independent of the NPC row
-CREATE TABLE IF NOT EXISTS public.npc_additional_data (
-    npc_additional_data_id int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    npc_id          int NOT NULL,
-    game_system_id         int NOT NULL,
-  data              jsonb NOT NULL,
-  sourcetext NULL, -- e.g. "import", "manual", "v1.2"
-    created_at             timestamptz NOT NULL DEFAULT now(),
-    updated_at    timestamptz NOT NULL DEFAULT now(),
-    FOREIGN KEY (npc_id) REFERENCES public.npc(npc_id) ON DELETE CASCADE,
-    FOREIGN KEY (game_system_id) REFERENCES public.game_system(game_system_id),
-    UNIQUE (npc_id, game_system_id) -- prevents duplicates per system; remove if you want versions
+-- PC table:
+CREATE TABLE IF NOT EXISTS public.pc(
+    pc_id           int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    account_id      int NOT NULL,
+    game_system_id  int NOT NULL,
+    name            text NOT NULL,
+    description     text,
+    created_at      timestamptz NOT NULL DEFAULT now(),
+    updated_at      timestamptz NOT NULL DEFAULT now(),
+    FOREIGN KEY (account_id) REFERENCES auth.account(id) ON DELETE CASCADE,
+    FOREIGN KEY (game_system_id) REFERENCES public.game_system(game_system_id)
 );
 
--- Useful indexes for JSON queries
-CREATE INDEX IF NOT EXISTS idx_npc_stats_gin ON public.npc USING GIN (stats);
-CREATE INDEX IF NOT EXISTS idx_npc_additional_data_gin ON public.npc_additional_data USING GIN (data);
+-- Organization table:
+CREATE TABLE IF NOT EXISTS public.organization (
+    organization_id int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    account_id      int NOT NULL,
+    name            text NOT NULL,
+    description     text,
+    created_at      timestamptz NOT NULL DEFAULT now(),
+    updated_at      timestamptz NOT NULL DEFAULT now(),
+    FOREIGN KEY (account_id) REFERENCES auth.account(id) ON DELETE CASCADE
+);
+
+-- Relationship type table
+CREATE TABLE IF NOT EXISTS public.relationship_type (
+    relationship_type_id int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    relationship_type_name text NOT NULL UNIQUE,
+    description text,
+    is_directional boolean DEFAULT true,
+    inverse_type_id int,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    FOREIGN KEY (inverse_type_id) REFERENCES public.relationship_type(relationship_type_id) ON DELETE SET NULL
+);
+
+-- Entity Relationship Table (Polymorphic Pattern)
+CREATE TABLE IF NOT EXISTS public.entity_relationship (
+    entity_relationship_id int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    
+    -- Source entity
+    source_entity_type text NOT NULL CHECK (source_entity_type IN ('npc', 'pc', 'organization')),
+    source_entity_id int NOT NULL,
+    
+    -- Target entity
+    target_entity_type text NOT NULL CHECK (target_entity_type IN ('npc', 'pc', 'organization')),
+    target_entity_id int NOT NULL,
+    
+    -- Relationship metadata
+    relationship_type_id int NOT NULL,
+    description text,
+    strength int CHECK (strength BETWEEN 1 AND 10),
+    is_active boolean DEFAULT true,
+    campaign_id int,
+    
+    -- Audit
+    created_at timestamptz NOT NULL DEFAULT now(),
+    updated_at timestamptz NOT NULL DEFAULT now(),
+    
+    FOREIGN KEY (relationship_type_id) REFERENCES public.relationship_type(relationship_type_id) ON DELETE RESTRICT,
+    FOREIGN KEY (campaign_id) REFERENCES public.campaign(campaign_id) ON DELETE CASCADE,
+    
+    UNIQUE (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id)
+);
+
+-- Indexes
+CREATE INDEX IF NOT EXISTS idx_entity_relationship_source ON public.entity_relationship (source_entity_type, source_entity_id);
+CREATE INDEX IF NOT EXISTS idx_entity_relationship_target ON public.entity_relationship (target_entity_type, target_entity_id);
+CREATE INDEX IF NOT EXISTS idx_entity_relationship_type ON public.entity_relationship (relationship_type_id);
+
+-- Seed relationship types
+INSERT INTO public.relationship_type (relationship_type_name, description, is_directional) VALUES
+    ('Friend', 'Friendly relationship', false),
+    ('Ally', 'Allied, working together', false),
+    ('Enemy', 'Hostile relationship', false),
+    ('Rival', 'Competitive relationship', false),
+    ('Mentor', 'Teacher/guide relationship', true),
+    ('Student', 'Learner', true),
+    ('Member', 'Member of an organization', true),
+    ('Leader', 'Leader or authority figure', true),
+    ('Parent', 'Parent-child relationship', true),
+    ('Child', 'Child-parent relationship', true),
+    ('Sibling', 'Brother or sister', false),
+    ('Spouse', 'Married or life partner', false)
+ON CONFLICT (relationship_type_name) DO NOTHING;
 
 -- Seed data
 INSERT INTO auth.account (username, first_name, last_name, email, password, salt)
@@ -116,10 +194,10 @@ VALUES
   (
     (SELECT id FROM auth.account WHERE username = 'gm_admin' LIMIT 1),
     (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
+    'Bob The Coolguy',
+    'A mysterious figure with a penchant for adventure.',
     jsonb_build_object(
- 'name', 'Roth the Wanderer',
       'lineage', 'Human',
-      'occupation', 'Sellsword',
       'description', 'A grizzled sellsword who travels between towns, taking contracts from the highest bidder.',
       'gender', 'Male',
       'attributes', jsonb_build_object(
@@ -136,11 +214,11 @@ VALUES
   (
     (SELECT id FROM auth.account WHERE username = 'gm_admin' LIMIT 1),
     (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
+    'Elara Moonwhisper',
+    'A scholarly mage who studies ancient arcane texts in her tower.',
     jsonb_build_object(
-      'name', 'Elara Moonwhisper',
       'lineage', 'Elf',
       'occupation', 'Wizard',
-      'description', 'A scholarly mage who studies ancient arcane texts in her tower.',
       'gender', 'Female',
       'attributes', jsonb_build_object(
         'strength', 8,
@@ -162,10 +240,8 @@ VALUES
   (SELECT npc_id FROM public.npc WHERE stats->>'name' = 'Roth the Wanderer' LIMIT 1),
   (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
   jsonb_build_object(
-    'name', 'Roth the Wanderer',
     'lineage', 'Human',
     'occupation', 'Sellsword',
-    'description', 'A grizzled sellsword who travels between towns.',
 'gender', 'Male',
     'attributes', jsonb_build_object(
 'strength', 14,

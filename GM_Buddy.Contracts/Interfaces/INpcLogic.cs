@@ -1,4 +1,4 @@
-﻿using GM_Buddy.Contracts.Npcs.Dnd;
+﻿using GM_Buddy.Contracts.Models.Npcs.Dnd;
 
 namespace GM_Buddy.Contracts.Interfaces;
 

@@ -2,7 +2,6 @@
 using GM_Buddy.Contracts.DbEntities;
 using GM_Buddy.Contracts.Interfaces;
 using System.Data;
-using System.Threading;
 
 namespace GM_Buddy.Data;
 
@@ -22,6 +21,8 @@ public class NpcRepository : INpcRepository
             SELECT n.npc_id,
                    n.account_id,
                    n.game_system_id,
+                   n.name,
+                   n.description,
                    n.stats
             FROM npc AS n
             WHERE n.account_id = @AccountId
@@ -37,6 +38,8 @@ public class NpcRepository : INpcRepository
             SELECT n.npc_id,
                    n.account_id,
                    n.game_system_id,
+                   n.name,
+                   n.description,
                    n.stats
             FROM npc AS n
             WHERE n.npc_id = @NpcId";

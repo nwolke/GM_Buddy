@@ -1,10 +1,5 @@
-﻿using GM_Buddy.Contracts.Npcs;
-using GM_Buddy.Contracts.Npcs.Dnd;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using GM_Buddy.Contracts.Models.Npcs;
+using GM_Buddy.Contracts.Models.Npcs.Dnd;
 
 namespace GM_Buddy.Business.Factories.DndFactory;
 public class DndNpcCreator : NpcCreator
@@ -18,6 +13,7 @@ public class DndNpcCreator : NpcCreator
     {
         var newNpc = new DndNpc
         {
+            Name = "New DnD NPC",
             Stats = new DnDStats
             {
                 Attributes = new DndAttributes

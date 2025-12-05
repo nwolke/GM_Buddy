@@ -1,5 +1,5 @@
 ﻿using GM_Buddy.Contracts.Interfaces;
-using GM_Buddy.Contracts.Npcs;
+using GM_Buddy.Contracts.Models.Npcs;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GM_Buddy.Server.Controllers;

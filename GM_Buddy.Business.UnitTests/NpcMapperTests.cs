@@ -1,9 +1,7 @@
-using System;
 using System.Text.Json;
 using GM_Buddy.Business.Mappers;
 using GM_Buddy.Contracts.DbEntities;
-using GM_Buddy.Contracts.Npcs.Dnd;
-using Xunit;
+using GM_Buddy.Contracts.Models.Npcs.Dnd;
 
 namespace GM_Buddy.Business.UnitTests;
 
@@ -32,6 +30,7 @@ public class NpcMapperTests
             npc_id = 1,
             account_id = 2,
             game_system_name = "D&D",
+            name = "GoblinBoy",
             stats = statsJson,
             game_system_id = 1
         };
@@ -58,6 +57,7 @@ public class NpcMapperTests
             npc_id = 3,
             account_id = 4,
             stats = "not a json",
+            name = "OrcWarriorGuy",
             game_system_id = 1
         };
 

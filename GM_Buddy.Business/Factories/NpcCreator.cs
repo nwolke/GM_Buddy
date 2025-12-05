@@ -1,4 +1,4 @@
-﻿using GM_Buddy.Contracts.Npcs;
+﻿using GM_Buddy.Contracts.Models.Npcs;
 
 namespace GM_Buddy.Business.Factories;
 public abstract class NpcCreator

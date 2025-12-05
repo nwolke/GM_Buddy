@@ -88,6 +88,7 @@ builder.Services.AddScoped<INpcLogic, NpcLogic>();
 builder.Services.AddSingleton<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IAuthObjectResolver, AuthObjectResolver>();
 builder.Services.AddScoped<INpcRepository, NpcRepository>();
+builder.Services.AddScoped<IRelationshipRepository, RelationshipRepository>();
 
 
 builder.Services.AddEndpointsApiExplorer();

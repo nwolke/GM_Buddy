@@ -1,5 +1,5 @@
 ﻿using GM_Buddy.Contracts.DbEntities;
-using GM_Buddy.Contracts.Npcs.Dnd;
+using GM_Buddy.Contracts.Models.Npcs.Dnd;
 using System.Text.Json;
 
 namespace GM_Buddy.Business.Mappers;
@@ -26,6 +26,8 @@ public class NpcMapper
         {
             Npc_Id = npc.npc_id,
             Account_Id = npc.account_id,
+            Name = npc.name,
+            Description = npc.description,
             System = npc.game_system_name,
             Stats = stats
         };
