@@ -23,9 +23,9 @@
     <None Include="docs\DATABASE_SCHEMA.md" />
     <None Include="docs\ERD_GENERATION_GUIDE.md" />
     <None Include="docs\PC_ORGANIZATION_IMPLEMENTATION.md" />
+    <None Include="docs\TEST_SUITE_IMPLEMENTATION.md" />
     <None Include="MIGRATION_ENV.md" />
     <None Include="NPC_STRUCTURE_UPDATE.md" />
-    <None Include="psql GM_Buddy.Data\StoredProcedures\Get_Npcs.psql" />
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
