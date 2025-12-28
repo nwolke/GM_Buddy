@@ -34,7 +34,7 @@ function NpcGrid() {
 
             {/* Action Buttons */}
             <div className="page-actions">
-                <button className="btn" onClick={() => changePage('home')}>Go Home</button>
+                <button className="btn" onClick={() => changePage('Home')}>Go Home</button>
                 <button className="btn" onClick={() => get_test_npcs()}>Refresh</button>
             </div>
 

@@ -87,8 +87,8 @@ if (app.Environment.IsDevelopment())
 else
 {
     app.UseExceptionHandler("/error");
+    app.UseHttpsRedirection();
 }
-app.UseHttpsRedirection();
 
 // CORS must come BEFORE Authentication/Authorization and MapControllers
 app.UseCors("AllowSpecificOrigins");

@@ -5,7 +5,12 @@
       "commandVersion": "1.0",
       "serviceActions": {
         "gm_buddy_server": "StartDebugging",
+        "gm_buddy_client": "StartWithoutDebugging",
         "gm_buddy_authorization": "StartDebugging"
+      },
+      "composeBuild": true,
+      "composeProfile": {
+        "removeOrphanContainers": true
       }
     }
   }
