@@ -15,7 +15,8 @@ services:
       - DbSettings__Username=postgres
       - DbSettings__Password=12345
     depends_on:
-      - gm_buddy_postgres
+      gm_buddy_postgres:
+        condition: service_healthy
     networks:
       - postgres-network
 
@@ -47,7 +48,8 @@ services:
       - DbSettings__Username=postgres
       - DbSettings__Password=12345
     depends_on:
-      - gm_buddy_postgres
+      gm_buddy_postgres:
+        condition: service_healthy
     networks:
       - postgres-network
 
@@ -68,10 +70,10 @@ services:
       - ${PWD}/db-data:/var/lib/postgresql
       - ${PWD}/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-gm_buddy}"]
-      interval: 10s
+      test: ["CMD-SHELL", "pg_isready -U postgres -d gm_buddy"]
+      interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
       start_period: 30s
     restart: unless-stopped
   
@@ -83,7 +85,8 @@ services:
     env_file:
         - .env
     depends_on:
-        - gm_buddy_postgres
+      gm_buddy_postgres:
+        condition: service_healthy
     networks:
         - postgres-network
     volumes:

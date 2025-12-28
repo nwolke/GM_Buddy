@@ -156,17 +156,19 @@ if (app.Environment.IsDevelopment())
 else
 {
     app.UseExceptionHandler("/error");
+    // Only use HTTPS redirection if not running in Docker (where we use HTTP internally)
+    // or if explicitly enabled via configuration
+    var runningInDocker = Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true";
+    var enableHttpsRedirect = app.Configuration.GetValue<bool>("EnableHttpsRedirect", !runningInDocker);
+    if (enableHttpsRedirect)
+    {
+        app.UseHttpsRedirection();
+    }
 }
 
-// Only use HTTPS redirection if not running in Docker (where we use HTTP internally)
-// or if explicitly enabled via configuration
-var runningInDocker = Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true";
-var enableHttpsRedirect = app.Configuration.GetValue<bool>("EnableHttpsRedirect", !runningInDocker);
 
-if (enableHttpsRedirect)
-{
-    app.UseHttpsRedirection();
-}
+
+
 
 // CORS must come BEFORE Authentication/Authorization and MapControllers
 app.UseCors("AllowSpecificOrigins");
