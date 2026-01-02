@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AUTH_API_BASE } from './api';
+import { AUTH_API_BASE } from '../../api';
 
 function Auth() {
     const [email, setEmail] = useState();

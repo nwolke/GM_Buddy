@@ -51,6 +51,61 @@ body, #root {
   margin: 0;
 }
 
+/* Header Navigation */
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-left: 2rem;
+}
+
+.app-dropdown {
+  position: relative;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 0.5rem;
+  background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,255,255,0.95));
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(0,0,0,0.08);
+  min-width: 180px;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.dropdown-menu button {
+  display: block;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  text-align: left;
+  cursor: pointer;
+  color: var(--ink);
+  font-size: 0.95rem;
+  transition: background 0.2s ease;
+}
+
+.dropdown-menu button:last-child {
+  border-bottom: none;
+}
+
+.dropdown-menu button:hover {
+  background: rgba(207,168,74,0.1);
+}
+
+.header-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
 /* header logo */
 .header-logo {
   width: 64px;
@@ -208,6 +263,43 @@ body, #root {
   border: 1px solid rgba(30,70,47,0.06);
 }
 
+/* Home page styles */
+.home-container {
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.hero-image-container {
+  margin-bottom: 2rem;
+}
+
+.hero-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(0,0,0,0.04);
+}
+
+.home-container h1 {
+  font-family: 'Cinzel', serif;
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  color: var(--ink);
+}
+
+.home-container p {
+  font-size: 1.2rem;
+  color: var(--muted-ink);
+  margin-bottom: 2rem;
+}
+
+.home-container button {
+  margin: 0.5rem;
+}
+
 /* responsive: show table on wide screens, cards on narrow */
 @media (min-width: 900px) {
   .cards-only { display: none; }
@@ -232,5 +324,27 @@ body, #root {
   
   .app-container {
     padding: 1rem;
+  }
+
+  .header-nav {
+    margin-left: 1rem;
+  }
+
+  .header-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .site-header {
+    flex-wrap: wrap;
+    padding: 1rem;
+  }
+
+  .home-container h1 {
+    font-size: 1.8rem;
+  }
+
+  .home-container p {
+    font-size: 1rem;
   }
 }

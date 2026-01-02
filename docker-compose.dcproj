@@ -12,21 +12,30 @@
   <ItemGroup>
     <None Include=".env" />
     <None Include=".env.example" />
+    <None Include="dev-environment.ps1" />
     <None Include="DEV_SETUP.md" />
     <None Include="docker-compose.override.yml">
       <DependentUpon>docker-compose.yml</DependentUpon>
     </None>
     <None Include="docker-compose.yml" />
     <None Include=".dockerignore" />
+    <None Include="docker-down.bat" />
+    <None Include="docker-up.bat" />
     <None Include="docs\ACCOUNT_CONSOLIDATION.md" />
     <None Include="docs\API_ENDPOINTS_REFERENCE.md" />
     <None Include="docs\DATABASE_SCHEMA.md" />
     <None Include="docs\ERD_GENERATION_GUIDE.md" />
     <None Include="docs\PC_ORGANIZATION_IMPLEMENTATION.md" />
+    <None Include="docs\SCRIPTING_CHEATSHEET.md" />
+    <None Include="docs\SCRIPTING_GUIDE.md" />
     <None Include="docs\TEST_SUITE_IMPLEMENTATION.md" />
+    <None Include="example-script.ps1" />
+    <None Include="manage-docker.ps1" />
+    <None Include="manage-frontend.ps1" />
     <None Include="MIGRATION_ENV.md" />
     <None Include="NPC_STRUCTURE_UPDATE.md" />
     <None Include="README.md" />
+    <None Include="SCRIPTS_README.md" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="migrations\" />

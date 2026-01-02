@@ -1,8 +1,8 @@
 import PropTypes from 'prop-types';
 import { useState, useContext, useEffect } from 'react';
-import { NavContext } from './contexts/contexts.js';
-import NpcCard from './components/NpcCard';
-import { API_BASE } from './api';
+import { NavContext } from '../../../../contexts/contexts.js';
+import NpcCard from '../../../../components/NpcCard';
+import { API_BASE } from '../../../../api';
 
 function NpcGrid() {
     const [npcData, setNpcData] = useState(undefined);
@@ -34,7 +34,7 @@ function NpcGrid() {
 
             {/* Action Buttons */}
             <div className="page-actions">
-                <button className="btn" onClick={() => changePage('Home')}>Go Home</button>
+                <button className="btn" onClick={() => changePage('home')}>Go Home</button>
                 <button className="btn" onClick={() => get_test_npcs()}>Refresh</button>
             </div>
 
