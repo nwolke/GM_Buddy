@@ -1,48 +1,149 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {
+    Card,
+    CardContent,
+    Typography,
+    Box,
+    Chip,
+    Stack
+} from '@mui/material';
 
 export default function NpcCard({ npc }) {
-  const stats = npc?.Stats;
-  const attrs = stats?.Attributes;
-  
-  return (
-    <article className="npc-card" role="article" aria-label={stats?.Name ?? 'NPC'}>
-      <div className="npc-row">
-        <div className="npc-meta">
-          <h3 className="npc-name">{stats?.Name ?? 'Unnamed NPC'}</h3>
-          <p className="npc-sub">
-            {stats?.Lineage ?? 'Unknown'} • {stats?.Occupation ?? 'Unknown'}
-          </p>
-          <div style={{marginTop:'.6rem', display:'flex', alignItems:'center', gap:'0.5rem', flexWrap:'wrap'}}>
-            <span className="stat-chip">STR {attrs?.Strength ?? '-'}</span>
-            <span className="stat-chip">DEX {attrs?.Dexterity ?? '-'}</span>
-            <span className="stat-chip">CON {attrs?.Constitution ?? '-'}</span>
-            <span className="stat-chip">INT {attrs?.Intelligence ?? '-'}</span>
-            <span className="stat-chip">WIS {attrs?.Wisdom ?? '-'}</span>
-            <span className="stat-chip">CHA {attrs?.Charisma ?? '-'}</span>
-            {stats?.Gender && (
-              <span style={{marginLeft:'auto', color:'#6b3b81', fontWeight:600}}>
-                {stats.Gender}
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-      {stats?.Description && (
-        <p style={{marginTop:'.8rem', color:'#3b3531'}}>{stats.Description}</p>
-      )}
-      {stats?.Languages && stats.Languages.length > 0 && (
-        <p style={{marginTop:'.5rem', fontSize:'0.9rem', color:'#6b3b81'}}>
-          Languages: {stats.Languages.join(', ')}
-        </p>
-      )}
-      <p style={{marginTop:'.5rem', fontSize:'0.85rem', color:'#999'}}>
-        System: {npc?.System ?? 'Unknown'}
-      </p>
-    </article>
-  );
+    const stats = npc?.Stats;
+    const attrs = stats?.Attributes;
+    
+    const attributes = [
+        { label: 'STR', value: attrs?.Strength },
+        { label: 'DEX', value: attrs?.Dexterity },
+        { label: 'CON', value: attrs?.Constitution },
+        { label: 'INT', value: attrs?.Intelligence },
+        { label: 'WIS', value: attrs?.Wisdom },
+        { label: 'CHA', value: attrs?.Charisma }
+    ];
+    
+    return (
+        <Card
+            elevation={2}
+            sx={{
+                background: 'linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.45))',
+                borderRadius: 'var(--radius)',
+                border: '1px solid rgba(0,0,0,0.04)',
+                boxShadow: 'var(--shadow)',
+                transition: 'transform 0.12s ease, box-shadow 0.12s ease',
+                width: '100%',
+                maxWidth: 500,
+                '&:hover': {
+                    transform: 'translateY(-6px)',
+                    boxShadow: '0 14px 30px rgba(30,27,24,0.18)'
+                }
+            }}
+        >
+            <CardContent>
+                <Typography
+                    variant="h5"
+                    component="h3"
+                    sx={{
+                        fontFamily: "'Cinzel', serif",
+                        fontWeight: 700,
+                        fontSize: '1.15rem',
+                        color: 'var(--ink)',
+                        mb: 0.5
+                    }}
+                >
+                    {stats?.Name ?? 'Unnamed NPC'}
+                </Typography>
+                
+                <Typography
+                    variant="body2"
+                    sx={{
+                        color: 'var(--muted-ink)',
+                        fontSize: '0.9rem',
+                        mb: 1.5
+                    }}
+                >
+                    {stats?.Lineage ?? 'Unknown'} • {stats?.Occupation ?? 'Unknown'}
+                </Typography>
+
+                {/* Attribute Chips */}
+                <Stack
+                    direction="row"
+                    spacing={0.5}
+                    flexWrap="wrap"
+                    sx={{ gap: 0.5, mb: stats?.Description ? 1.5 : 0 }}
+                >
+                    {attributes.map((attr) => (
+                        <Chip
+                            key={attr.label}
+                            label={`${attr.label} ${attr.value ?? '-'}`}
+                            size="small"
+                            sx={{
+                                backgroundColor: 'rgba(30,70,47,0.06)',
+                                color: 'var(--accent-green)',
+                                fontWeight: 600,
+                                fontSize: '0.85rem',
+                                border: '1px solid rgba(30,70,47,0.06)'
+                            }}
+                        />
+                    ))}
+                    {stats?.Gender && (
+                        <Chip
+                            label={stats.Gender}
+                            size="small"
+                            sx={{
+                                ml: 'auto',
+                                backgroundColor: 'rgba(107,59,129,0.1)',
+                                color: '#6b3b81',
+                                fontWeight: 600
+                            }}
+                        />
+                    )}
+                </Stack>
+
+                {/* Description */}
+                {stats?.Description && (
+                    <Typography
+                        variant="body2"
+                        sx={{
+                            color: 'var(--muted-ink)',
+                            mt: 1.5
+                        }}
+                    >
+                        {stats.Description}
+                    </Typography>
+                )}
+
+                {/* Languages */}
+                {stats?.Languages && stats.Languages.length > 0 && (
+                    <Typography
+                        variant="body2"
+                        sx={{
+                            mt: 1,
+                            fontSize: '0.9rem',
+                            color: '#6b3b81'
+                        }}
+                    >
+                        Languages: {stats.Languages.join(', ')}
+                    </Typography>
+                )}
+
+                {/* System */}
+                <Typography
+                    variant="caption"
+                    sx={{
+                        display: 'block',
+                        mt: 1,
+                        fontSize: '0.85rem',
+                        color: '#999'
+                    }}
+                >
+                    System: {npc?.System ?? 'Unknown'}
+                </Typography>
+            </CardContent>
+        </Card>
+    );
 }
 
 NpcCard.propTypes = {
-  npc: PropTypes.object.isRequired,
+    npc: PropTypes.object.isRequired,
 };

@@ -3,16 +3,38 @@ import { useState, useContext, useEffect } from 'react';
 import { NavContext } from '../../../../contexts/contexts.js';
 import NpcCard from '../../../../components/NpcCard';
 import { API_BASE } from '../../../../api';
+import {
+    Container,
+    Box,
+    Typography,
+    Button,
+    Stack,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Paper,
+    CircularProgress,
+    useMediaQuery,
+    useTheme
+} from '@mui/material';
+import { Refresh as RefreshIcon, Home as HomeIcon } from '@mui/icons-material';
 
 function NpcGrid() {
     const [npcData, setNpcData] = useState(undefined);
+    const [loading, setLoading] = useState(true);
     const changePage = useContext(NavContext);
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('md'));
     
     useEffect(() => {
         get_test_npcs();
     }, []);
 
     async function get_test_npcs() {
+        setLoading(true);
         try {
             const url = `${API_BASE}/Npcs?account_id=1`;
             console.log('[NpcGrid] Fetching from URL:', url);
@@ -25,64 +47,160 @@ function NpcGrid() {
             }
         } catch (e) {
             console.error(e);
+        } finally {
+            setLoading(false);
         }
     }
 
     return (
-        <div className="page-content">
-            <h2 className="page-title">NPC Collection</h2>
+        <Container maxWidth="xl" sx={{ mt: 2, mb: 4 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                {/* Page Title */}
+                <Typography
+                    variant="h3"
+                    component="h2"
+                    sx={{
+                        fontFamily: "'Cinzel', serif",
+                        fontWeight: 700,
+                        color: 'var(--ink)',
+                        letterSpacing: '0.08em',
+                        textAlign: 'center'
+                    }}
+                >
+                    NPC Collection
+                </Typography>
 
-            {/* Action Buttons */}
-            <div className="page-actions">
-                <button className="btn" onClick={() => changePage('home')}>Go Home</button>
-                <button className="btn" onClick={() => get_test_npcs()}>Refresh</button>
-            </div>
+                {/* Action Buttons */}
+                <Stack
+                    direction="row"
+                    spacing={1}
+                    justifyContent="center"
+                    flexWrap="wrap"
+                    sx={{ gap: 1 }}
+                >
+                    <Button
+                        variant="outlined"
+                        startIcon={<HomeIcon />}
+                        onClick={() => changePage('home')}
+                        sx={{
+                            color: 'var(--ink)',
+                            borderColor: 'rgba(0,0,0,0.06)',
+                            '&:hover': {
+                                borderColor: 'rgba(0,0,0,0.12)',
+                                background: 'rgba(207,168,74,0.05)'
+                            }
+                        }}
+                    >
+                        Go Home
+                    </Button>
+                    <Button
+                        variant="outlined"
+                        startIcon={<RefreshIcon />}
+                        onClick={() => get_test_npcs()}
+                        sx={{
+                            color: 'var(--ink)',
+                            borderColor: 'rgba(0,0,0,0.06)',
+                            '&:hover': {
+                                borderColor: 'rgba(0,0,0,0.12)',
+                                background: 'rgba(207,168,74,0.05)'
+                            }
+                        }}
+                    >
+                        Refresh
+                    </Button>
+                </Stack>
 
-            {/* Cards for mobile */}
-            <div className="cards-only">
-                {npcData ? npcData.map((n, i) => <NpcCard key={n.Npc_Id ?? i} npc={n} />) : <div>Loading...</div>}
-            </div>
+                {/* Loading State */}
+                {loading && (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                        <CircularProgress sx={{ color: 'var(--accent-gold)' }} />
+                    </Box>
+                )}
 
-            {/* Table for desktop */}
-            <div className="table-only">
-                <div className="table-wrapper">
-                    <table className="npc-table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Name</th>
-                                <th>Lineage</th>
-                                <th>Occupation</th>
-                                <th>STR</th>
-                                <th>DEX</th>
-                                <th>CON</th>
-                                <th>INT</th>
-                                <th>WIS</th>
-                                <th>CHA</th>
-                                <th>System</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {npcData && npcData.map((npc) => (
-                                <tr key={npc.npc_id}>
-                                    <td>{npc.npc_id ?? '-'}</td>
-                                    <td>{npc.stats?.name ?? '-'}</td>
-                                    <td>{npc.stats?.lineage ?? '-'}</td>
-                                    <td>{npc.stats?.occupation ?? '-'}</td>
-                                    <td>{npc.stats?.attributes?.strength ?? '-'}</td>
-                                    <td>{npc.stats?.attributes?.dexterity ?? '-'}</td>
-                                    <td>{npc.stats?.attributes?.constitution ?? '-'}</td>
-                                    <td>{npc.stats?.attributes?.intelligence ?? '-'}</td>
-                                    <td>{npc.stats?.attributes?.wisdom ?? '-'}</td>
-                                    <td>{npc.stats?.attributes?.charisma ?? '-'}</td>
-                                    <td>{npc.system ?? '-'}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+                {/* Cards for mobile/tablet */}
+                {!loading && isMobile && (
+                    <Stack spacing={2} alignItems="center">
+                        {npcData && npcData.length > 0 ? (
+                            npcData.map((n, i) => <NpcCard key={n.Npc_Id ?? i} npc={n} />)
+                        ) : (
+                            <Typography variant="body1" color="text.secondary">
+                                No NPCs found
+                            </Typography>
+                        )}
+                    </Stack>
+                )}
+
+                {/* Table for desktop */}
+                {!loading && !isMobile && (
+                    <TableContainer
+                        component={Paper}
+                        elevation={2}
+                        sx={{
+                            borderRadius: 'var(--radius)',
+                            border: '1px solid rgba(0,0,0,0.04)',
+                            background: 'linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.45))',
+                            overflow: 'auto'
+                        }}
+                    >
+                        <Table sx={{ minWidth: 650 }}>
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell sx={{ fontFamily: "'Cinzel', serif", fontWeight: 600, color: 'var(--muted-ink)' }}>ID</TableCell>
+                                    <TableCell sx={{ fontFamily: "'Cinzel', serif", fontWeight: 600, color: 'var(--muted-ink)' }}>Name</TableCell>
+                                    <TableCell sx={{ fontFamily: "'Cinzel', serif", fontWeight: 600, color: 'var(--muted-ink)' }}>Lineage</TableCell>
+                                    <TableCell sx={{ fontFamily: "'Cinzel', serif", fontWeight: 600, color: 'var(--muted-ink)' }}>Occupation</TableCell>
+                                    <TableCell align="center" sx={{ fontFamily: "'Cinzel', serif", fontWeight: 600, color: 'var(--muted-ink)' }}>STR</TableCell>
+                                    <TableCell align="center" sx={{ fontFamily: "'Cinzel', serif", fontWeight: 600, color: 'var(--muted-ink)' }}>DEX</TableCell>
+                                    <TableCell align="center" sx={{ fontFamily: "'Cinzel', serif", fontWeight: 600, color: 'var(--muted-ink)' }}>CON</TableCell>
+                                    <TableCell align="center" sx={{ fontFamily: "'Cinzel', serif", fontWeight: 600, color: 'var(--muted-ink)' }}>INT</TableCell>
+                                    <TableCell align="center" sx={{ fontFamily: "'Cinzel', serif", fontWeight: 600, color: 'var(--muted-ink)' }}>WIS</TableCell>
+                                    <TableCell align="center" sx={{ fontFamily: "'Cinzel', serif", fontWeight: 600, color: 'var(--muted-ink)' }}>CHA</TableCell>
+                                    <TableCell sx={{ fontFamily: "'Cinzel', serif", fontWeight: 600, color: 'var(--muted-ink)' }}>System</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {npcData && npcData.length > 0 ? (
+                                    npcData.map((npc) => (
+                                        <TableRow
+                                            key={npc.npc_id}
+                                            sx={{
+                                                '&:hover': {
+                                                    backgroundColor: 'rgba(207,168,74,0.05)'
+                                                }
+                                            }}
+                                        >
+                                            <TableCell>{npc.npc_id ?? '-'}</TableCell>
+                                            <TableCell sx={{ fontWeight: 600 }}>{npc.stats?.name ?? '-'}</TableCell>
+                                            <TableCell>{npc.stats?.lineage ?? '-'}</TableCell>
+                                            <TableCell>{npc.stats?.occupation ?? '-'}</TableCell>
+                                            <TableCell align="center">{npc.stats?.attributes?.strength ?? '-'}</TableCell>
+                                            <TableCell align="center">{npc.stats?.attributes?.dexterity ?? '-'}</TableCell>
+                                            <TableCell align="center">{npc.stats?.attributes?.constitution ?? '-'}</TableCell>
+                                            <TableCell align="center">{npc.stats?.attributes?.intelligence ?? '-'}</TableCell>
+                                            <TableCell align="center">{npc.stats?.attributes?.wisdom ?? '-'}</TableCell>
+                                            <TableCell align="center">{npc.stats?.attributes?.charisma ?? '-'}</TableCell>
+                                            <TableCell>
+                                                <Typography variant="caption" sx={{ color: '#999' }}>
+                                                    {npc.system ?? '-'}
+                                                </Typography>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={11} align="center">
+                                            <Typography variant="body1" color="text.secondary" sx={{ py: 2 }}>
+                                                No NPCs found
+                                            </Typography>
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                )}
+            </Box>
+        </Container>
     );
 }
 
