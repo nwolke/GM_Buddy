@@ -1,15 +1,14 @@
-import React from 'react';
+import React, { memo } from 'react';
 import PropTypes from 'prop-types';
 import {
     Card,
     CardContent,
     Typography,
-    Box,
     Chip,
     Stack
 } from '@mui/material';
 
-export default function NpcCard({ npc }) {
+function DndNpcCard({ npc }) {
     const stats = npc?.Stats;
     const attrs = stats?.Attributes;
     
@@ -144,6 +143,9 @@ export default function NpcCard({ npc }) {
     );
 }
 
-NpcCard.propTypes = {
+DndNpcCard.propTypes = {
     npc: PropTypes.object.isRequired,
 };
+
+// Memoize to prevent re-renders when NPC data hasn't changed
+export default memo(DndNpcCard);

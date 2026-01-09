@@ -3,8 +3,10 @@ using GM_Buddy.Contracts;
 using GM_Buddy.Contracts.Interfaces;
 using GM_Buddy.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.IO.Compression;
 using System.Net;
 using System.Net.Security;
 
@@ -12,19 +14,19 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.Services.ConfigureHttpClientDefaults(config =>
 {
- config.ConfigurePrimaryHttpMessageHandler(() =>
+    config.ConfigurePrimaryHttpMessageHandler(() =>
     {
         HttpClientHandler handler = new()
         {
             AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
-       ServerCertificateCustomValidationCallback = (sender, certificate, chain, errors) =>
+            ServerCertificateCustomValidationCallback = (sender, certificate, chain, errors) =>
             {
 #if DEBUG
                 return true; // DEV - Accept all certificates in development
 #else
                 return errors == SslPolicyErrors.None;
 #endif
-        }
+            }
         };
         return handler;
     });
@@ -36,7 +38,7 @@ builder.Services.AddAuthentication(options =>
     // This indicates the authentication scheme that will be used by default when the app attempts to authenticate a user.
     // Which authentication handler to use for verifying who the user is by default.
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-  // This indicates the authentication scheme that will be used by default when the app encounters an authentication challenge. 
+    // This indicates the authentication scheme that will be used by default when the app encounters an authentication challenge. 
     // Which authentication handler to use for responding to failed authentication or authorization attempts.
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 })
@@ -47,40 +49,70 @@ builder.Services.AddAuthentication(options =>
     {
         ValidateIssuer = true, // Ensure the token was issued by a trusted issuer
         ValidIssuer = builder.Configuration["Jwt:Issuer"], // The expected issuer value from configuration
- ValidateAudience = false, // Disable audience validation (can be enabled as needed)
+        ValidateAudience = false, // Disable audience validation (can be enabled as needed)
         ValidateLifetime = true, // Ensure the token has not expired
         ValidateIssuerSigningKey = true, // Ensure the token's signing key is valid
-      // Define a custom IssuerSigningKeyResolver to dynamically retrieve signing keys from the JWKS endpoint
-IssuerSigningKeyResolver = (token, securityToken, kid, parameters) =>
+        // Define a custom IssuerSigningKeyResolver to dynamically retrieve signing keys from the JWKS endpoint
+        IssuerSigningKeyResolver = (token, securityToken, kid, parameters) =>
         {
-  //Console.WriteLine($"Received Token: {token}");
-            //Console.WriteLine($"Token Issuer: {securityToken.Issuer}");
-            //Console.WriteLine($"Key ID: {kid}");
-            //Console.WriteLine($"Validate Lifetime: {parameters.ValidateLifetime}");
             // Initialize an HttpClient instance for fetching the JWKS
-     HttpClient httpClient = new(new HttpClientHandler
-       {
-        AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+            HttpClient httpClient = new(new HttpClientHandler
+            {
+                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
                 ServerCertificateCustomValidationCallback = (sender, certificate, chain, errors) =>
-        {
+                {
 #if DEBUG
-          return true; // DEV - Accept all certificates in development
+                    return true; // DEV - Accept all certificates in development
 #else
-return errors == SslPolicyErrors.None;
+                    return errors == SslPolicyErrors.None;
 #endif
                 }
             });
-        // Synchronously fetch the JWKS (JSON Web Key Set) from the specified URL
+            // Synchronously fetch the JWKS (JSON Web Key Set) from the specified URL
             string jwks = httpClient.GetStringAsync($"{builder.Configuration["Jwt:Issuer"]}/.well-known/jwks.json").Result;
- // Parse the fetched JWKS into a JsonWebKeySet object
- JsonWebKeySet keys = new(jwks);
-      // Return the collection of JsonWebKey objects for token validation
-       return keys.Keys;
+            // Parse the fetched JWKS into a JsonWebKeySet object
+            JsonWebKeySet keys = new(jwks);
+            // Return the collection of JsonWebKey objects for token validation
+            return keys.Keys;
         }
     };
 });
 builder.Services.AddAuthorization();
 builder.Services.AddControllers();
+
+// Add Response Compression for better network performance
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.Providers.Add<BrotliCompressionProvider>();
+    options.Providers.Add<GzipCompressionProvider>();
+    options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[]
+    {
+        "application/json",
+        "text/json"
+    });
+});
+
+builder.Services.Configure<BrotliCompressionProviderOptions>(options =>
+{
+    options.Level = CompressionLevel.Fastest;
+});
+
+builder.Services.Configure<GzipCompressionProviderOptions>(options =>
+{
+    options.Level = CompressionLevel.SmallestSize;
+});
+
+// Add Memory Cache for caching frequently accessed data
+builder.Services.AddMemoryCache();
+
+// Add Output Cache for API response caching
+builder.Services.AddOutputCache(options =>
+{
+    options.AddBasePolicy(builder => builder.Expire(TimeSpan.FromMinutes(5)));
+    options.AddPolicy("NpcList", builder => builder.Expire(TimeSpan.FromMinutes(2)).Tag("npcs"));
+    options.AddPolicy("ShortCache", builder => builder.Expire(TimeSpan.FromSeconds(30)));
+});
 
 builder.Services.Configure<DbSettings>(builder.Configuration.GetSection("DbSettings"));
 builder.Services.AddTransient<IDbConnector, DbConnector>();
@@ -113,14 +145,14 @@ builder.Services.AddSwaggerGen(c =>
     {
         {
             new OpenApiSecurityScheme
-     {
-       Reference = new OpenApiReference
-       {
-         Type = ReferenceType.SecurityScheme,
-         Id = "Bearer"
-       },
-       Scheme = "oauth2"
-      },
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                },
+                Scheme = "oauth2"
+            },
             new List<string>()
         }
     });
@@ -166,12 +198,14 @@ else
     }
 }
 
-
-
-
+// Response Compression - should be early in the pipeline
+app.UseResponseCompression();
 
 // CORS must come BEFORE Authentication/Authorization and MapControllers
 app.UseCors("AllowSpecificOrigins");
+
+// Output Cache for API responses
+app.UseOutputCache();
 
 app.UseAuthentication();
 app.UseAuthorization();

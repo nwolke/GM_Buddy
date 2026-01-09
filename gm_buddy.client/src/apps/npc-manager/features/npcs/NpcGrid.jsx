@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
-import { useState, useContext, useEffect } from 'react';
+import { useState, useContext, useEffect, useCallback } from 'react';
 import { NavContext } from '../../../../contexts/contexts.js';
-import NpcCard from '../../../../components/NpcCard';
+import DndNpcCard from '../../../../components/DndNpcCard.jsx';
 import { API_BASE } from '../../../../api';
 import {
     Container,
@@ -28,12 +28,9 @@ function NpcGrid() {
     const changePage = useContext(NavContext);
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-    
-    useEffect(() => {
-        get_test_npcs();
-    }, []);
 
-    async function get_test_npcs() {
+    // Memoize fetch function to prevent recreation on each render
+    const fetchNpcs = useCallback(async () => {
         setLoading(true);
         try {
             const url = `${API_BASE}/Npcs?account_id=1`;
@@ -50,7 +47,16 @@ function NpcGrid() {
         } finally {
             setLoading(false);
         }
-    }
+    }, []);
+
+    useEffect(() => {
+        fetchNpcs();
+    }, [fetchNpcs]);
+
+    // Memoize navigation callback
+    const handleGoHome = useCallback(() => {
+        changePage('home');
+    }, [changePage]);
 
     return (
         <Container maxWidth="xl" sx={{ mt: 2, mb: 4 }}>
@@ -81,7 +87,7 @@ function NpcGrid() {
                     <Button
                         variant="outlined"
                         startIcon={<HomeIcon />}
-                        onClick={() => changePage('home')}
+                        onClick={handleGoHome}
                         sx={{
                             color: 'var(--ink)',
                             borderColor: 'rgba(0,0,0,0.06)',
@@ -96,7 +102,7 @@ function NpcGrid() {
                     <Button
                         variant="outlined"
                         startIcon={<RefreshIcon />}
-                        onClick={() => get_test_npcs()}
+                        onClick={fetchNpcs}
                         sx={{
                             color: 'var(--ink)',
                             borderColor: 'rgba(0,0,0,0.06)',
@@ -121,7 +127,7 @@ function NpcGrid() {
                 {!loading && isMobile && (
                     <Stack spacing={2} alignItems="center">
                         {npcData && npcData.length > 0 ? (
-                            npcData.map((n, i) => <NpcCard key={n.Npc_Id ?? i} npc={n} />)
+                            npcData.map((n, i) => <DndNpcCard key={n.Npc_Id ?? i} npc={n} />)
                         ) : (
                             <Typography variant="body1" color="text.secondary">
                                 No NPCs found

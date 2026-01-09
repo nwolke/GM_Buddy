@@ -1,6 +1,7 @@
 ﻿using GM_Buddy.Contracts.Interfaces;
 using GM_Buddy.Contracts.Models.Npcs;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OutputCaching;
 
 namespace GM_Buddy.Server.Controllers;
 
@@ -21,6 +22,7 @@ public class NpcsController : ControllerBase
     /// Get all NPCs for an account, optionally filtered by game system
     /// </summary>
     [HttpGet]
+    [OutputCache(PolicyName = "NpcList")]
     public async Task<ActionResult<IEnumerable<BaseNpc>>> GetNpcs(
         [FromQuery] int accountId,
         [FromQuery] string? gameSystem = null)
@@ -50,6 +52,7 @@ public class NpcsController : ControllerBase
     /// Get a specific NPC by ID
     /// </summary>
     [HttpGet("{id}")]
+    [OutputCache(PolicyName = "ShortCache")]
     public async Task<ActionResult<BaseNpc>> GetNpc(int id)
     {
         try
@@ -72,6 +75,7 @@ public class NpcsController : ControllerBase
     /// Get all NPCs for a specific account
     /// </summary>
     [HttpGet("account/{accountId}")]
+    [OutputCache(PolicyName = "NpcList")]
     public async Task<ActionResult<IEnumerable<BaseNpc>>> GetNpcsByAccount(int accountId)
     {
         try
@@ -91,6 +95,7 @@ public class NpcsController : ControllerBase
     /// Get all NPCs for a specific game system
     /// </summary>
     [HttpGet("game-system/{gameSystem}")]
+    [OutputCache(PolicyName = "NpcList")]
     public async Task<ActionResult<IEnumerable<BaseNpc>>> GetNpcsByGameSystem(
         string gameSystem,
         [FromQuery] int? accountId = null)
@@ -122,6 +127,7 @@ public class NpcsController : ControllerBase
     /// Search NPCs by name or other criteria
     /// </summary>
     [HttpGet("search")]
+    [OutputCache(PolicyName = "ShortCache")]
     public async Task<ActionResult<IEnumerable<BaseNpc>>> SearchNpcs(
         [FromQuery] int accountId,
         [FromQuery] string? name = null,
