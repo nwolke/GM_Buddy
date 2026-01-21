@@ -7,7 +7,6 @@ import { Box, CircularProgress } from '@mui/material';
 
 // Lazy load route components - only loaded when needed
 const NpcManagerApp = lazy(() => import('./apps/npc-manager/NpcManagerApp'));
-const GenericApp = lazy(() => import('./apps/generic-app/GenericApp'));
 const Auth = lazy(() => import('./apps/auth/Auth'));
 const Home = lazy(() => import('./apps/home/Home'));
 
@@ -27,9 +26,6 @@ function App() {
     switch (isActive) {
         case 'npc-manager': 
             currentPage = <NpcManagerApp />; 
-            break;
-        case 'generic-app': 
-            currentPage = <GenericApp />; 
             break;
         case 'login': 
         case 'signup':

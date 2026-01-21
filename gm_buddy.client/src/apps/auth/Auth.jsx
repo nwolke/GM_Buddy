@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import {
     Container,
     Box,
@@ -8,38 +8,30 @@ import {
     Paper,
     Alert
 } from '@mui/material';
-import { AUTH_API_BASE } from '../../api';
+import { useAuth } from '../../contexts/AuthContext.jsx';
+import { NavContext } from '../../contexts/contexts.js';
 
 function Auth() {
     const [email, setEmail] = useState('');
     const [pw, setPw] = useState('');
-    const [result, setResult] = useState('');
-    const [error, setError] = useState(false);
+    const [feedback, setFeedback] = useState(null);
+    const { login, loading, error: authError, isAuthenticated, user } = useAuth();
+    const changePage = useContext(NavContext);
 
-    async function authorize() {
-        setResult('');
-        setError(false);
-        
-        const requestOptions = {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                email: email,
-                password: pw
-            })
-        };
+    useEffect(() => {
+        if (isAuthenticated) {
+            setFeedback({ type: 'success', message: `Already signed in as ${user?.name ?? user?.email}.` });
+        }
+    }, [isAuthenticated, user]);
 
-        try {
-            const response = await fetch(`${AUTH_API_BASE}/login`, requestOptions);
-            if (!response.ok) {
-                throw new Error(`Status: ${response.status} Error: ${response.statusText}`);
-            }
-            const data = await response.json();
-            setResult(data.accessToken);
-            setError(false);
-        } catch (error) {
-            setResult(error.message);
-            setError(true);
+    async function handleAuthorize() {
+        setFeedback(null);
+        const result = await login(email, pw);
+        if (result.success) {
+            setFeedback({ type: 'success', message: `Welcome back, ${result.user.name}!` });
+            changePage('home');
+        } else {
+            setFeedback({ type: 'error', message: result.error });
         }
     }
 
@@ -47,7 +39,6 @@ function Auth() {
         <Container maxWidth="sm" sx={{ mt: 4, mb: 4 }}>
             <Box
                 sx={{
-
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
@@ -87,7 +78,7 @@ function Auth() {
                         }}
                         onSubmit={(e) => {
                             e.preventDefault();
-                            authorize();
+                            handleAuthorize();
                         }}
                     >
                         <TextField
@@ -99,6 +90,7 @@ function Auth() {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
+                            autoComplete="username"
                             sx={{
                                 '& .MuiOutlinedInput-root': {
                                     backgroundColor: 'rgba(255,255,255,0.8)',
@@ -121,6 +113,7 @@ function Auth() {
                             value={pw}
                             onChange={(e) => setPw(e.target.value)}
                             required
+                            autoComplete="current-password"
                             sx={{
                                 '& .MuiOutlinedInput-root': {
                                     backgroundColor: 'rgba(255,255,255,0.8)',
@@ -139,6 +132,7 @@ function Auth() {
                             variant="contained"
                             size="large"
                             fullWidth
+                            disabled={loading}
                             sx={{
                                 mt: 1,
                                 background: 'linear-gradient(180deg, rgba(207,168,74,0.14), rgba(207,168,74,0.06))',
@@ -151,19 +145,15 @@ function Auth() {
                                 }
                             }}
                         >
-                            Login
+                            {loading ? 'Signing In…' : 'Login'}
                         </Button>
 
-                        {result && (
+                        {(feedback || authError) && (
                             <Alert
-                                severity={error ? 'error' : 'success'}
-                                sx={{
-                                    mt: 2,
-                                    wordBreak: 'break-all',
-                                    fontSize: '0.85rem'
-                                }}
+                                severity={(feedback?.type === 'error' || authError) ? 'error' : 'success'}
+                                sx={{ mt: 2, wordBreak: 'break-all', fontSize: '0.85rem' }}
                             >
-                                {result}
+                                {feedback?.message || authError}
                             </Alert>
                         )}
                     </Box>

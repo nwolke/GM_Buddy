@@ -1,5 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { NavContext } from '../contexts/contexts.js';
+import { useAuth } from '../contexts/AuthContext.jsx';
 import {
     AppBar,
     Toolbar,
@@ -7,8 +8,7 @@ import {
     Button,
     Menu,
     MenuItem,
-    Typography,
-    IconButton
+    Typography
 } from '@mui/material';
 import { ArrowDropDown } from '@mui/icons-material';
 import logo from '../assets/temporary logo for b.png';
@@ -17,6 +17,7 @@ export default function Header() {
     const [appMenuAnchor, setAppMenuAnchor] = useState(null);
     const changePage = useContext(NavContext);
     const showAppDropdown = Boolean(appMenuAnchor);
+    const { isAuthenticated, user, logout } = useAuth();
 
     const handleAppMenuOpen = (event) => {
         setAppMenuAnchor(event.currentTarget);
@@ -147,16 +148,6 @@ export default function Header() {
                         >
                             NPC Manager
                         </MenuItem>
-                        <MenuItem 
-                            onClick={() => handleAppSelect('generic-app')}
-                            sx={{
-                                '&:hover': {
-                                    background: 'rgba(207,168,74,0.1)'
-                                }
-                            }}
-                        >
-                            Generic App
-                        </MenuItem>
                     </Menu>
                 </Box>
 
@@ -172,36 +163,66 @@ export default function Header() {
                         flexDirection: { xs: 'column', sm: 'row' }
                     }}
                 >
-                    <Button
-                        variant="outlined"
-                        onClick={() => changePage('login')}
-                        sx={{
-                            color: 'var(--ink)',
-                            borderColor: 'rgba(0,0,0,0.06)',
-                            '&:hover': {
-                                borderColor: 'rgba(0,0,0,0.12)',
-                                background: 'rgba(207,168,74,0.05)'
-                            }
-                        }}
-                    >
-                        Login
-                    </Button>
-                    <Button
-                        variant="contained"
-                        onClick={() => changePage('signup')}
-                        sx={{
-                            background: 'linear-gradient(180deg, rgba(207,168,74,0.14), rgba(207,168,74,0.06))',
-                            color: 'var(--ink)',
-                            border: '1px solid rgba(207,168,74,0.32)',
-                            boxShadow: 'none',
-                            '&:hover': {
-                                background: 'linear-gradient(180deg, rgba(207,168,74,0.24), rgba(207,168,74,0.16))',
-                                boxShadow: '0 2px 8px rgba(207,168,74,0.2)'
-                            }
-                        }}
-                    >
-                        Sign Up
-                    </Button>
+                    {isAuthenticated ? (
+                        <>
+                            <Typography
+                                variant="body2"
+                                sx={{
+                                    color: 'var(--muted-ink)',
+                                    fontWeight: 600
+                                }}
+                            >
+                                {user?.name ?? user?.email}
+                            </Typography>
+                            <Button
+                                variant="outlined"
+                                onClick={logout}
+                                sx={{
+                                    color: 'var(--ink)',
+                                    borderColor: 'rgba(0,0,0,0.06)',
+                                    '&:hover': {
+                                        borderColor: 'rgba(0,0,0,0.12)',
+                                        background: 'rgba(207,168,74,0.05)'
+                                    }
+                                }}
+                            >
+                                Logout
+                            </Button>
+                        </>
+                    ) : (
+                        <>
+                            <Button
+                                variant="outlined"
+                                onClick={() => changePage('login')}
+                                sx={{
+                                    color: 'var(--ink)',
+                                    borderColor: 'rgba(0,0,0,0.06)',
+                                    '&:hover': {
+                                        borderColor: 'rgba(0,0,0,0.12)',
+                                        background: 'rgba(207,168,74,0.05)'
+                                    }
+                                }}
+                            >
+                                Login
+                            </Button>
+                            <Button
+                                variant="contained"
+                                onClick={() => changePage('signup')}
+                                sx={{
+                                    background: 'linear-gradient(180deg, rgba(207,168,74,0.14), rgba(207,168,74,0.06))',
+                                    color: 'var(--ink)',
+                                    border: '1px solid rgba(207,168,74,0.32)',
+                                    boxShadow: 'none',
+                                    '&:hover': {
+                                        background: 'linear-gradient(180deg, rgba(207,168,74,0.24), rgba(207,168,74,0.16))',
+                                        boxShadow: '0 2px 8px rgba(207,168,74,0.2)'
+                                    }
+                                }}
+                            >
+                                Sign Up
+                            </Button>
+                        </>
+                    )}
                 </Box>
             </Toolbar>
         </AppBar>

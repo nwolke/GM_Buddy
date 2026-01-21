@@ -46,11 +46,17 @@ CREATE TABLE IF NOT EXISTS auth.client (
   client_url VARCHAR(200) NOT NULL
 );
 
+
 -- seed roles
 INSERT INTO auth.role (name, description) VALUES
   ('Admin', 'Administrator role'),
   ('User', 'Default user role')
 ON CONFLICT (name) DO NOTHING;
+
+-- seed web client for frontend authentication
+INSERT INTO auth.client (client_id, name, client_url) VALUES
+  ('gm-buddy-web', 'GM Buddy Web Application', 'https://localhost:49505')
+ON CONFLICT (client_id) DO NOTHING;
 
 -- Seed + schema for GM_Buddy public schema
 

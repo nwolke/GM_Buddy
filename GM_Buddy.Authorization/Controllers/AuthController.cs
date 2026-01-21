@@ -10,7 +10,6 @@ using System.Security.Cryptography;
 
 namespace GM_Buddy.Authorization.Controllers;
 
-[Route("api/[controller]")]
 [ApiController]
 public class AuthController : ControllerBase
 {
@@ -31,8 +30,8 @@ public class AuthController : ControllerBase
         _authRepository = authRepository;
     }
 
-    // Define the Login endpoint that responds to POST requests at 'api/Auth/Login'
-    [HttpPost("Login")]
+    // Define the Login endpoint that responds to POST requests at '/login'
+    [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest loginRequest)
     {
         // Validate the incoming model based on data annotations in LoginDTO
@@ -64,6 +63,7 @@ public class AuthController : ControllerBase
         // Verify the provided password against the stored hashed password using BCrypt
         bool isPasswordValid = PasswordHasher.VerifyPassword(loginRequest.Password, user.Password);
 
+
         // If the password is invalid, return a 401 Unauthorized response
         if (!isPasswordValid)
         {
@@ -74,8 +74,8 @@ public class AuthController : ControllerBase
         // At this point, authentication is successful. Proceed to generate a JWT token.
         string token = await GenerateJwtToken(user, client);
 
-        // Return the generated token in a 200 OK response
-        return Ok(new { Token = token });
+        // Return the generated token in a 200 OK response (accessToken matches frontend expectation)
+        return Ok(new { accessToken = token });
     }
 
     // Private method responsible for generating a JWT token for an authenticated user
