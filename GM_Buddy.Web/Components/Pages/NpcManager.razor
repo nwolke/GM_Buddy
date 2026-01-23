@@ -1,0 +1,252 @@
+@page "/npc-manager"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@inject NpcService NpcService
+@inject NavigationManager Navigation
+
+<PageTitle>NPC Manager - GM Buddy</PageTitle>
+
+<div class="npc-manager-page">
+    @* Header Section *@
+    <div class="npc-manager-header">
+        <div class="header-left">
+            <h1 class="page-title">NPC Manager</h1>
+            <p class="page-subtitle">Manage your campaign's NPCs and their relationships</p>
+        </div>
+        <div class="header-right">
+            <button class="btn btn-primary add-npc-btn" @onclick="OpenCreateModal">
+                + Add NPC
+            </button>
+        </div>
+    </div>
+
+    @* Tab Navigation *@
+    <div class="tab-navigation">
+        <button class="tab-btn @(activeTab == "npcs" ? "active" : "")" @onclick="SetTabNpcs">
+            NPCs (@npcs.Count)
+        </button>
+        <button class="tab-btn @(activeTab == "network" ? "active" : "")" @onclick="SetTabNetwork">
+            <span class="tab-icon">&#128101;</span> Relationship Network
+        </button>
+    </div>
+
+    @* Content Area *@
+    <div class="tab-content">
+        @if (isLoading)
+        {
+            <div class="loading-container">
+                <div class="spinner-border spinner" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        }
+        else if (activeTab == "npcs")
+        {
+            @* NPC Cards Grid *@
+            @if (npcs.Count == 0)
+            {
+                <div class="empty-state">
+                    <p class="text-muted">No NPCs found. Create your first NPC!</p>
+                </div>
+            }
+            else
+            {
+                <div class="npc-cards-grid">
+                    @foreach (var npc in npcs)
+                    {
+                        <div class="npc-card">
+                            <div class="npc-card-header">
+                                <div class="npc-info">
+                                    <h3 class="npc-name">@(npc.Name ?? "Unnamed")</h3>
+                                    <p class="npc-subtitle">@(npc.Stats?.Lineage ?? "Unknown") @(npc.Stats?.Occupation ?? "")</p>
+                                </div>
+                                <div class="npc-actions">
+                                    <button type="button" class="icon-btn" title="Relationships" @onclick="() => ViewRelationships(npc)">
+                                        <span>&#128101;</span>
+                                    </button>
+                                    <button type="button" class="icon-btn" title="Edit" @onclick="() => OpenEditModal(npc)">
+                                        <span>&#9998;</span>
+                                    </button>
+                                    <button type="button" class="icon-btn delete-btn" title="Delete" @onclick="() => DeleteNpc(npc)">
+                                        <span>&#128465;</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="npc-card-body">
+                                <p class="description-label">Description:</p>
+                                <p class="npc-description">@(npc.Description ?? "No description")</p>
+                            </div>
+                            <div class="npc-card-footer">
+                                <button type="button" class="relationship-link-btn" @onclick="() => ViewRelationships(npc)">
+                                    0 relationships
+                                </button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        }
+        else if (activeTab == "network")
+        {
+            @* Relationship Network Visualization *@
+            <div class="network-container">
+                <div class="network-placeholder">
+                    <p>Relationship network visualization</p>
+                    <p class="text-muted">Coming soon - will show NPCs as nodes connected by relationship lines</p>
+                    @* TODO: Integrate vis.js or d3.js for network visualization *@
+                </div>
+            </div>
+        }
+    </div>
+
+    @* Create/Edit NPC Modal *@
+    @if (showNpcModal)
+    {
+        <div class="modal-backdrop" @onclick="CloseNpcModal">
+            <div class="modal-dialog" @onclick="DoNothing" @onclick:stopPropagation>
+                <div class="modal-header">
+                    <div>
+                        <h2 class="modal-title">@(editingNpc != null ? "Edit NPC" : "Create New NPC")</h2>
+                        <p class="modal-subtitle">@(editingNpc != null ? "Update this NPC's details." : "Add a new NPC to your campaign.")</p>
+                    </div>
+                    <button type="button" class="close-btn" @onclick="CloseNpcModal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="npcForm" OnValidSubmit="SaveNpc">
+                        <DataAnnotationsValidator />
+                        
+                        <div class="form-group">
+                            <label class="form-label">Name *</label>
+                            <InputText class="form-control" @bind-Value="npcForm.Name" placeholder="Enter NPC name" />
+                            <ValidationMessage For="() => npcForm.Name" />
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Race *</label>
+                                <InputText class="form-control" @bind-Value="npcForm.Race" placeholder="e.g., Human, Elf, Dwarf" />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Class *</label>
+                                <InputText class="form-control" @bind-Value="npcForm.Class" placeholder="e.g., Warrior, Mage, Rogue" />
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Faction</label>
+                            <InputText class="form-control" @bind-Value="npcForm.Faction" placeholder="e.g., The Iron Guard, Merchants Guild" />
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Description *</label>
+                            <InputTextArea class="form-control textarea" @bind-Value="npcForm.Description" 
+                                placeholder="Describe this NPC's appearance, personality, or role" rows="3" />
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Notes</label>
+                            <InputTextArea class="form-control textarea" @bind-Value="npcForm.Notes" 
+                                placeholder="Additional notes, plot hooks, or important information" rows="3" />
+                        </div>
+                        
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline" @onclick="CloseNpcModal">Cancel</button>
+                            <button type="submit" class="btn btn-primary">@(editingNpc != null ? "Save Changes" : "Create NPC")</button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<NpcViewModel> npcs = [];
+    private bool isLoading = true;
+    private string activeTab = "npcs";
+    private bool showNpcModal = false;
+    private NpcViewModel? editingNpc = null;
+    private NpcViewModel? selectedNpcForRelationships = null;
+    private NpcFormModel npcForm = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadNpcs();
+    }
+
+    private async Task LoadNpcs()
+    {
+        isLoading = true;
+        npcs = await NpcService.GetNpcsAsync();
+        isLoading = false;
+    }
+
+    private void SetTabNpcs() => activeTab = "npcs";
+    private void SetTabNetwork() => activeTab = "network";
+    private void DoNothing() { } // Needed for @onclick:stopPropagation to work
+
+    private void OpenCreateModal()
+    {
+        editingNpc = null;
+        npcForm = new NpcFormModel();
+        showNpcModal = true;
+    }
+
+    private void OpenEditModal(NpcViewModel npc)
+    {
+        editingNpc = npc;
+        npcForm = new NpcFormModel
+        {
+            Name = npc.Name ?? "",
+            Race = npc.Stats?.Lineage ?? "",
+            Class = npc.Stats?.Occupation ?? "",
+            Description = npc.Description ?? ""
+        };
+        showNpcModal = true;
+    }
+
+    private void CloseNpcModal()
+    {
+        showNpcModal = false;
+        editingNpc = null;
+    }
+
+    private async Task SaveNpc()
+    {
+        if (editingNpc != null)
+        {
+            // TODO: Implement NPC update via API
+            Console.WriteLine($"Updating NPC: {npcForm.Name}");
+        }
+        else
+        {
+            // TODO: Implement NPC creation via API
+            Console.WriteLine($"Creating NPC: {npcForm.Name}");
+        }
+        CloseNpcModal();
+        await LoadNpcs();
+    }
+
+    private void DeleteNpc(NpcViewModel npc)
+    {
+        // TODO: Implement delete functionality with confirmation
+        Console.WriteLine($"Deleting NPC: {npc.Name}");
+    }
+
+    private void ViewRelationships(NpcViewModel npc)
+    {
+        // Switch to network tab and highlight this NPC
+        selectedNpcForRelationships = npc;
+        activeTab = "network";
+    }
+
+    public class NpcFormModel
+    {
+        public string Name { get; set; } = "";
+        public string Race { get; set; } = "";
+        public string Class { get; set; } = "";
+        public string? Faction { get; set; }
+        public string Description { get; set; } = "";
+        public string? Notes { get; set; }
+    }
+}

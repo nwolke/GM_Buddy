@@ -23,8 +23,10 @@ public class NpcRepository : INpcRepository
                    n.game_system_id,
                    n.name,
                    n.description,
-                   n.stats
+                   n.stats,
+                   gs.game_system_name
             FROM npc AS n
+            JOIN game_system AS gs ON n.game_system_id = gs.game_system_id
             WHERE n.account_id = @AccountId
             ORDER BY n.npc_id";
         var cmd = new CommandDefinition(sql, new { AccountId = account_id }, cancellationToken: ct);
@@ -40,10 +42,47 @@ public class NpcRepository : INpcRepository
                    n.game_system_id,
                    n.name,
                    n.description,
-                   n.stats
+                   n.stats,
+                   gs.game_system_name
             FROM npc AS n
+            JOIN game_system AS gs ON n.game_system_id = gs.game_system_id
             WHERE n.npc_id = @NpcId";
         var cmd = new CommandDefinition(sql, new { NpcId = npc_id }, cancellationToken: ct);
         return await dbConnection.QueryFirstOrDefaultAsync<Npc>(cmd);
+    }
+
+    public async Task<int> CreateNpcAsync(Npc npc, CancellationToken ct = default)
+    {
+        using IDbConnection dbConnection = _dbConnector.CreateConnection();
+        const string sql = @"
+            INSERT INTO npc (account_id, game_system_id, name, description, stats)
+            VALUES (@account_id, @game_system_id, @name, @description, @stats)
+            RETURNING npc_id";
+        var cmd = new CommandDefinition(sql, npc, cancellationToken: ct);
+        return await dbConnection.ExecuteScalarAsync<int>(cmd);
+    }
+
+    public async Task<bool> UpdateNpcAsync(Npc npc, CancellationToken ct = default)
+    {
+        using IDbConnection dbConnection = _dbConnector.CreateConnection();
+        const string sql = @"
+            UPDATE npc 
+            SET name = @name,
+                description = @description,
+                stats = @stats,
+                game_system_id = @game_system_id
+            WHERE npc_id = @npc_id AND account_id = @account_id";
+        var cmd = new CommandDefinition(sql, npc, cancellationToken: ct);
+        int rowsAffected = await dbConnection.ExecuteAsync(cmd);
+        return rowsAffected > 0;
+    }
+
+    public async Task<bool> DeleteNpcAsync(int npcId, CancellationToken ct = default)
+    {
+        using IDbConnection dbConnection = _dbConnector.CreateConnection();
+        const string sql = "DELETE FROM npc WHERE npc_id = @NpcId";
+        var cmd = new CommandDefinition(sql, new { NpcId = npcId }, cancellationToken: ct);
+        int rowsAffected = await dbConnection.ExecuteAsync(cmd);
+        return rowsAffected > 0;
     }
 }

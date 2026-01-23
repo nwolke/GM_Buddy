@@ -402,3 +402,9 @@ FodyWeavers.xsd
 # Docker volume data directories (PostgreSQL data, pgAdmin config)
 /db-data
 /pgadmin-data
+
+# Development settings with secrets
+appsettings.Development.json
+**/appsettings.Development.json
+**/appsettings.Local.json
+/TTRPG NPC Management CRUD App
