@@ -104,17 +104,15 @@ export interface CreateNpcRequest {
 
 // NPC API calls
 export const npcApi = {
-  // Get all NPCs for a user (by cognitoSub)
-  async getNpcs(cognitoSub: string): Promise<NPC[]> {
-    const response = await apiClient.get<ApiNpc[]>('/Npcs', {
-      params: { cognitoSub },
-    });
+  // Get all NPCs for the authenticated user
+  async getNpcs(): Promise<NPC[]> {
+    const response = await apiClient.get<ApiNpc[]>('/Npcs');
     return response.data.map(transformApiNpcToNpc);
   },
 
-  // Get all NPCs for an account
-  async getNpcsByAccount(accountId: number): Promise<NPC[]> {
-    const response = await apiClient.get<ApiNpc[]>(`/Npcs/account/${accountId}`);
+  // Get all NPCs for the authenticated user's account
+  async getNpcsByAccount(): Promise<NPC[]> {
+    const response = await apiClient.get<ApiNpc[]>('/Npcs/account');
     return response.data.map(transformApiNpcToNpc);
   },
 
@@ -124,27 +122,23 @@ export const npcApi = {
     return transformApiNpcToNpc(response.data);
   },
 
-  // Search NPCs
-  async searchNpcs(accountId: number, name?: string): Promise<NPC[]> {
+  // Search NPCs (searches within authenticated user's NPCs)
+  async searchNpcs(name?: string): Promise<NPC[]> {
     const response = await apiClient.get<ApiNpc[]>('/Npcs/search', {
-      params: { accountId, name },
+      params: { name },
     });
     return response.data.map(transformApiNpcToNpc);
   },
 
-  // Create a new NPC
-  async createNpc(accountId: number, npc: CreateNpcRequest): Promise<NPC> {
-    const response = await apiClient.post<ApiNpc>('/Npcs', npc, {
-      params: { accountId },
-    });
+  // Create a new NPC for the authenticated user
+  async createNpc(npc: CreateNpcRequest): Promise<NPC> {
+    const response = await apiClient.post<ApiNpc>('/Npcs', npc);
     return transformApiNpcToNpc(response.data);
   },
 
-  // Update an existing NPC
-  async updateNpc(id: number, accountId: number, npc: CreateNpcRequest): Promise<void> {
-    await apiClient.put(`/Npcs/${id}`, npc, {
-      params: { accountId },
-    });
+  // Update an existing NPC owned by the authenticated user
+  async updateNpc(id: number, npc: CreateNpcRequest): Promise<void> {
+    await apiClient.put(`/Npcs/${id}`, npc);
   },
 
   // Delete an NPC
