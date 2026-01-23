@@ -49,8 +49,6 @@ switch ($Action) {
         Write-Host "Building for production..." -ForegroundColor Yellow
         npm run build
         
-        
-        
         if ($LASTEXITCODE -eq 0) {
             Write-Host "? Build completed successfully!" -ForegroundColor Green
             Write-Host "Output directory: GM_Buddy.React/dist" -ForegroundColor Cyan
