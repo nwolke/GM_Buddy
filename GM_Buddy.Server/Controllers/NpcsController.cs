@@ -1,12 +1,15 @@
 ﻿using GM_Buddy.Contracts.Interfaces;
 using GM_Buddy.Contracts.Models.Npcs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OutputCaching;
+using System.Security.Claims;
 
 namespace GM_Buddy.Server.Controllers;
 
 [ApiController]
 [Route("[controller]")]
+[Authorize]
 public class NpcsController : ControllerBase
 {
     private readonly ILogger<NpcsController> _logger;
@@ -24,32 +27,51 @@ public class NpcsController : ControllerBase
     }
 
     /// <summary>
-    /// Get all NPCs for an account, optionally filtered by game system.
-    /// Requires cognitoSub to identify the user. Account must exist (call /account/sync first).
+    /// Helper method to get the authenticated user's account ID from JWT claims
+    /// </summary>
+    private async Task<(int accountId, string error)?> GetAuthenticatedAccountIdAsync()
+    {
+        var cognitoSub = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        
+        if (string.IsNullOrEmpty(cognitoSub))
+        {
+            _logger.LogWarning("No user identifier found in claims");
+            return (0, "User authentication failed");
+        }
+
+        var account = await _accountRepository.GetByCognitoSubAsync(cognitoSub);
+        if (account == null)
+        {
+            _logger.LogWarning("Account not found for cognitoSub: {CognitoSub}", cognitoSub);
+            return (0, "Account not found. Please sync account first.");
+        }
+
+        return (account.account_id, string.Empty);
+    }
+
+    /// <summary>
+    /// Get all NPCs for the authenticated user's account, optionally filtered by game system.
+    /// Account must exist (call /account/sync first).
     /// </summary>
     [HttpGet]
     [OutputCache(PolicyName = "NpcList")]
     public async Task<ActionResult<IEnumerable<BaseNpc>>> GetNpcs(
-        [FromQuery] string cognitoSub,
         [FromQuery] string? gameSystem = null)
     {
-        if (string.IsNullOrEmpty(cognitoSub))
-        {
-            return BadRequest("cognitoSub is required");
-        }
-
         try
         {
-            // Look up account by Cognito sub
-            var account = await _accountRepository.GetByCognitoSubAsync(cognitoSub);
-            if (account == null)
+            var accountResult = await GetAuthenticatedAccountIdAsync();
+            if (accountResult.HasValue && !string.IsNullOrEmpty(accountResult.Value.error))
             {
-                _logger.LogWarning("Account not found for cognitoSub: {CognitoSub}", cognitoSub);
-                return NotFound("Account not found. Please sync account first.");
+                return accountResult.Value.accountId == 0 
+                    ? NotFound(accountResult.Value.error) 
+                    : BadRequest(accountResult.Value.error);
             }
+
+            int accountId = accountResult!.Value.accountId;
             
-            _logger.LogInformation("Getting NPCs for account {AccountId}", account.account_id);
-            IEnumerable<BaseNpc> result = await _logic.GetNpcList(account.account_id);
+            _logger.LogInformation("Getting NPCs for account {AccountId}", accountId);
+            IEnumerable<BaseNpc> result = await _logic.GetNpcList(accountId);
             
             if (!string.IsNullOrWhiteSpace(gameSystem))
             {
@@ -62,13 +84,13 @@ public class NpcsController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving NPCs for {CognitoSub}", cognitoSub);
+            _logger.LogError(ex, "Error retrieving NPCs");
             return StatusCode(500, "Internal server error");
         }
     }
 
     /// <summary>
-    /// Get a specific NPC by ID
+    /// Get a specific NPC by ID (must be owned by the authenticated user)
     /// </summary>
     [HttpGet("{id}")]
     [OutputCache(PolicyName = "ShortCache")]
@@ -76,11 +98,29 @@ public class NpcsController : ControllerBase
     {
         try
         {
+            var accountResult = await GetAuthenticatedAccountIdAsync();
+            if (accountResult.HasValue && !string.IsNullOrEmpty(accountResult.Value.error))
+            {
+                return accountResult.Value.accountId == 0 
+                    ? NotFound(accountResult.Value.error) 
+                    : BadRequest(accountResult.Value.error);
+            }
+
+            int accountId = accountResult!.Value.accountId;
+
             BaseNpc? npc = await _logic.GetNpc(id);
             if (npc == null)
             {
                 return NotFound($"NPC with ID {id} not found");
             }
+
+            // Verify the NPC belongs to the authenticated user's account
+            if (npc.Account_Id != accountId)
+            {
+                _logger.LogWarning("User attempted to access NPC {NpcId} not owned by their account {AccountId}", id, accountId);
+                return Forbid();
+            }
+
             return Ok(npc);
         }
         catch (Exception ex)
@@ -91,42 +131,55 @@ public class NpcsController : ControllerBase
     }
 
     /// <summary>
-    /// Get all NPCs for a specific account
+    /// Get all NPCs for the authenticated user's account
     /// </summary>
-    [HttpGet("account/{accountId}")]
+    [HttpGet("account")]
     [OutputCache(PolicyName = "NpcList")]
-    public async Task<ActionResult<IEnumerable<BaseNpc>>> GetNpcsByAccount(int accountId)
+    public async Task<ActionResult<IEnumerable<BaseNpc>>> GetNpcsByAccount()
     {
         try
         {
+            var accountResult = await GetAuthenticatedAccountIdAsync();
+            if (accountResult.HasValue && !string.IsNullOrEmpty(accountResult.Value.error))
+            {
+                return accountResult.Value.accountId == 0 
+                    ? NotFound(accountResult.Value.error) 
+                    : BadRequest(accountResult.Value.error);
+            }
+
+            int accountId = accountResult!.Value.accountId;
+
             _logger.LogInformation("Getting NPCs for account {AccountId}", accountId);
             IEnumerable<BaseNpc> result = await _logic.GetNpcList(accountId);
             return Ok(result);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving NPCs for account {AccountId}", accountId);
+            _logger.LogError(ex, "Error retrieving NPCs");
             return StatusCode(500, "Internal server error");
         }
     }
 
     /// <summary>
-    /// Get all NPCs for a specific game system
+    /// Get all NPCs for a specific game system from the authenticated user's account
     /// </summary>
     [HttpGet("game-system/{gameSystem}")]
     [OutputCache(PolicyName = "NpcList")]
-    public async Task<ActionResult<IEnumerable<BaseNpc>>> GetNpcsByGameSystem(
-        string gameSystem,
-        [FromQuery] int? accountId = null)
+    public async Task<ActionResult<IEnumerable<BaseNpc>>> GetNpcsByGameSystem(string gameSystem)
     {
         try
         {
-            if (!accountId.HasValue)
+            var accountResult = await GetAuthenticatedAccountIdAsync();
+            if (accountResult.HasValue && !string.IsNullOrEmpty(accountResult.Value.error))
             {
-                return BadRequest("Account ID is required");
+                return accountResult.Value.accountId == 0 
+                    ? NotFound(accountResult.Value.error) 
+                    : BadRequest(accountResult.Value.error);
             }
 
-            IEnumerable<BaseNpc> npcs = await _logic.GetNpcList(accountId.Value);
+            int accountId = accountResult!.Value.accountId;
+
+            IEnumerable<BaseNpc> npcs = await _logic.GetNpcList(accountId);
             IEnumerable<BaseNpc> filtered = npcs.Where(n => n.System != null && 
                 n.System.Equals(gameSystem, StringComparison.OrdinalIgnoreCase));
             
@@ -143,18 +196,27 @@ public class NpcsController : ControllerBase
     }
 
     /// <summary>
-    /// Search NPCs by name or other criteria
+    /// Search NPCs by name or other criteria in the authenticated user's account
     /// </summary>
     [HttpGet("search")]
     [OutputCache(PolicyName = "ShortCache")]
     public async Task<ActionResult<IEnumerable<BaseNpc>>> SearchNpcs(
-        [FromQuery] int accountId,
         [FromQuery] string? name = null,
         [FromQuery] string? lineage = null,
         [FromQuery] string? occupation = null)
     {
         try
         {
+            var accountResult = await GetAuthenticatedAccountIdAsync();
+            if (accountResult.HasValue && !string.IsNullOrEmpty(accountResult.Value.error))
+            {
+                return accountResult.Value.accountId == 0 
+                    ? NotFound(accountResult.Value.error) 
+                    : BadRequest(accountResult.Value.error);
+            }
+
+            int accountId = accountResult!.Value.accountId;
+
             IEnumerable<BaseNpc> npcs = await _logic.GetNpcList(accountId);
             
             if (!string.IsNullOrWhiteSpace(name))
@@ -177,18 +239,23 @@ public class NpcsController : ControllerBase
     }
 
     /// <summary>
-    /// Create a new NPC
+    /// Create a new NPC for the authenticated user's account
     /// </summary>
     [HttpPost]
-    public async Task<ActionResult<BaseNpc>> CreateNpc([FromBody] CreateNpcRequest request, [FromQuery] int accountId)
+    public async Task<ActionResult<BaseNpc>> CreateNpc([FromBody] CreateNpcRequest request)
     {
-        if (accountId <= 0)
-        {
-            return BadRequest("Valid accountId is required");
-        }
-
         try
         {
+            var accountResult = await GetAuthenticatedAccountIdAsync();
+            if (accountResult.HasValue && !string.IsNullOrEmpty(accountResult.Value.error))
+            {
+                return accountResult.Value.accountId == 0 
+                    ? NotFound(accountResult.Value.error) 
+                    : BadRequest(accountResult.Value.error);
+            }
+
+            int accountId = accountResult!.Value.accountId;
+
             int npcId = await _logic.CreateNpcAsync(accountId, request);
             _logger.LogInformation("Created NPC {NpcId} for account {AccountId}", npcId, accountId);
             
@@ -203,28 +270,33 @@ public class NpcsController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error creating NPC for account {AccountId}", accountId);
+            _logger.LogError(ex, "Error creating NPC");
             return StatusCode(500, "Internal server error");
         }
     }
 
     /// <summary>
-    /// Update an existing NPC
+    /// Update an existing NPC owned by the authenticated user
     /// </summary>
     [HttpPut("{id}")]
-    public async Task<ActionResult> UpdateNpc(int id, [FromBody] UpdateNpcRequest request, [FromQuery] int accountId)
+    public async Task<ActionResult> UpdateNpc(int id, [FromBody] UpdateNpcRequest request)
     {
-        if (accountId <= 0)
-        {
-            return BadRequest("Valid accountId is required");
-        }
-
         try
         {
+            var accountResult = await GetAuthenticatedAccountIdAsync();
+            if (accountResult.HasValue && !string.IsNullOrEmpty(accountResult.Value.error))
+            {
+                return accountResult.Value.accountId == 0 
+                    ? NotFound(accountResult.Value.error) 
+                    : BadRequest(accountResult.Value.error);
+            }
+
+            int accountId = accountResult!.Value.accountId;
+
             bool success = await _logic.UpdateNpcAsync(id, accountId, request);
             if (!success)
             {
-                return NotFound($"NPC with ID {id} not found or not owned by account {accountId}");
+                return NotFound($"NPC with ID {id} not found or not owned by your account");
             }
             
             _logger.LogInformation("Updated NPC {NpcId}", id);
@@ -238,13 +310,36 @@ public class NpcsController : ControllerBase
     }
 
     /// <summary>
-    /// Delete an NPC
+    /// Delete an NPC owned by the authenticated user
     /// </summary>
     [HttpDelete("{id}")]
     public async Task<ActionResult> DeleteNpc(int id)
     {
         try
         {
+            var accountResult = await GetAuthenticatedAccountIdAsync();
+            if (accountResult.HasValue && !string.IsNullOrEmpty(accountResult.Value.error))
+            {
+                return accountResult.Value.accountId == 0 
+                    ? NotFound(accountResult.Value.error) 
+                    : BadRequest(accountResult.Value.error);
+            }
+
+            int accountId = accountResult!.Value.accountId;
+
+            // First verify the NPC exists and belongs to the authenticated user
+            var npc = await _logic.GetNpc(id);
+            if (npc == null)
+            {
+                return NotFound($"NPC with ID {id} not found");
+            }
+
+            if (npc.Account_Id != accountId)
+            {
+                _logger.LogWarning("User attempted to delete NPC {NpcId} not owned by their account {AccountId}", id, accountId);
+                return Forbid();
+            }
+
             bool success = await _logic.DeleteNpcAsync(id);
             if (!success)
             {

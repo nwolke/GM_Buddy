@@ -37,25 +37,18 @@ public class NpcService
             return [];
         }
 
-        var cognitoSub = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-        if (string.IsNullOrEmpty(cognitoSub))
-        {
-            _logger.LogWarning("No user identifier found in claims");
-            return [];
-        }
-
         try
         {
-            var endpoint = $"/Npcs?cognitoSub={Uri.EscapeDataString(cognitoSub)}";
+            // No need to pass cognitoSub - server will extract it from JWT token
+            var endpoint = "/Npcs";
             
-            _logger.LogInformation("Fetching NPCs for user {CognitoSub}", cognitoSub);
+            _logger.LogInformation("Fetching NPCs for authenticated user");
             var npcs = await _apiService.GetAsync<List<NpcViewModel>>(endpoint);
             return npcs ?? [];
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to fetch NPCs for user {CognitoSub}", cognitoSub);
+            _logger.LogError(ex, "Failed to fetch NPCs for authenticated user");
             return [];
         }
     }
