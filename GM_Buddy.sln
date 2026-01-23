@@ -1,14 +1,12 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.12.35527.113
+# Visual Studio Version 18
+VisualStudioVersion = 18.2.11415.280 d18.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GM_Buddy.Server", "GM_Buddy.Server\GM_Buddy.Server.csproj", "{6A679473-74F4-4D4A-A82F-29EDDE37D28D}"
 	ProjectSection(ProjectDependencies) = postProject
 		{73BDCA08-827B-476F-A6E3-1D70DA1574C7} = {73BDCA08-827B-476F-A6E3-1D70DA1574C7}
 	EndProjectSection
-EndProject
-Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "gm_buddy.client", "gm_buddy.client\gm_buddy.client.esproj", "{2086E110-266F-4621-9598-9428B4D4B482}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GM_Buddy.Business", "GM_Buddy.Business\GM_Buddy.Business.csproj", "{E5F1741F-894A-4953-BD8B-4114CA2A3CFB}"
 EndProject
@@ -24,8 +22,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		init.sql = init.sql
 		servers.json = servers.json
 	EndProjectSection
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GM_Buddy.Authorization", "GM_Buddy.Authorization\GM_Buddy.Authorization.csproj", "{87F7A7CE-F532-4FF0-92CF-BE7A95D817A4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GM_Buddy.Business.UnitTests", "GM_Buddy.Business.UnitTests\GM_Buddy.Business.UnitTests.csproj", "{60983E56-D238-419D-9FF0-7DFF67232221}"
 EndProject
@@ -53,16 +49,6 @@ Global
 		{6A679473-74F4-4D4A-A82F-29EDDE37D28D}.Release|x64.Build.0 = Release|Any CPU
 		{6A679473-74F4-4D4A-A82F-29EDDE37D28D}.Release|x86.ActiveCfg = Release|Any CPU
 		{6A679473-74F4-4D4A-A82F-29EDDE37D28D}.Release|x86.Build.0 = Release|Any CPU
-		{2086E110-266F-4621-9598-9428B4D4B482}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2086E110-266F-4621-9598-9428B4D4B482}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2086E110-266F-4621-9598-9428B4D4B482}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
-		{2086E110-266F-4621-9598-9428B4D4B482}.Debug|x64.ActiveCfg = Debug|x64
-		{2086E110-266F-4621-9598-9428B4D4B482}.Debug|x86.ActiveCfg = Debug|x86
-		{2086E110-266F-4621-9598-9428B4D4B482}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2086E110-266F-4621-9598-9428B4D4B482}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2086E110-266F-4621-9598-9428B4D4B482}.Release|Any CPU.Deploy.0 = Release|Any CPU
-		{2086E110-266F-4621-9598-9428B4D4B482}.Release|x64.ActiveCfg = Release|x64
-		{2086E110-266F-4621-9598-9428B4D4B482}.Release|x86.ActiveCfg = Release|x86
 		{E5F1741F-894A-4953-BD8B-4114CA2A3CFB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E5F1741F-894A-4953-BD8B-4114CA2A3CFB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E5F1741F-894A-4953-BD8B-4114CA2A3CFB}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -107,18 +93,6 @@ Global
 		{04727691-160D-4099-9CA5-45508B4B2328}.Release|Any CPU.Build.0 = Release|Any CPU
 		{04727691-160D-4099-9CA5-45508B4B2328}.Release|x64.ActiveCfg = Release|x64
 		{04727691-160D-4099-9CA5-45508B4B2328}.Release|x86.ActiveCfg = Release|x86
-		{87F7A7CE-F532-4FF0-92CF-BE7A95D817A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{87F7A7CE-F532-4FF0-92CF-BE7A95D817A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{87F7A7CE-F532-4FF0-92CF-BE7A95D817A4}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{87F7A7CE-F532-4FF0-92CF-BE7A95D817A4}.Debug|x64.Build.0 = Debug|Any CPU
-		{87F7A7CE-F532-4FF0-92CF-BE7A95D817A4}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{87F7A7CE-F532-4FF0-92CF-BE7A95D817A4}.Debug|x86.Build.0 = Debug|Any CPU
-		{87F7A7CE-F532-4FF0-92CF-BE7A95D817A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{87F7A7CE-F532-4FF0-92CF-BE7A95D817A4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{87F7A7CE-F532-4FF0-92CF-BE7A95D817A4}.Release|x64.ActiveCfg = Release|Any CPU
-		{87F7A7CE-F532-4FF0-92CF-BE7A95D817A4}.Release|x64.Build.0 = Release|Any CPU
-		{87F7A7CE-F532-4FF0-92CF-BE7A95D817A4}.Release|x86.ActiveCfg = Release|Any CPU
-		{87F7A7CE-F532-4FF0-92CF-BE7A95D817A4}.Release|x86.Build.0 = Release|Any CPU
 		{60983E56-D238-419D-9FF0-7DFF67232221}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{60983E56-D238-419D-9FF0-7DFF67232221}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{60983E56-D238-419D-9FF0-7DFF67232221}.Debug|x64.ActiveCfg = Debug|Any CPU

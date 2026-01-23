@@ -14,10 +14,12 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 // Configure API settings
-var apiSettings = builder.Configuration.GetSection("ApiSettings").Get<ApiSettings>() ?? new ApiSettings
+var apiSettings = builder.Configuration.GetSection("ApiSettings").Get<ApiSettings>() ?? new ApiSettings();
+if (string.IsNullOrEmpty(apiSettings.BaseUrl))
 {
-    BaseUrl = "http://gm_buddy_server:8080"
-};
+    apiSettings.BaseUrl = "http://gm_buddy_server:8080";
+}
+Console.WriteLine($"API BaseUrl configured: {apiSettings.BaseUrl}");
 
 // Load Cognito settings
 var cognitoSettings = builder.Configuration.GetSection("Cognito").Get<CognitoSettings>() ?? new CognitoSettings();
@@ -104,13 +106,18 @@ builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddHttpContextAccessor();
 
 // Register HttpClient for main API with token forwarding
+// Note: AddHttpClient<T> also registers T as a service, so don't call AddScoped<ApiService>
 builder.Services.AddHttpClient<ApiService>(client =>
 {
+    if (string.IsNullOrEmpty(apiSettings.BaseUrl))
+    {
+        throw new InvalidOperationException("ApiSettings:BaseUrl is not configured");
+    }
     client.BaseAddress = new Uri(apiSettings.BaseUrl);
+    Console.WriteLine($"ApiService HttpClient configured with BaseAddress: {client.BaseAddress}");
 });
 
-// Register services
-builder.Services.AddScoped<ApiService>();
+// Register other services (ApiService is already registered by AddHttpClient above)
 builder.Services.AddScoped<NpcService>();
 
 var app = builder.Build();
@@ -153,17 +160,27 @@ if (isCognitoConfigured)
 }
 else
 {
-    // Dev mode login page (no actual auth)
-    app.MapGet("/login", (HttpContext context, string? returnUrl) =>
+    // Dev mode - sign in with a fake dev user for testing [Authorize] pages
+    app.MapGet("/login", async (HttpContext context, string? returnUrl) =>
     {
+        var claims = new List<Claim>
+        {
+            new(ClaimTypes.NameIdentifier, "dev-user-id"),
+            new(ClaimTypes.Name, "Dev User"),
+            new(ClaimTypes.Email, "dev@localhost"),
+            new(ClaimTypes.Role, "Admin") // Give dev user admin access
+        };
+        var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+        var principal = new ClaimsPrincipal(identity);
+        
+        await context.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
         context.Response.Redirect(returnUrl ?? "/");
-        return Task.CompletedTask;
     });
     
-    app.MapGet("/logout", (HttpContext context) =>
+    app.MapGet("/logout", async (HttpContext context) =>
     {
+        await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         context.Response.Redirect("/");
-        return Task.CompletedTask;
     });
 }
 

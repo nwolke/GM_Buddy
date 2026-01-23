@@ -9,7 +9,7 @@
     @* Breadcrumb Navigation *@
     <nav aria-label="breadcrumb" class="breadcrumb-nav">
         <a href="/" class="breadcrumb-link">
-            <span class="breadcrumb-icon">??</span> Home
+            <span class="breadcrumb-icon">Home</span>
         </a>
         <span class="breadcrumb-separator">/</span>
         <span class="breadcrumb-current">NPC Manager</span>
@@ -20,7 +20,7 @@
     @* Authenticated - Show NPC Grid *@
     <div class="npc-toolbar">
         <button class="btn btn-outline" @onclick="RefreshNpcs" disabled="@isLoading">
-            ?? Refresh
+            Refresh
         </button>
     </div>
 
@@ -101,9 +101,5 @@
         isLoading = true;
         npcs = await NpcService.GetNpcsAsync();
         isLoading = false;
-    }
-}
-    {
-        AuthState.OnAuthStateChanged -= StateHasChanged;
     }
 }

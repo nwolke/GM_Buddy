@@ -33,12 +33,29 @@
     margin: 0;
 }
 
+.cta-section {
+    margin-top: 1rem;
+}
+
+.btn-lg {
+    padding: 1rem 2rem;
+    font-size: 1.2rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
 @media (max-width: 600px) {
     .hero-title {
         font-size: 1.8rem;
     }
 
     .hero-subtitle {
+        font-size: 1rem;
+    }
+    
+    .btn-lg {
+        padding: 0.875rem 1.5rem;
         font-size: 1rem;
     }
 }

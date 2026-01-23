@@ -27,6 +27,10 @@ public class ApiService
         _httpClient = httpClient;
         _httpContextAccessor = httpContextAccessor;
         _logger = logger;
+        
+        // Log the BaseAddress for debugging
+        _logger.LogInformation("ApiService initialized with BaseAddress: {BaseAddress}", 
+            _httpClient.BaseAddress?.ToString() ?? "NULL");
     }
 
     /// <summary>
@@ -34,6 +38,9 @@ public class ApiService
     /// </summary>
     public async Task<T?> GetAsync<T>(string endpoint)
     {
+        _logger.LogDebug("GET request to: {Endpoint}, BaseAddress: {BaseAddress}", 
+            endpoint, _httpClient.BaseAddress?.ToString() ?? "NULL");
+            
         var request = new HttpRequestMessage(HttpMethod.Get, endpoint);
         await AddAuthHeaderAsync(request);
         
