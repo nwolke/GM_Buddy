@@ -2,7 +2,7 @@
 
 <div class="card npc-card">
     <div class="card-body">
-        <h5 class="npc-name">@(Stats?.Name ?? "Unnamed NPC")</h5>
+        <h5 class="npc-name">@(Npc?.Name ?? "Unnamed NPC")</h5>
         <p class="npc-info">@(Stats?.Lineage ?? "Unknown") · @(Stats?.Occupation ?? "Unknown")</p>
         
         <div class="attribute-row">
@@ -18,9 +18,9 @@
             }
         </div>
 
-        @if (!string.IsNullOrEmpty(Stats?.Description))
+        @if (!string.IsNullOrEmpty(Npc?.Description))
         {
-            <p class="npc-description">@Stats.Description</p>
+            <p class="npc-description">@Npc.Description</p>
         }
     </div>
 </div>

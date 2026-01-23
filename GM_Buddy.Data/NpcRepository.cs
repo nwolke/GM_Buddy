@@ -23,8 +23,10 @@ public class NpcRepository : INpcRepository
                    n.game_system_id,
                    n.name,
                    n.description,
-                   n.stats
+                   n.stats,
+                   gs.game_system_name
             FROM npc AS n
+            JOIN game_system AS gs ON n.game_system_id = gs.game_system_id
             WHERE n.account_id = @AccountId
             ORDER BY n.npc_id";
         var cmd = new CommandDefinition(sql, new { AccountId = account_id }, cancellationToken: ct);
@@ -40,8 +42,10 @@ public class NpcRepository : INpcRepository
                    n.game_system_id,
                    n.name,
                    n.description,
-                   n.stats
+                   n.stats,
+                   gs.game_system_name
             FROM npc AS n
+            JOIN game_system AS gs ON n.game_system_id = gs.game_system_id
             WHERE n.npc_id = @NpcId";
         var cmd = new CommandDefinition(sql, new { NpcId = npc_id }, cancellationToken: ct);
         return await dbConnection.QueryFirstOrDefaultAsync<Npc>(cmd);

@@ -1,7 +1,8 @@
 ﻿namespace GM_Buddy.Contracts.DbEntities;
 
 /// <summary>
-/// Represents a user account from the auth.account table
+/// Represents a user account from the auth.account table.
+/// Links Cognito users to internal data and tracks subscription status.
 /// </summary>
 public class Account
 {
@@ -10,15 +11,15 @@ public class Account
     /// </summary>
     public int account_id { get; set; }
 
- /// <summary>
-    /// Unique username for login
+    /// <summary>
+    /// Unique username for login (optional with Cognito)
     /// </summary>
     public string? username { get; set; }
     
     /// <summary>
     /// User's first name
     /// </summary>
-    public required string first_name { get; set; }
+    public string? first_name { get; set; }
  
     /// <summary>
     /// User's last name (optional)
@@ -31,14 +32,14 @@ public class Account
     public required string email { get; set; }
     
     /// <summary>
-    /// Hashed password (do not expose in API responses)
+    /// Cognito user ID (sub claim from JWT)
     /// </summary>
-    public string? password { get; set; }
+    public string? cognito_sub { get; set; }
     
     /// <summary>
-    /// Password salt (do not expose in API responses)
+    /// Subscription tier: free, supporter, premium, lifetime
     /// </summary>
-    public string? salt { get; set; }
+    public string subscription_tier { get; set; } = "free";
     
     /// <summary>
     /// Account creation timestamp
@@ -46,7 +47,14 @@ public class Account
     public DateTime created_at { get; set; }
     
     /// <summary>
-/// Display name (computed from first and last name)
-/// </summary>
-    public string FullName => $"{first_name} {last_name}".Trim();
+    /// Last login timestamp
+    /// </summary>
+    public DateTime? last_login_at { get; set; }
+    
+    /// <summary>
+    /// Display name (computed from first and last name, or email)
+    /// </summary>
+    public string DisplayName => !string.IsNullOrWhiteSpace(first_name) 
+        ? $"{first_name} {last_name}".Trim() 
+        : email;
 }

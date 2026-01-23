@@ -63,18 +63,38 @@ if (isCognitoConfigured)
         
         options.Events = new OpenIdConnectEvents
         {
-            OnTokenValidated = context =>
+            OnTokenValidated = async context =>
             {
                 var identity = context.Principal?.Identity as ClaimsIdentity;
                 if (identity != null)
                 {
+                    // Map Cognito groups to roles
                     var groupsClaims = identity.FindAll("cognito:groups").ToList();
                     foreach (var group in groupsClaims)
                     {
                         identity.AddClaim(new Claim(ClaimTypes.Role, group.Value));
                     }
+                    
+                    // Sync account with backend database
+                    var cognitoSub = identity.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                    var email = identity.FindFirst(ClaimTypes.Email)?.Value;
+                    var displayName = identity.FindFirst(ClaimTypes.Name)?.Value;
+                    
+                    if (!string.IsNullOrEmpty(cognitoSub))
+                    {
+                        try
+                        {
+                            var httpClient = new HttpClient { BaseAddress = new Uri(apiSettings.BaseUrl) };
+                            var request = new { CognitoSub = cognitoSub, Email = email, DisplayName = displayName };
+                            await httpClient.PostAsJsonAsync("/Account/sync", request);
+                        }
+                        catch (Exception ex)
+                        {
+                            // Log but don't fail authentication
+                            Console.WriteLine($"Warning: Failed to sync account: {ex.Message}");
+                        }
+                    }
                 }
-                return Task.CompletedTask;
             },
             OnRedirectToIdentityProviderForSignOut = context =>
             {
@@ -118,6 +138,7 @@ builder.Services.AddHttpClient<ApiService>(client =>
 });
 
 // Register other services (ApiService is already registered by AddHttpClient above)
+builder.Services.AddScoped<AccountService>();
 builder.Services.AddScoped<NpcService>();
 
 var app = builder.Build();
@@ -161,17 +182,30 @@ if (isCognitoConfigured)
 else
 {
     // Dev mode - sign in with a fake dev user for testing [Authorize] pages
+    // Note: Uses 'dev-user-sub' as Cognito sub - will auto-create account in database
     app.MapGet("/login", async (HttpContext context, string? returnUrl) =>
     {
         var claims = new List<Claim>
         {
-            new(ClaimTypes.NameIdentifier, "dev-user-id"),
+            new(ClaimTypes.NameIdentifier, "dev-user-sub"), // Simulates Cognito sub
             new(ClaimTypes.Name, "Dev User"),
             new(ClaimTypes.Email, "dev@localhost"),
             new(ClaimTypes.Role, "Admin") // Give dev user admin access
         };
         var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
         var principal = new ClaimsPrincipal(identity);
+        
+        // Sync dev account with backend database
+        try
+        {
+            var httpClient = new HttpClient { BaseAddress = new Uri(apiSettings.BaseUrl) };
+            var request = new { CognitoSub = "dev-user-sub", Email = "dev@localhost", DisplayName = "Dev User" };
+            await httpClient.PostAsJsonAsync("/Account/sync", request);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Warning: Failed to sync dev account: {ex.Message}");
+        }
         
         await context.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
         context.Response.Redirect(returnUrl ?? "/");

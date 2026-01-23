@@ -24,27 +24,38 @@ public class NpcService
     }
 
     /// <summary>
-    /// Fetch all NPCs for the current authenticated user
+    /// Fetch all NPCs for the current authenticated user.
+    /// Account must already exist (synced on login).
     /// </summary>
     public async Task<List<NpcViewModel>> GetNpcsAsync()
     {
         var user = _httpContextAccessor.HttpContext?.User;
-        var accountId = user?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         
-        if (user?.Identity?.IsAuthenticated != true || string.IsNullOrEmpty(accountId))
+        if (user?.Identity?.IsAuthenticated != true)
         {
+            _logger.LogWarning("User not authenticated, returning empty NPC list");
+            return [];
+        }
+
+        var cognitoSub = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrEmpty(cognitoSub))
+        {
+            _logger.LogWarning("No user identifier found in claims");
             return [];
         }
 
         try
         {
-            var endpoint = $"/Npcs?account_id={accountId}";
+            var endpoint = $"/Npcs?cognitoSub={Uri.EscapeDataString(cognitoSub)}";
+            
+            _logger.LogInformation("Fetching NPCs for user {CognitoSub}", cognitoSub);
             var npcs = await _apiService.GetAsync<List<NpcViewModel>>(endpoint);
             return npcs ?? [];
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to fetch NPCs");
+            _logger.LogError(ex, "Failed to fetch NPCs for user {CognitoSub}", cognitoSub);
             return [];
         }
     }
@@ -57,16 +68,17 @@ public class NpcService
 public class NpcViewModel
 {
     public int Npc_Id { get; set; }
+    public string? Name { get; set; }  // Name is at top level, not in Stats
+    public string? Description { get; set; }
+    public string? System { get; set; }
     public NpcStats? Stats { get; set; }
 }
 
 public class NpcStats
 {
-    public string? Name { get; set; }
     public string? Lineage { get; set; }
     public string? Occupation { get; set; }
     public string? Gender { get; set; }
-    public string? Description { get; set; }
     public NpcAttributes? Attributes { get; set; }
 }
 

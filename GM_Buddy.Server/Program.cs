@@ -105,6 +105,12 @@ builder.Services.AddScoped<IRelationshipRepository, RelationshipRepository>();
 builder.Services.AddScoped<IPcRepository, PcRepository>();
 builder.Services.AddScoped<IOrganizationRepository, OrganizationRepository>();
 
+// Register AccountRepository for Cognito user management
+builder.Services.AddScoped<IAccountRepository>(sp =>
+{
+    var dbConnector = sp.GetRequiredService<IDbConnector>();
+    return new AccountRepository(dbConnector.ConnectionString);
+});
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>

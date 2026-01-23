@@ -1,28 +1,24 @@
 -- Create schema
 CREATE SCHEMA IF NOT EXISTS auth;
 
--- signing_key
-CREATE TABLE IF NOT EXISTS auth.signing_key (
-  id SERIAL PRIMARY KEY,
-  key_id TEXT NOT NULL UNIQUE,
-  private_key TEXT NOT NULL,
-  public_key TEXT NOT NULL,
-  is_active BOOLEAN NOT NULL DEFAULT FALSE,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  expires_at TIMESTAMPTZ
-);
-
--- account (renamed from "user" for clarity and to match business domain)
+-- account - Links Cognito users to application data
+-- Authentication is handled by AWS Cognito, so password/salt are optional (for legacy support)
 CREATE TABLE IF NOT EXISTS auth.account (
   id SERIAL PRIMARY KEY,
   username VARCHAR(100) UNIQUE,
-  first_name VARCHAR(100) NOT NULL,
+  first_name VARCHAR(100),
   last_name VARCHAR(100),
   email VARCHAR(255) NOT NULL UNIQUE,
-  password TEXT NOT NULL,
-  salt TEXT NOT NULL,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  cognito_sub VARCHAR(255) UNIQUE,  -- Cognito user ID (sub claim from JWT)
+  subscription_tier VARCHAR(50) DEFAULT 'free',  -- free, supporter, premium, lifetime
+  password TEXT,  -- Optional: Only for legacy accounts
+  salt TEXT,      -- Optional: Only for legacy accounts
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  last_login_at TIMESTAMPTZ
 );
+
+-- Index for fast Cognito sub lookups
+CREATE INDEX IF NOT EXISTS idx_account_cognito_sub ON auth.account(cognito_sub);
 
 -- role
 CREATE TABLE IF NOT EXISTS auth.role (
@@ -181,9 +177,10 @@ INSERT INTO public.relationship_type (relationship_type_name, description, is_di
 ON CONFLICT (relationship_type_name) DO NOTHING;
 
 -- Seed data
-INSERT INTO auth.account (username, first_name, last_name, email, password, salt)
+-- Dev user with cognito_sub matching the dev mode login in GM_Buddy.Web
+INSERT INTO auth.account (username, first_name, last_name, email, cognito_sub, subscription_tier)
 VALUES
-  ('gm_admin', 'GM', 'Admin', 'gm_admin@example.local', 'temp_password', 'temp_salt')
+  ('gm_admin', 'GM', 'Admin', 'gm_admin@example.local', 'dev-user-sub', 'premium')
 ON CONFLICT (username) DO NOTHING;
 
 INSERT INTO public.game_system (game_system_name)

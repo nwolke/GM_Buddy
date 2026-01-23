@@ -11,26 +11,45 @@ public class NpcsController : ControllerBase
 {
     private readonly ILogger<NpcsController> _logger;
     private readonly INpcLogic _logic;
+    private readonly IAccountRepository _accountRepository;
 
-    public NpcsController(ILogger<NpcsController> logger, INpcLogic npcLogic)
+    public NpcsController(
+        ILogger<NpcsController> logger, 
+        INpcLogic npcLogic,
+        IAccountRepository accountRepository)
     {
         _logger = logger;
         _logic = npcLogic;
+        _accountRepository = accountRepository;
     }
 
     /// <summary>
-    /// Get all NPCs for an account, optionally filtered by game system
+    /// Get all NPCs for an account, optionally filtered by game system.
+    /// Requires cognitoSub to identify the user. Account must exist (call /account/sync first).
     /// </summary>
     [HttpGet]
     [OutputCache(PolicyName = "NpcList")]
     public async Task<ActionResult<IEnumerable<BaseNpc>>> GetNpcs(
-        [FromQuery] int accountId,
+        [FromQuery] string cognitoSub,
         [FromQuery] string? gameSystem = null)
     {
+        if (string.IsNullOrEmpty(cognitoSub))
+        {
+            return BadRequest("cognitoSub is required");
+        }
+
         try
         {
-            _logger.LogInformation("Getting NPCs for account {AccountId}", accountId);
-            IEnumerable<BaseNpc> result = await _logic.GetNpcList(accountId);
+            // Look up account by Cognito sub
+            var account = await _accountRepository.GetByCognitoSubAsync(cognitoSub);
+            if (account == null)
+            {
+                _logger.LogWarning("Account not found for cognitoSub: {CognitoSub}", cognitoSub);
+                return NotFound("Account not found. Please sync account first.");
+            }
+            
+            _logger.LogInformation("Getting NPCs for account {AccountId}", account.account_id);
+            IEnumerable<BaseNpc> result = await _logic.GetNpcList(account.account_id);
             
             if (!string.IsNullOrWhiteSpace(gameSystem))
             {
@@ -43,7 +62,7 @@ public class NpcsController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving NPCs for account {AccountId}", accountId);
+            _logger.LogError(ex, "Error retrieving NPCs for {CognitoSub}", cognitoSub);
             return StatusCode(500, "Internal server error");
         }
     }

@@ -48,37 +48,26 @@
             }
         </div>
 
+
         @* Desktop: Table View *@
         <div class="table-container d-none d-md-block">
             <table class="table">
                 <thead>
                     <tr>
-                        <th>ID</th>
                         <th>Name</th>
+                        <th>Game System</th>
                         <th>Lineage</th>
                         <th>Occupation</th>
-                        <th class="text-center">STR</th>
-                        <th class="text-center">DEX</th>
-                        <th class="text-center">CON</th>
-                        <th class="text-center">INT</th>
-                        <th class="text-center">WIS</th>
-                        <th class="text-center">CHA</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var npc in npcs)
                     {
                         <tr>
-                            <td>@npc.Npc_Id</td>
-                            <td class="npc-name-cell">@(npc.Stats?.Name ?? "Unnamed")</td>
+                            <td class="npc-name-cell">@(npc.Name ?? "Unnamed")</td>
+                            <td>@(npc.System ?? "—")</td>
                             <td>@(npc.Stats?.Lineage ?? "—")</td>
                             <td>@(npc.Stats?.Occupation ?? "—")</td>
-                            <td class="text-center">@(npc.Stats?.Attributes?.Strength ?? 0)</td>
-                            <td class="text-center">@(npc.Stats?.Attributes?.Dexterity ?? 0)</td>
-                            <td class="text-center">@(npc.Stats?.Attributes?.Constitution ?? 0)</td>
-                            <td class="text-center">@(npc.Stats?.Attributes?.Intelligence ?? 0)</td>
-                            <td class="text-center">@(npc.Stats?.Attributes?.Wisdom ?? 0)</td>
-                            <td class="text-center">@(npc.Stats?.Attributes?.Charisma ?? 0)</td>
                         </tr>
                     }
                 </tbody>
