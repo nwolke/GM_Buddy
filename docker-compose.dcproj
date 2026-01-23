@@ -12,13 +12,14 @@
   <ItemGroup>
     <None Include=".env" />
     <None Include=".env.example" />
+    <None Include=".env.local.example" />
     <None Include="dev-environment.ps1" />
     <None Include="DEV_SETUP.md" />
     <None Include="docker-compose.override.yml">
       <DependentUpon>docker-compose.yml</DependentUpon>
     </None>
-    <None Include="docker-compose.yml" />
     <None Include=".dockerignore" />
+    <None Include="docker-compose.yml" />
     <None Include="docker-down.bat" />
     <None Include="docker-up.bat" />
     <None Include="docs\ACCOUNT_CONSOLIDATION.md" />
@@ -34,6 +35,17 @@
     <None Include="docs\SCRIPTING_GUIDE.md" />
     <None Include="docs\TEST_SUITE_IMPLEMENTATION.md" />
     <None Include="example-script.ps1" />
+    <None Include="GM_Buddy.React\.env.development" />
+    <None Include="GM_Buddy.React\.env.production" />
+    <None Include="GM_Buddy.React\.gitignore" />
+    <None Include="GM_Buddy.React\Dockerfile" />
+    <None Include="GM_Buddy.React\GM_Buddy.React.esproj" />
+    <None Include="GM_Buddy.React\nginx.conf" />
+    <None Include="GM_Buddy.React\src\contexts\AuthContext.tsx" />
+    <None Include="GM_Buddy.React\src\hooks\useNPCData.ts" />
+    <None Include="GM_Buddy.React\src\services\api.ts" />
+    <None Include="GM_Buddy.React\tsconfig.json" />
+    <None Include="GM_Buddy.React\tsconfig.node.json" />
     <None Include="manage-docker.ps1" />
     <None Include="manage-frontend.ps1" />
     <None Include="MIGRATION_ENV.md" />

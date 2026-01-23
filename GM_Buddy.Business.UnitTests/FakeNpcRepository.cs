@@ -7,6 +7,7 @@ namespace GM_Buddy.Business.UnitTests;
 internal class FakeNpcRepository : INpcRepository
 {
     private readonly List<Npc> _npcs;
+    private int _nextId = 100;
 
     public FakeNpcRepository(IEnumerable<Npc>? npcs = null)
     {
@@ -23,6 +24,33 @@ internal class FakeNpcRepository : INpcRepository
     {
         var npc = _npcs.FirstOrDefault(n => n.npc_id == npcId);
         return Task.FromResult(npc);
+    }
+
+    public Task<int> CreateNpcAsync(Npc npc, CancellationToken ct = default)
+    {
+        npc.npc_id = _nextId++;
+        _npcs.Add(npc);
+        return Task.FromResult(npc.npc_id);
+    }
+
+    public Task<bool> UpdateNpcAsync(Npc npc, CancellationToken ct = default)
+    {
+        var existing = _npcs.FirstOrDefault(n => n.npc_id == npc.npc_id);
+        if (existing == null) return Task.FromResult(false);
+        
+        existing.name = npc.name;
+        existing.description = npc.description;
+        existing.stats = npc.stats;
+        return Task.FromResult(true);
+    }
+
+    public Task<bool> DeleteNpcAsync(int npcId, CancellationToken ct = default)
+    {
+        var npc = _npcs.FirstOrDefault(n => n.npc_id == npcId);
+        if (npc == null) return Task.FromResult(false);
+        
+        _npcs.Remove(npc);
+        return Task.FromResult(true);
     }
 }
 

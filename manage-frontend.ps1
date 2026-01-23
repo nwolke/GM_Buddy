@@ -10,16 +10,16 @@ param(
 
 # Get the script directory
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$ClientDir = Join-Path $ScriptDir "gm_buddy.client"
+$ClientDir = Join-Path $ScriptDir "GM_Buddy.React"
 
 Write-Host "=========================================" -ForegroundColor Cyan
-Write-Host "   GM Buddy - Frontend Manager" -ForegroundColor Cyan
+Write-Host "   GM Buddy - React Frontend Manager" -ForegroundColor Cyan
 Write-Host "=========================================" -ForegroundColor Cyan
 Write-Host ""
 
 # Check if client directory exists
 if (-not (Test-Path $ClientDir)) {
-    Write-Host "Error: gm_buddy.client directory not found!" -ForegroundColor Red
+    Write-Host "Error: GM_Buddy.React directory not found!" -ForegroundColor Red
     exit 1
 }
 
@@ -39,7 +39,8 @@ switch ($Action) {
     
     "dev" {
         Write-Host "Starting development server..." -ForegroundColor Yellow
-        Write-Host "Server will run at: http://localhost:49505" -ForegroundColor Cyan
+        Write-Host "Server will run at: http://localhost:3000" -ForegroundColor Cyan
+        Write-Host "API proxy: http://localhost:5000" -ForegroundColor Cyan
         Write-Host ""
         npm run dev
     }
@@ -48,9 +49,11 @@ switch ($Action) {
         Write-Host "Building for production..." -ForegroundColor Yellow
         npm run build
         
+        
+        
         if ($LASTEXITCODE -eq 0) {
             Write-Host "? Build completed successfully!" -ForegroundColor Green
-            Write-Host "Output directory: gm_buddy.client/dist" -ForegroundColor Cyan
+            Write-Host "Output directory: GM_Buddy.React/dist" -ForegroundColor Cyan
         } else {
             Write-Host "? Build failed" -ForegroundColor Red
         }

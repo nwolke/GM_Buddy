@@ -163,3 +163,47 @@ environment:
 3. **Environment variables** - Never commit secrets to source control
 4. **MFA** - Enable for admin accounts in Cognito
 5. **Token validation** - API validates Cognito JWTs automatically
+
+## React App Configuration
+
+The React frontend (`GM_Buddy.React`) also supports Cognito authentication via the Hosted UI.
+
+### Environment Variables
+
+In `.env` or Docker build args:
+
+```env
+# Enable Cognito (set to 'true' for production)
+USE_COGNITO=true
+
+# Cognito domain (without the full URL)
+COGNITO_DOMAIN=us-west-23h6sioari
+
+# Same client ID as the web app
+COGNITO_CLIENT_ID=3tu41ptf62ntlqso884tl3aaem
+
+# React app URLs
+REACT_REDIRECT_URI=http://localhost:3000/callback
+REACT_LOGOUT_URI=http://localhost:3000
+```
+
+### Cognito App Client Configuration
+
+Add the React app's callback URLs to your Cognito App Client:
+
+1. Go to **App integration** ? **App client settings**
+2. Add to **Callback URL(s)**:
+   - `http://localhost:3000/callback` (development)
+   - `https://your-domain.com/callback` (production)
+3. Add to **Sign out URL(s)**:
+   - `http://localhost:3000` (development)
+   - `https://your-domain.com` (production)
+
+### Demo Mode
+
+When `USE_COGNITO=false`, the React app shows two demo login buttons:
+- **GM Admin**: Uses the seeded `gm_admin` account with sample NPCs
+- **Demo User**: Uses an empty `demo_user` account
+
+This is useful for development and testing without Cognito.
+

@@ -176,11 +176,18 @@ INSERT INTO public.relationship_type (relationship_type_name, description, is_di
     ('Spouse', 'Married or life partner', false)
 ON CONFLICT (relationship_type_name) DO NOTHING;
 
+
 -- Seed data
--- Dev user with cognito_sub matching the dev mode login in GM_Buddy.Web
+-- Dev user with cognito_sub matching the dev mode login
 INSERT INTO auth.account (username, first_name, last_name, email, cognito_sub, subscription_tier)
 VALUES
   ('gm_admin', 'GM', 'Admin', 'gm_admin@example.local', 'dev-user-sub', 'premium')
+ON CONFLICT (username) DO NOTHING;
+
+-- Demo user for React app demo login (fallback if gm_admin doesn't work)
+INSERT INTO auth.account (username, first_name, last_name, email, cognito_sub, subscription_tier)
+VALUES
+  ('demo_user', 'Demo', 'User', 'demo@example.com', 'demo-user-sub', 'free')
 ON CONFLICT (username) DO NOTHING;
 
 INSERT INTO public.game_system (game_system_name)
@@ -493,6 +500,33 @@ VALUES
     8,
     true,
     (SELECT campaign_id FROM public.campaign WHERE name = 'The Lost Mines of Phandelver' LIMIT 1)
+  )
+ON CONFLICT DO NOTHING;
+
+-- Also create NPCs for the demo_user account (for React demo login)
+INSERT INTO public.npc (account_id, game_system_id, name, description, stats)
+VALUES
+  (
+    (SELECT id FROM auth.account WHERE username = 'demo_user' LIMIT 1),
+    (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
+    'Demo Merchant',
+    'A friendly merchant for testing the demo.',
+    jsonb_build_object(
+      'lineage', 'Human',
+      'occupation', 'Merchant',
+      'gender', 'Male'
+    )
+  ),
+  (
+    (SELECT id FROM auth.account WHERE username = 'demo_user' LIMIT 1),
+    (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
+    'Demo Guard',
+    'A town guard for testing the demo.',
+    jsonb_build_object(
+      'lineage', 'Human',
+      'occupation', 'Guard',
+      'gender', 'Female'
+    )
   )
 ON CONFLICT DO NOTHING;
 

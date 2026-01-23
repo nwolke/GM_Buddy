@@ -176,7 +176,88 @@ public class NpcsController : ControllerBase
         }
     }
 
-    // TODO: Implement POST, PUT, DELETE endpoints when NpcLogic supports them
-    // TODO: Implement relationship shortcuts
-    // TODO: Implement export/import functionality
+    /// <summary>
+    /// Create a new NPC
+    /// </summary>
+    [HttpPost]
+    public async Task<ActionResult<BaseNpc>> CreateNpc([FromBody] CreateNpcRequest request, [FromQuery] int accountId)
+    {
+        if (accountId <= 0)
+        {
+            return BadRequest("Valid accountId is required");
+        }
+
+        try
+        {
+            int npcId = await _logic.CreateNpcAsync(accountId, request);
+            _logger.LogInformation("Created NPC {NpcId} for account {AccountId}", npcId, accountId);
+            
+            // Fetch the created NPC to return
+            var createdNpc = await _logic.GetNpc(npcId);
+            if (createdNpc == null)
+            {
+                return StatusCode(500, "NPC was created but could not be retrieved");
+            }
+            
+            return CreatedAtAction(nameof(GetNpc), new { id = npcId }, createdNpc);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating NPC for account {AccountId}", accountId);
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+    /// <summary>
+    /// Update an existing NPC
+    /// </summary>
+    [HttpPut("{id}")]
+    public async Task<ActionResult> UpdateNpc(int id, [FromBody] UpdateNpcRequest request, [FromQuery] int accountId)
+    {
+        if (accountId <= 0)
+        {
+            return BadRequest("Valid accountId is required");
+        }
+
+        try
+        {
+            bool success = await _logic.UpdateNpcAsync(id, accountId, request);
+            if (!success)
+            {
+                return NotFound($"NPC with ID {id} not found or not owned by account {accountId}");
+            }
+            
+            _logger.LogInformation("Updated NPC {NpcId}", id);
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating NPC {NpcId}", id);
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+    /// <summary>
+    /// Delete an NPC
+    /// </summary>
+    [HttpDelete("{id}")]
+    public async Task<ActionResult> DeleteNpc(int id)
+    {
+        try
+        {
+            bool success = await _logic.DeleteNpcAsync(id);
+            if (!success)
+            {
+                return NotFound($"NPC with ID {id} not found");
+            }
+            
+            _logger.LogInformation("Deleted NPC {NpcId}", id);
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting NPC {NpcId}", id);
+            return StatusCode(500, "Internal server error");
+        }
+    }
 }

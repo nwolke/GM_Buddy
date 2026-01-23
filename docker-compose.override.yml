@@ -10,9 +10,6 @@ services:
 
   gm_buddy_web:
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_HTTP_PORTS=8080
+      - NODE_ENV=development
     ports:
-      - "5001:8080"
-    volumes:
-      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+      - "3000:80"
