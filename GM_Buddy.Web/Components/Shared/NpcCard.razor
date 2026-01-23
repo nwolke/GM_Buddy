@@ -1,0 +1,33 @@
+@* NPC Card Component - Equivalent to DndNpcCard.jsx *@
+
+<div class="card npc-card">
+    <div class="card-body">
+        <h5 class="npc-name">@(Stats?.Name ?? "Unnamed NPC")</h5>
+        <p class="npc-info">@(Stats?.Lineage ?? "Unknown") · @(Stats?.Occupation ?? "Unknown")</p>
+        
+        <div class="attribute-row">
+            <span class="attribute-chip">STR @(Attributes?.Strength ?? 0)</span>
+            <span class="attribute-chip">DEX @(Attributes?.Dexterity ?? 0)</span>
+            <span class="attribute-chip">CON @(Attributes?.Constitution ?? 0)</span>
+            <span class="attribute-chip">INT @(Attributes?.Intelligence ?? 0)</span>
+            <span class="attribute-chip">WIS @(Attributes?.Wisdom ?? 0)</span>
+            <span class="attribute-chip">CHA @(Attributes?.Charisma ?? 0)</span>
+            @if (!string.IsNullOrEmpty(Stats?.Gender))
+            {
+                <span class="gender-chip">@Stats.Gender</span>
+            }
+        </div>
+
+        @if (!string.IsNullOrEmpty(Stats?.Description))
+        {
+            <p class="npc-description">@Stats.Description</p>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public NpcViewModel? Npc { get; set; }
+
+    private NpcStats? Stats => Npc?.Stats;
+    private NpcAttributes? Attributes => Stats?.Attributes;
+}

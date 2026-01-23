@@ -2,17 +2,17 @@ services:
   gm_buddy_server:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_HTTP_PORTS=5000
+      - ASPNETCORE_HTTP_PORTS=8080
     ports:
-      - "5000:5000"
+      - "5000:8080"
     volumes:
       - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
 
-  gm_buddy_authorization:
+  gm_buddy_web:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_HTTP_PORTS=6000
+      - ASPNETCORE_HTTP_PORTS=8080
     ports:
-      - "6000:6000"
+      - "5001:8080"
     volumes:
       - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro

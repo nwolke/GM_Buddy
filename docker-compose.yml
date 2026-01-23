@@ -10,45 +10,36 @@ services:
     environment:
       - DbSettings__Host=gm_buddy_postgres
       - DbSettings__Port=5432
-      - DbSettings__Database=gm_buddy
-      - DbSettings__Username=postgres
-      - DbSettings__Password=12345
+      - DbSettings__Database=${POSTGRES_DB:-gm_buddy}
+      - DbSettings__Username=${POSTGRES_USER:-postgres}
+      - DbSettings__Password=${POSTGRES_PASSWORD}
+      - Cognito__Region=${COGNITO_REGION}
+      - Cognito__UserPoolId=${COGNITO_USER_POOL_ID}
+      - Cognito__ClientId=${COGNITO_CLIENT_ID}
     depends_on:
       gm_buddy_postgres:
         condition: service_healthy
     networks:
       - postgres-network
 
-  gm_buddy_client:
-    image: node:18-alpine
-    container_name: gm_buddy_client
-    working_dir: /app
-    volumes:
-      - ./gm_buddy.client:/app
-      - /app/node_modules
-    command: sh -c "npm install --silent && npm run dev -- --host 0.0.0.0 --port 49505"
-    ports:
-      - 49505:49505
-    depends_on:
-      - gm_buddy_server
-    networks:
-      - postgres-network
-
-  gm_buddy_authorization:
-    image: ${DOCKER_REGISTRY-}gmbuddyauthorization
-    container_name: gm_buddy_authorization
+  gm_buddy_web:
+    image: ${DOCKER_REGISTRY-}gmbuddyweb
+    container_name: gm_buddy_web
     build:
       context: .
-      dockerfile: GM_Buddy.Authorization/Dockerfile
+      dockerfile: GM_Buddy.Web/Dockerfile
+    ports:
+      - 5001:8080
     environment:
-      - DbSettings__Host=gm_buddy_postgres
-      - DbSettings__Port=5432
-      - DbSettings__Database=gm_buddy
-      - DbSettings__Username=postgres
-      - DbSettings__Password=12345
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Production}
+      - ApiSettings__BaseUrl=http://gm_buddy_server:8080
+      - Cognito__Region=${COGNITO_REGION}
+      - Cognito__UserPoolId=${COGNITO_USER_POOL_ID}
+      - Cognito__ClientId=${COGNITO_CLIENT_ID}
+      - Cognito__ClientSecret=${COGNITO_CLIENT_SECRET}
+      - Cognito__Domain=${COGNITO_DOMAIN}
     depends_on:
-      gm_buddy_postgres:
-        condition: service_healthy
+      - gm_buddy_server
     networks:
       - postgres-network
 
@@ -60,16 +51,16 @@ services:
     env_file:
       - .env
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=12345
-      - POSTGRES_DB=gm_buddy
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB:-gm_buddy}
     networks:
       - postgres-network
     volumes:
       - ${PWD}/db-data:/var/lib/postgresql
       - ${PWD}/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d gm_buddy"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-gm_buddy}"]
       interval: 5s
       timeout: 5s
       retries: 10

@@ -23,8 +23,10 @@
     <None Include="docker-up.bat" />
     <None Include="docs\ACCOUNT_CONSOLIDATION.md" />
     <None Include="docs\API_ENDPOINTS_REFERENCE.md" />
+    <None Include="docs\COGNITO_MIGRATION.md" />
     <None Include="docs\DATABASE_SCHEMA.md" />
     <None Include="docs\ERD_GENERATION_GUIDE.md" />
+    <None Include="docs\GITHUB_SECRETS.md" />
     <None Include="docs\MUI_CONVERSION_SUMMARY.md" />
     <None Include="docs\MUI_QUICK_REFERENCE.md" />
     <None Include="docs\PC_ORGANIZATION_IMPLEMENTATION.md" />

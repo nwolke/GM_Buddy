@@ -1,0 +1,108 @@
+.npc-manager-container {
+    max-width: 1400px;
+    margin: 1rem auto 2rem;
+    padding: 0 1rem;
+}
+
+/* Breadcrumb */
+.breadcrumb-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+}
+
+.breadcrumb-icon {
+    margin-right: 0.25rem;
+}
+
+.breadcrumb-separator {
+    color: var(--muted-ink);
+}
+
+.breadcrumb-current {
+    color: var(--ink);
+    font-weight: 600;
+}
+
+/* Title */
+.npc-title {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Toolbar */
+.npc-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 1rem;
+}
+
+/* Loading */
+.loading-container {
+    display: flex;
+    justify-content: center;
+    padding: 2rem 0;
+}
+
+/* Auth prompt */
+.auth-prompt {
+    text-align: center;
+    padding: 2rem;
+}
+
+.auth-prompt h4 {
+    margin-bottom: 0.5rem;
+}
+
+.auth-prompt p {
+    margin-bottom: 1.5rem;
+}
+
+/* Empty state */
+.empty-state {
+    text-align: center;
+    padding: 2rem;
+}
+
+/* Cards container for mobile */
+.npc-cards-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+/* Table */
+.npc-name-cell {
+    font-family: 'Cinzel', serif;
+    font-weight: 600;
+}
+
+.text-center {
+    text-align: center;
+}
+
+/* Responsive utilities */
+.d-none {
+    display: none !important;
+}
+
+.d-md-none {
+    display: block !important;
+}
+
+.d-md-block {
+    display: none !important;
+}
+
+@media (min-width: 768px) {
+    .d-md-none {
+        display: none !important;
+    }
+
+    .d-md-block {
+        display: block !important;
+    }
+}

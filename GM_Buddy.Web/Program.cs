@@ -1,0 +1,170 @@
+using GM_Buddy.Contracts;
+using GM_Buddy.Web.Components;
+using GM_Buddy.Web.Services;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using System.Security.Claims;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+builder.Services.AddRazorComponents()
+    .AddInteractiveServerComponents();
+
+// Configure API settings
+var apiSettings = builder.Configuration.GetSection("ApiSettings").Get<ApiSettings>() ?? new ApiSettings
+{
+    BaseUrl = "http://gm_buddy_server:8080"
+};
+
+// Load Cognito settings
+var cognitoSettings = builder.Configuration.GetSection("Cognito").Get<CognitoSettings>() ?? new CognitoSettings();
+var isCognitoConfigured = !string.IsNullOrEmpty(cognitoSettings.ClientId) 
+    && !string.IsNullOrEmpty(cognitoSettings.UserPoolId);
+
+if (isCognitoConfigured)
+{
+    // Configure Cookie + OpenID Connect authentication with Cognito
+    builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+    })
+    .AddCookie(options =>
+    {
+        options.Cookie.Name = "GMBuddy.Auth";
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        options.ExpireTimeSpan = TimeSpan.FromDays(5);
+    })
+    .AddOpenIdConnect(options =>
+    {
+        options.Authority = cognitoSettings.Authority;
+        options.ClientId = cognitoSettings.ClientId;
+        options.ClientSecret = cognitoSettings.ClientSecret;
+        options.ResponseType = OpenIdConnectResponseType.Code;
+        options.SaveTokens = true;
+        options.GetClaimsFromUserInfoEndpoint = true;
+        
+        options.MetadataAddress = $"{cognitoSettings.Authority}/.well-known/openid-configuration";
+        
+        options.Scope.Clear();
+        options.Scope.Add("openid");
+        options.Scope.Add("email");
+        options.Scope.Add("profile");
+        
+        options.ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "sub");
+        options.ClaimActions.MapJsonKey(ClaimTypes.Email, "email");
+        options.ClaimActions.MapJsonKey(ClaimTypes.Name, "cognito:username");
+        
+        options.Events = new OpenIdConnectEvents
+        {
+            OnTokenValidated = context =>
+            {
+                var identity = context.Principal?.Identity as ClaimsIdentity;
+                if (identity != null)
+                {
+                    var groupsClaims = identity.FindAll("cognito:groups").ToList();
+                    foreach (var group in groupsClaims)
+                    {
+                        identity.AddClaim(new Claim(ClaimTypes.Role, group.Value));
+                    }
+                }
+                return Task.CompletedTask;
+            },
+            OnRedirectToIdentityProviderForSignOut = context =>
+            {
+                var logoutUri = $"https://{cognitoSettings.Domain}.auth.{cognitoSettings.Region}.amazoncognito.com/logout";
+                logoutUri += $"?client_id={cognitoSettings.ClientId}";
+                logoutUri += $"&logout_uri={Uri.EscapeDataString(context.Request.Scheme + "://" + context.Request.Host + "/")}";
+                
+                context.Response.Redirect(logoutUri);
+                context.HandleResponse();
+                return Task.CompletedTask;
+            }
+        };
+    });
+}
+else
+{
+    // Development mode without Cognito - use cookie auth only
+    Console.WriteLine("WARNING: Cognito not configured. Authentication is disabled.");
+    builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+        .AddCookie(options =>
+        {
+            options.Cookie.Name = "GMBuddy.Auth";
+            options.LoginPath = "/login";
+        });
+}
+
+builder.Services.AddAuthorization();
+builder.Services.AddCascadingAuthenticationState();
+builder.Services.AddHttpContextAccessor();
+
+// Register HttpClient for main API with token forwarding
+builder.Services.AddHttpClient<ApiService>(client =>
+{
+    client.BaseAddress = new Uri(apiSettings.BaseUrl);
+});
+
+// Register services
+builder.Services.AddScoped<ApiService>();
+builder.Services.AddScoped<NpcService>();
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Error", createScopeForErrors: true);
+    app.UseHsts();
+}
+
+app.UseStatusCodePagesWithReExecute("/not-found");
+app.UseHttpsRedirection();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.UseAntiforgery();
+
+app.MapStaticAssets();
+app.MapRazorComponents<App>()
+    .AddInteractiveServerRenderMode();
+
+// Login/Logout endpoints
+if (isCognitoConfigured)
+{
+    app.MapGet("/login", async (HttpContext context, string? returnUrl) =>
+    {
+        await context.ChallengeAsync(OpenIdConnectDefaults.AuthenticationScheme, new AuthenticationProperties
+        {
+            RedirectUri = returnUrl ?? "/"
+        });
+    });
+
+    app.MapGet("/logout", async (HttpContext context) =>
+    {
+        await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        await context.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
+    });
+}
+else
+{
+    // Dev mode login page (no actual auth)
+    app.MapGet("/login", (HttpContext context, string? returnUrl) =>
+    {
+        context.Response.Redirect(returnUrl ?? "/");
+        return Task.CompletedTask;
+    });
+    
+    app.MapGet("/logout", (HttpContext context) =>
+    {
+        context.Response.Redirect("/");
+        return Task.CompletedTask;
+    });
+}
+
+app.Run();

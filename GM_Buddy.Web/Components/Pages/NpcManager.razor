@@ -1,0 +1,109 @@
+@page "/npc-manager"
+@attribute [Authorize]
+@inject NpcService NpcService
+@inject NavigationManager Navigation
+
+<PageTitle>NPC Manager - GM Buddy</PageTitle>
+
+<div class="npc-manager-container">
+    @* Breadcrumb Navigation *@
+    <nav aria-label="breadcrumb" class="breadcrumb-nav">
+        <a href="/" class="breadcrumb-link">
+            <span class="breadcrumb-icon">??</span> Home
+        </a>
+        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-current">NPC Manager</span>
+    </nav>
+
+    <h1 class="page-title npc-title">NPC Manager</h1>
+
+    @* Authenticated - Show NPC Grid *@
+    <div class="npc-toolbar">
+        <button class="btn btn-outline" @onclick="RefreshNpcs" disabled="@isLoading">
+            ?? Refresh
+        </button>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="loading-container">
+            <div class="spinner-border spinner" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (npcs.Count == 0)
+    {
+        <div class="paper empty-state">
+            <p class="text-muted">No NPCs found. Create your first NPC!</p>
+        </div>
+    }
+    else
+    {
+        @* Mobile: Card View *@
+        <div class="npc-cards-container d-md-none">
+            @foreach (var npc in npcs)
+            {
+                <GM_Buddy.Web.Components.Shared.NpcCard Npc="@npc" />
+            }
+        </div>
+
+        @* Desktop: Table View *@
+        <div class="table-container d-none d-md-block">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Lineage</th>
+                        <th>Occupation</th>
+                        <th class="text-center">STR</th>
+                        <th class="text-center">DEX</th>
+                        <th class="text-center">CON</th>
+                        <th class="text-center">INT</th>
+                        <th class="text-center">WIS</th>
+                        <th class="text-center">CHA</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var npc in npcs)
+                    {
+                        <tr>
+                            <td>@npc.Npc_Id</td>
+                            <td class="npc-name-cell">@(npc.Stats?.Name ?? "Unnamed")</td>
+                            <td>@(npc.Stats?.Lineage ?? "—")</td>
+                            <td>@(npc.Stats?.Occupation ?? "—")</td>
+                            <td class="text-center">@(npc.Stats?.Attributes?.Strength ?? 0)</td>
+                            <td class="text-center">@(npc.Stats?.Attributes?.Dexterity ?? 0)</td>
+                            <td class="text-center">@(npc.Stats?.Attributes?.Constitution ?? 0)</td>
+                            <td class="text-center">@(npc.Stats?.Attributes?.Intelligence ?? 0)</td>
+                            <td class="text-center">@(npc.Stats?.Attributes?.Wisdom ?? 0)</td>
+                            <td class="text-center">@(npc.Stats?.Attributes?.Charisma ?? 0)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@code {
+    private List<NpcViewModel> npcs = [];
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshNpcs();
+    }
+
+    private async Task RefreshNpcs()
+    {
+        isLoading = true;
+        npcs = await NpcService.GetNpcsAsync();
+        isLoading = false;
+    }
+}
+    {
+        AuthState.OnAuthStateChanged -= StateHasChanged;
+    }
+}
