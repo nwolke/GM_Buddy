@@ -29,24 +29,24 @@ public class NpcsController : ControllerBase
     /// <summary>
     /// Helper method to get the authenticated user's account ID from JWT claims
     /// </summary>
-    private async Task<(int accountId, string error)?> GetAuthenticatedAccountIdAsync()
+    private async Task<int> GetAuthenticatedAccountIdAsync()
     {
         var cognitoSub = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         
         if (string.IsNullOrEmpty(cognitoSub))
         {
             _logger.LogWarning("No user identifier found in claims");
-            return (0, "User authentication failed");
+            throw new UnauthorizedAccessException("User authentication failed");
         }
 
         var account = await _accountRepository.GetByCognitoSubAsync(cognitoSub);
         if (account == null)
         {
             _logger.LogWarning("Account not found for cognitoSub: {CognitoSub}", cognitoSub);
-            return (0, "Account not found. Please sync account first.");
+            throw new InvalidOperationException("Account not found. Please sync account first.");
         }
 
-        return (account.account_id, string.Empty);
+        return account.account_id;
     }
 
     /// <summary>
@@ -60,15 +60,7 @@ public class NpcsController : ControllerBase
     {
         try
         {
-            var accountResult = await GetAuthenticatedAccountIdAsync();
-            if (accountResult.HasValue && !string.IsNullOrEmpty(accountResult.Value.error))
-            {
-                return accountResult.Value.accountId == 0 
-                    ? NotFound(accountResult.Value.error) 
-                    : BadRequest(accountResult.Value.error);
-            }
-
-            int accountId = accountResult!.Value.accountId;
+            int accountId = await GetAuthenticatedAccountIdAsync();
             
             _logger.LogInformation("Getting NPCs for account {AccountId}", accountId);
             IEnumerable<BaseNpc> result = await _logic.GetNpcList(accountId);
@@ -81,6 +73,14 @@ public class NpcsController : ControllerBase
             
             _logger.LogInformation("Retrieved {Count} NPCs", result.Count());
             return Ok(result);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(ex.Message);
         }
         catch (Exception ex)
         {
@@ -98,15 +98,7 @@ public class NpcsController : ControllerBase
     {
         try
         {
-            var accountResult = await GetAuthenticatedAccountIdAsync();
-            if (accountResult.HasValue && !string.IsNullOrEmpty(accountResult.Value.error))
-            {
-                return accountResult.Value.accountId == 0 
-                    ? NotFound(accountResult.Value.error) 
-                    : BadRequest(accountResult.Value.error);
-            }
-
-            int accountId = accountResult!.Value.accountId;
+            int accountId = await GetAuthenticatedAccountIdAsync();
 
             BaseNpc? npc = await _logic.GetNpc(id);
             if (npc == null)
@@ -122,6 +114,14 @@ public class NpcsController : ControllerBase
             }
 
             return Ok(npc);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(ex.Message);
         }
         catch (Exception ex)
         {
@@ -139,19 +139,19 @@ public class NpcsController : ControllerBase
     {
         try
         {
-            var accountResult = await GetAuthenticatedAccountIdAsync();
-            if (accountResult.HasValue && !string.IsNullOrEmpty(accountResult.Value.error))
-            {
-                return accountResult.Value.accountId == 0 
-                    ? NotFound(accountResult.Value.error) 
-                    : BadRequest(accountResult.Value.error);
-            }
-
-            int accountId = accountResult!.Value.accountId;
+            int accountId = await GetAuthenticatedAccountIdAsync();
 
             _logger.LogInformation("Getting NPCs for account {AccountId}", accountId);
             IEnumerable<BaseNpc> result = await _logic.GetNpcList(accountId);
             return Ok(result);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(ex.Message);
         }
         catch (Exception ex)
         {
@@ -169,15 +169,7 @@ public class NpcsController : ControllerBase
     {
         try
         {
-            var accountResult = await GetAuthenticatedAccountIdAsync();
-            if (accountResult.HasValue && !string.IsNullOrEmpty(accountResult.Value.error))
-            {
-                return accountResult.Value.accountId == 0 
-                    ? NotFound(accountResult.Value.error) 
-                    : BadRequest(accountResult.Value.error);
-            }
-
-            int accountId = accountResult!.Value.accountId;
+            int accountId = await GetAuthenticatedAccountIdAsync();
 
             IEnumerable<BaseNpc> npcs = await _logic.GetNpcList(accountId);
             IEnumerable<BaseNpc> filtered = npcs.Where(n => n.System != null && 
@@ -187,6 +179,14 @@ public class NpcsController : ControllerBase
                 filtered.Count(), gameSystem);
             
             return Ok(filtered);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(ex.Message);
         }
         catch (Exception ex)
         {
@@ -207,15 +207,7 @@ public class NpcsController : ControllerBase
     {
         try
         {
-            var accountResult = await GetAuthenticatedAccountIdAsync();
-            if (accountResult.HasValue && !string.IsNullOrEmpty(accountResult.Value.error))
-            {
-                return accountResult.Value.accountId == 0 
-                    ? NotFound(accountResult.Value.error) 
-                    : BadRequest(accountResult.Value.error);
-            }
-
-            int accountId = accountResult!.Value.accountId;
+            int accountId = await GetAuthenticatedAccountIdAsync();
 
             IEnumerable<BaseNpc> npcs = await _logic.GetNpcList(accountId);
             
@@ -230,6 +222,14 @@ public class NpcsController : ControllerBase
             
             _logger.LogInformation("Search returned {Count} NPCs", npcs.Count());
             return Ok(npcs);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(ex.Message);
         }
         catch (Exception ex)
         {
@@ -246,15 +246,7 @@ public class NpcsController : ControllerBase
     {
         try
         {
-            var accountResult = await GetAuthenticatedAccountIdAsync();
-            if (accountResult.HasValue && !string.IsNullOrEmpty(accountResult.Value.error))
-            {
-                return accountResult.Value.accountId == 0 
-                    ? NotFound(accountResult.Value.error) 
-                    : BadRequest(accountResult.Value.error);
-            }
-
-            int accountId = accountResult!.Value.accountId;
+            int accountId = await GetAuthenticatedAccountIdAsync();
 
             int npcId = await _logic.CreateNpcAsync(accountId, request);
             _logger.LogInformation("Created NPC {NpcId} for account {AccountId}", npcId, accountId);
@@ -267,6 +259,14 @@ public class NpcsController : ControllerBase
             }
             
             return CreatedAtAction(nameof(GetNpc), new { id = npcId }, createdNpc);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(ex.Message);
         }
         catch (Exception ex)
         {
@@ -283,15 +283,7 @@ public class NpcsController : ControllerBase
     {
         try
         {
-            var accountResult = await GetAuthenticatedAccountIdAsync();
-            if (accountResult.HasValue && !string.IsNullOrEmpty(accountResult.Value.error))
-            {
-                return accountResult.Value.accountId == 0 
-                    ? NotFound(accountResult.Value.error) 
-                    : BadRequest(accountResult.Value.error);
-            }
-
-            int accountId = accountResult!.Value.accountId;
+            int accountId = await GetAuthenticatedAccountIdAsync();
 
             bool success = await _logic.UpdateNpcAsync(id, accountId, request);
             if (!success)
@@ -301,6 +293,14 @@ public class NpcsController : ControllerBase
             
             _logger.LogInformation("Updated NPC {NpcId}", id);
             return NoContent();
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(ex.Message);
         }
         catch (Exception ex)
         {
@@ -317,15 +317,7 @@ public class NpcsController : ControllerBase
     {
         try
         {
-            var accountResult = await GetAuthenticatedAccountIdAsync();
-            if (accountResult.HasValue && !string.IsNullOrEmpty(accountResult.Value.error))
-            {
-                return accountResult.Value.accountId == 0 
-                    ? NotFound(accountResult.Value.error) 
-                    : BadRequest(accountResult.Value.error);
-            }
-
-            int accountId = accountResult!.Value.accountId;
+            int accountId = await GetAuthenticatedAccountIdAsync();
 
             // First verify the NPC exists and belongs to the authenticated user
             var npc = await _logic.GetNpc(id);
@@ -348,6 +340,14 @@ public class NpcsController : ControllerBase
             
             _logger.LogInformation("Deleted NPC {NpcId}", id);
             return NoContent();
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(ex.Message);
         }
         catch (Exception ex)
         {

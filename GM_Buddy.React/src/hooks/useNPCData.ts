@@ -32,7 +32,7 @@ const loadNpcs = useCallback(async () => {
   setLoading(true);
   setError(null);
 
-  console.log(`[useNPCData] Loading NPCs for authenticated user, isAuthenticated: ${isAuthenticated}, user:`, user);
+  console.log(`[useNPCData] Loading NPCs for authenticated user, isAuthenticated: ${isAuthenticated}`);
 
   try {
     console.log(`[useNPCData] Calling npcApi.getNpcsByAccount()...`);
@@ -62,7 +62,7 @@ const loadNpcs = useCallback(async () => {
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     loadNpcs();
