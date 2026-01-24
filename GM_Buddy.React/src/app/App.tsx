@@ -6,7 +6,6 @@ import { RelationshipManager } from "@/app/components/RelationshipManager";
 import { Button } from "@/app/components/ui/button";
 import { Plus, Scroll, RefreshCw, LogIn, LogOut, Shield } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
-import { Shield } from "lucide-react";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { useNPCData } from "@/hooks/useNPCData";
 
