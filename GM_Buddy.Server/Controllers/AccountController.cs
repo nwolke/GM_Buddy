@@ -1,6 +1,8 @@
 using GM_Buddy.Contracts.DbEntities;
 using GM_Buddy.Contracts.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace GM_Buddy.Server.Controllers;
 
@@ -24,21 +26,27 @@ public class AccountController : ControllerBase
     /// Called after successful Cognito authentication.
     /// </summary>
     [HttpPost("sync")]
+    [Authorize]
     public async Task<ActionResult<AccountResponse>> SyncAccount([FromBody] SyncAccountRequest request)
     {
-        if (string.IsNullOrEmpty(request.CognitoSub))
+        // Extract cognitoSub from JWT token (the 'sub' claim) - NEVER trust it from request body
+        // .NET JWT middleware maps 'sub' to ClaimTypes.NameIdentifier
+        var cognitoSubClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (cognitoSubClaim == null)
         {
-            return BadRequest("CognitoSub is required");
+            return Unauthorized("Invalid token: sub claim missing");
         }
+
+        string cognitoSub = cognitoSubClaim.Value;
 
         try
         {
             var account = await _accountRepository.GetOrCreateByCognitoSubAsync(
-                request.CognitoSub, 
+                cognitoSub, 
                 request.Email);
 
             _logger.LogInformation("Account synced for {CognitoSub}, AccountId: {AccountId}", 
-                request.CognitoSub, account.account_id);
+                cognitoSub, account.account_id);
 
             return Ok(new AccountResponse
             {
@@ -51,7 +59,7 @@ public class AccountController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error syncing account for {CognitoSub}", request.CognitoSub);
+            _logger.LogError(ex, "Error syncing account for {CognitoSub}", cognitoSub);
             return StatusCode(500, "Failed to sync account");
         }
     }
@@ -60,12 +68,18 @@ public class AccountController : ControllerBase
     /// Get current account info by Cognito sub
     /// </summary>
     [HttpGet("me")]
-    public async Task<ActionResult<AccountResponse>> GetAccount([FromQuery] string cognitoSub)
+    [Authorize]
+    public async Task<ActionResult<AccountResponse>> GetAccount()
     {
-        if (string.IsNullOrEmpty(cognitoSub))
+        // Extract cognitoSub from JWT token (the 'sub' claim) - NEVER trust it from query parameters
+        // .NET JWT middleware maps 'sub' to ClaimTypes.NameIdentifier
+        var cognitoSubClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (cognitoSubClaim == null)
         {
-            return BadRequest("cognitoSub is required");
+            return Unauthorized("Invalid token: sub claim missing");
         }
+
+        string cognitoSub = cognitoSubClaim.Value;
 
         var account = await _accountRepository.GetByCognitoSubAsync(cognitoSub);
         if (account == null)
@@ -89,7 +103,6 @@ public class AccountController : ControllerBase
 /// </summary>
 public class SyncAccountRequest
 {
-    public required string CognitoSub { get; set; }
     public string? Email { get; set; }
     public string? DisplayName { get; set; }
 }

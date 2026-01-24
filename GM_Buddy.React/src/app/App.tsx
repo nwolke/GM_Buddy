@@ -14,7 +14,7 @@ import { useNPCData } from "@/hooks/useNPCData";
 console.log('[App] GM Buddy React App loading - v6');
 
 function NPCApp() {
-  const { isAuthenticated, user, login, loginWithCognito, logout, loading: authLoading, isCognitoMode } = useAuth();
+  const { isAuthenticated, user, loginWithCognito, logout, loading: authLoading } = useAuth();
   const {
     npcs,
     relationships,
@@ -72,24 +72,7 @@ function NPCApp() {
     ).length;
   };
 
-  // Demo login handler - uses the seeded 'dev-user-sub' account from init.sql
-  // In production, this would redirect to Cognito Hosted UI
-  const handleDemoLogin = async (accountType: 'admin' | 'demo' = 'admin') => {
-    // Clear any stale auth data first
-    localStorage.removeItem('gm_buddy_auth');
-    
-    try {
-      if (accountType === 'admin') {
-        // Use the seeded gm_admin account (has sample NPCs)
-        await login('dev-user-sub', 'gm_admin@example.local');
-      } else {
-        // Use the demo_user account
-        await login('demo-user-sub', 'demo@example.com');
-      }
-    } catch (err) {
-      console.error('Demo login failed:', err);
-    }
-  };
+  // No demo login - using Cognito authentication only
 
   if (authLoading) {
     return (
@@ -155,74 +138,69 @@ function NPCApp() {
                 </Button>
               </div>
             ) : (
-              <div className="flex items-center gap-2">
-                {isCognitoMode ? (
-                  // Real Cognito login
-                  <Button variant="default" size="sm" onClick={loginWithCognito}>
-                    <LogIn className="size-4 mr-2" />
-                    Sign In
-                  </Button>
-                ) : (
-                  // Demo mode - show test account options
-                  <>
-                    <Button variant="default" size="sm" onClick={() => handleDemoLogin('admin')}>
-                      <User className="size-4 mr-2" />
-                      GM Admin
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleDemoLogin('demo')}>
-                      <User className="size-4 mr-2" />
-                      Demo User
-                    </Button>
-                  </>
-                )}
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => {
-                    localStorage.clear();
-                    window.location.reload();
-                  }}
-                  className="text-xs text-muted-foreground"
-                  title="Clear cached data"
-                >
-                  Reset
-                </Button>
-              </div>
+              <Button variant="default" size="sm" onClick={loginWithCognito}>
+                <LogIn className="size-4 mr-2" />
+                Sign In
+              </Button>
             )}
-            <Button 
-              onClick={() => {
-                setEditingNPC(null);
-                setIsFormOpen(true);
-              }} 
-              size="lg"
-              className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 shadow-lg shadow-primary/30"
-            >
-              <Plus className="size-4 mr-2" />
-              Recruit NPC
-            </Button>
           </div>
         </div>
 
         <Tabs defaultValue="npcs" className="w-full">
-          <TabsList className="mb-6 bg-card/50 border border-primary/20 p-1">
-            <TabsTrigger 
-              value="npcs"
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent data-[state=active]:text-primary-foreground"
-            >
-              <Shield className="size-4 mr-2" />
-              Characters ({npcs.length})
-            </TabsTrigger>
-            <TabsTrigger 
-              value="network"
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent data-[state=active]:text-primary-foreground"
-            >
-              <Users className="size-4 mr-2" />
-              Relationship Web
-            </TabsTrigger>
-          </TabsList>
+          <div className="flex items-center justify-between mb-6">
+            <TabsList className="bg-card/50 border border-primary/20 p-1">
+              <TabsTrigger 
+                value="npcs"
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent data-[state=active]:text-primary-foreground"
+              >
+                <Shield className="size-4 mr-2" />
+                Characters ({npcs.length})
+              </TabsTrigger>
+              <TabsTrigger 
+                value="network"
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent data-[state=active]:text-primary-foreground"
+              >
+                <Users className="size-4 mr-2" />
+                Relationship Web
+              </TabsTrigger>
+            </TabsList>
+            {isAuthenticated && (
+              <Button 
+                onClick={() => {
+                  setEditingNPC(null);
+                  setIsFormOpen(true);
+                }} 
+                size="lg"
+                className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 shadow-lg shadow-primary/30"
+              >
+                <Plus className="size-4 mr-2" />
+                Recruit NPC
+              </Button>
+            )}
+          </div>
 
           <TabsContent value="npcs">
-            {loading ? (
+            {!isAuthenticated ? (
+              <div className="text-center py-20">
+                <div className="bg-gradient-to-br from-card to-secondary/30 border border-primary/30 rounded-2xl p-12 max-w-md mx-auto shadow-xl">
+                  <div className="bg-gradient-to-br from-primary/20 to-accent/20 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <LogIn className="size-12 text-primary" />
+                  </div>
+                  <h3 className="text-2xl font-bold mb-3 text-primary">Sign In Required</h3>
+                  <p className="text-muted-foreground mb-6 leading-relaxed">
+                    Sign in to manage your campaign's characters and relationships
+                  </p>
+                  <Button 
+                    onClick={loginWithCognito}
+                    size="lg"
+                    className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 shadow-lg"
+                  >
+                    <LogIn className="size-4 mr-2" />
+                    Sign In with Cognito
+                  </Button>
+                </div>
+              </div>
+            ) : loading ? (
               <div className="text-center py-20">
                 <RefreshCw className="size-12 animate-spin text-primary mx-auto mb-4" />
                 <p className="text-muted-foreground">Loading NPCs...</p>

@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { NPC } from '@/types/npc';
+import { getIdToken } from './cognito';
 
 // API base URL - proxied through nginx in production, Vite in development
 const API_BASE_URL = '/api';
@@ -12,9 +13,15 @@ const apiClient = axios.create({
   timeout: 10000, // 10 second timeout
 });
 
-// Add request interceptor for debugging
+// Add request interceptor for authentication and debugging
 apiClient.interceptors.request.use(
-  (config) => {
+  async (config) => {
+    // Add JWT token to requests if available
+    const token = await getIdToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    
     console.log(`API Request: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`, config.params || '');
     return config;
   },
@@ -185,17 +192,15 @@ interface AccountResponse {
 // Account API calls
 export const accountApi = {
   // Sync account (create if not exists)
-  async syncAccount(cognitoSub: string, email: string): Promise<AccountResponse> {
-    const response = await apiClient.post<AccountResponse>('/Account/sync', { cognitoSub, email });
+  async syncAccount(email: string): Promise<AccountResponse> {
+    const response = await apiClient.post<AccountResponse>('/Account/sync', { email });
     return response.data;
   },
 
   // Get account by cognitoSub
-  async getAccount(cognitoSub: string): Promise<{ account_id: number } | null> {
+  async getAccount(): Promise<{ account_id: number } | null> {
     try {
-      const response = await apiClient.get<AccountResponse>('/Account/me', {
-        params: { cognitoSub }
-      });
+      const response = await apiClient.get<AccountResponse>('/Account/me');
       // Map accountId to account_id for consistency with existing code
       return { account_id: response.data.accountId };
     } catch {

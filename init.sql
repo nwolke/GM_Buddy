@@ -181,7 +181,7 @@ ON CONFLICT (relationship_type_name) DO NOTHING;
 -- Dev user with cognito_sub matching the dev mode login
 INSERT INTO auth.account (username, first_name, last_name, email, cognito_sub, subscription_tier)
 VALUES
-  ('gm_admin', 'GM', 'Admin', 'gm_admin@example.local', 'dev-user-sub', 'premium')
+  ('gm_admin', 'GM', 'Admin', 'nathanwolke@outlook.com', 'dev-user-sub', 'premium')
 ON CONFLICT (username) DO NOTHING;
 
 -- Demo user for React app demo login (fallback if gm_admin doesn't work)

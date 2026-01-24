@@ -24,6 +24,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   const isCognitoMode = cognito.isCognitoEnabled();
+  
+  if (isCognitoMode) {
+    console.log('? [AuthContext] Cognito mode: ENABLED');
+  } else {
+    console.warn('??  [AuthContext] Cognito is not configured. Use demo login instead.');
+    console.warn('    If you set up .env.local, you need to RESTART Vite dev server!');
+  }
 
   useEffect(() => {
     const initAuth = async () => {
@@ -33,8 +40,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const cognitoUser = await cognito.handleCallback();
         if (cognitoUser) {
           try {
-            // Sync with backend
-            const syncResponse = await accountApi.syncAccount(cognitoUser.sub, cognitoUser.email);
+            // Sync with backend (cognitoSub is extracted from JWT token on backend)
+            const syncResponse = await accountApi.syncAccount(cognitoUser.email);
             const user: User = {
               cognitoSub: cognitoUser.sub,
               email: cognitoUser.email,
@@ -73,30 +80,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [isCognitoMode]);
 
   // Demo/manual login (for development without Cognito)
+  // NOTE: This will NOT work with the secured endpoints that require JWT authentication
+  // To use the app in development, either:
+  // 1. Configure real Cognito authentication (recommended)
+  // 2. Use a development bypass (requires backend changes)
   const login = async (cognitoSub: string, email: string) => {
     console.log('[AuthContext] Demo login with cognitoSub:', cognitoSub, 'email:', email);
-    try {
-      // Sync account with backend (creates if doesn't exist, returns account info)
-      const syncResponse = await accountApi.syncAccount(cognitoSub, email);
-      console.log('[AuthContext] Sync response:', syncResponse);
-      
-      const user: User = {
-        cognitoSub,
-        email,
-        accountId: syncResponse.accountId,
-      };
-
-      console.log('[AuthContext] Login successful, accountId:', user.accountId);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
-      setAuthState({
-        isAuthenticated: true,
-        user,
-        loading: false,
-      });
-    } catch (error) {
-      console.error('[AuthContext] Login failed:', error);
-      throw error;
-    }
+    console.warn('[AuthContext] Demo login will fail - backend requires JWT authentication');
+    
+    // This will fail because the backend now requires a valid JWT token with 'sub' claim
+    // The cognitoSub parameter is no longer accepted from request body for security reasons
+    throw new Error('Demo login is not supported. Please configure Cognito authentication.');
   };
 
   // Cognito Hosted UI login

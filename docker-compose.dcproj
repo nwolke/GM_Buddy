@@ -13,6 +13,7 @@
     <None Include=".env" />
     <None Include=".env.example" />
     <None Include=".env.local.example" />
+    <None Include="check-env.bat" />
     <None Include="dev-environment.ps1" />
     <None Include="DEV_SETUP.md" />
     <None Include="docker-compose.override.yml">
@@ -22,18 +23,25 @@
     <None Include="docker-compose.yml" />
     <None Include="docker-down.bat" />
     <None Include="docker-up.bat" />
+    <None Include="DOCKER_REBUILD_REQUIRED.md" />
     <None Include="docs\ACCOUNT_CONSOLIDATION.md" />
     <None Include="docs\API_ENDPOINTS_REFERENCE.md" />
     <None Include="docs\COGNITO_MIGRATION.md" />
     <None Include="docs\DATABASE_SCHEMA.md" />
+    <None Include="docs\DOCKER_VS_LOCAL_DEV.md" />
     <None Include="docs\ERD_GENERATION_GUIDE.md" />
+    <None Include="docs\FINAL_FIX_ID_TOKEN.md" />
     <None Include="docs\GITHUB_SECRETS.md" />
+    <None Include="docs\LOCAL_DEV_SETUP.md" />
     <None Include="docs\MUI_CONVERSION_SUMMARY.md" />
     <None Include="docs\MUI_QUICK_REFERENCE.md" />
     <None Include="docs\PC_ORGANIZATION_IMPLEMENTATION.md" />
+    <None Include="docs\PKCE_IMPLEMENTATION.md" />
     <None Include="docs\SCRIPTING_CHEATSHEET.md" />
     <None Include="docs\SCRIPTING_GUIDE.md" />
+    <None Include="docs\SECURITY_FIX_ACCOUNT_SYNC.md" />
     <None Include="docs\TEST_SUITE_IMPLEMENTATION.md" />
+    <None Include="docs\TROUBLESHOOTING_COGNITO.md" />
     <None Include="example-script.ps1" />
     <None Include="GM_Buddy.React\.env.development" />
     <None Include="GM_Buddy.React\.env.production" />
@@ -50,7 +58,10 @@
     <None Include="manage-frontend.ps1" />
     <None Include="MIGRATION_ENV.md" />
     <None Include="NPC_STRUCTURE_UPDATE.md" />
+    <None Include="QUICK_FIX.md" />
     <None Include="README.md" />
+    <None Include="rebuild-docker.bat" />
+    <None Include="rebuild-docker.ps1" />
     <None Include="SCRIPTS_README.md" />
   </ItemGroup>
   <ItemGroup>

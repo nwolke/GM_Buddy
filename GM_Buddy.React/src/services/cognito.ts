@@ -21,8 +21,25 @@ const config = {
   useCognito: import.meta.env.VITE_USE_COGNITO === 'true',
 };
 
+// Debug logging
+if (config.useCognito) {
+  console.log('? [Cognito Config] Cognito is ENABLED', {
+    domain: config.domain,
+    clientId: config.clientId ? `${config.clientId.substring(0, 10)}...` : 'NOT SET',
+  });
+} else {
+  console.error('? [Cognito Config] Cognito is DISABLED');
+  console.error('   VITE_USE_COGNITO =', import.meta.env.VITE_USE_COGNITO);
+  console.error('   Expected: "true" (as a string, no quotes in .env file)');
+  console.error('   ??  You need to RESTART the Vite dev server!');
+  console.error('   1. Press Ctrl+C to stop npm run dev');
+  console.error('   2. Run: npm run dev');
+  console.error('   3. Refresh the browser');
+}
+
 // Token storage keys
 const TOKEN_STORAGE_KEY = 'gm_buddy_tokens';
+const PKCE_STORAGE_KEY = 'gm_buddy_pkce_verifier';
 
 interface CognitoTokens {
   accessToken: string;
@@ -45,20 +62,67 @@ export function isCognitoEnabled(): boolean {
 }
 
 /**
- * Redirect to Cognito Hosted UI for login
+ * Generate a cryptographically random string for PKCE
  */
-export function redirectToLogin(): void {
+function generateRandomString(length: number): string {
+  const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+  const randomValues = new Uint8Array(length);
+  crypto.getRandomValues(randomValues);
+  return Array.from(randomValues)
+    .map((v) => charset[v % charset.length])
+    .join('');
+}
+
+/**
+ * Generate SHA256 hash and base64url encode for PKCE
+ */
+async function sha256(plain: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(plain);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return base64UrlEncode(hash);
+}
+
+/**
+ * Base64URL encode (without padding)
+ */
+function base64UrlEncode(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary)
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=/g, '');
+}
+
+/**
+ * Redirect to Cognito Hosted UI for login with PKCE
+ */
+export async function redirectToLogin(): Promise<void> {
   if (!isCognitoEnabled()) {
     console.warn('Cognito is not configured. Using demo mode.');
     return;
   }
+
+  // Generate PKCE code verifier and challenge
+  const codeVerifier = generateRandomString(128);
+  const codeChallenge = await sha256(codeVerifier);
+
+  // Store code verifier for token exchange
+  localStorage.setItem(PKCE_STORAGE_KEY, codeVerifier);
 
   const loginUrl = new URL(`https://${config.domain}/login`);
   loginUrl.searchParams.set('client_id', config.clientId);
   loginUrl.searchParams.set('response_type', 'code');
   loginUrl.searchParams.set('scope', 'openid email profile');
   loginUrl.searchParams.set('redirect_uri', config.redirectUri);
+  loginUrl.searchParams.set('code_challenge', codeChallenge);
+  loginUrl.searchParams.set('code_challenge_method', 'S256');
 
+  console.log('[Cognito] Redirecting to login with PKCE');
   window.location.href = loginUrl.toString();
 }
 
@@ -113,19 +177,31 @@ export async function handleCallback(): Promise<CognitoUser | null> {
 }
 
 /**
- * Exchange authorization code for tokens
+ * Exchange authorization code for tokens using PKCE
  */
 async function exchangeCodeForTokens(code: string): Promise<CognitoTokens | null> {
   const tokenUrl = `https://${config.domain}/oauth2/token`;
+
+  // Retrieve the code verifier from storage
+  const codeVerifier = localStorage.getItem(PKCE_STORAGE_KEY);
+  if (!codeVerifier) {
+    console.error('PKCE code verifier not found. Cannot exchange token.');
+    return null;
+  }
 
   const body = new URLSearchParams({
     grant_type: 'authorization_code',
     client_id: config.clientId,
     code: code,
     redirect_uri: config.redirectUri,
+    code_verifier: codeVerifier,  // PKCE code verifier
   });
 
+  // Clean up the stored verifier
+  localStorage.removeItem(PKCE_STORAGE_KEY);
+
   try {
+    console.log('[Cognito] Exchanging code for tokens with PKCE...');
     const response = await fetch(tokenUrl, {
       method: 'POST',
       headers: {
@@ -136,11 +212,12 @@ async function exchangeCodeForTokens(code: string): Promise<CognitoTokens | null
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Token exchange failed:', response.status, errorText);
+      console.error('? Token exchange failed:', response.status, errorText);
       return null;
     }
 
     const data = await response.json();
+    console.log('? Token exchange successful');
 
     return {
       accessToken: data.access_token,
@@ -216,6 +293,16 @@ export function clearTokens(): void {
 export function getAccessToken(): string | null {
   const tokens = loadTokens();
   return tokens?.accessToken || null;
+}
+
+/**
+ * Get the current ID token for API calls
+ * ID tokens contain user identity claims (sub, email, etc.)
+ * Use this instead of access token for ASP.NET Core JWT authentication
+ */
+export function getIdToken(): string | null {
+  const tokens = loadTokens();
+  return tokens?.idToken || null;
 }
 
 /**

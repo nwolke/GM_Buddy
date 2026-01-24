@@ -408,3 +408,11 @@ appsettings.Development.json
 **/appsettings.Development.json
 **/appsettings.Local.json
 /TTRPG NPC Management CRUD App
+/docs/DOCKER_VS_LOCAL_DEV.md
+/docs/FINAL_FIX_ID_TOKEN.md
+/docs/LOCAL_DEV_SETUP.md
+/docs/PKCE_IMPLEMENTATION.md
+/docs/SECURITY_FIX_ACCOUNT_SYNC.md
+/docs/TROUBLESHOOTING_COGNITO.md
+/QUICK_FIX.md
+/GM_Buddy.React/RESTART_VITE.md

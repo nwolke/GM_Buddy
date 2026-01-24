@@ -65,8 +65,16 @@ const loadNpcs = useCallback(async () => {
   }, [isAuthenticated]);
 
   useEffect(() => {
-    loadNpcs();
-  }, [loadNpcs]);
+    // Only load NPCs if user is authenticated
+    if (isAuthenticated) {
+      loadNpcs();
+    } else {
+      // Clear NPCs when not authenticated
+      console.log('[useNPCData] User not authenticated, clearing NPCs');
+      setNPCs([]);
+      setLoading(false);
+    }
+  }, [loadNpcs, isAuthenticated]);
 
   // Save NPCs to localStorage whenever they change
   useEffect(() => {
