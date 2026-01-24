@@ -1,5 +1,6 @@
 ﻿using GM_Buddy.Contracts.Interfaces;
 using GM_Buddy.Contracts.Models.Npcs;
+using GM_Buddy.Server.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OutputCaching;
@@ -15,38 +16,18 @@ public class NpcsController : ControllerBase
     private readonly ILogger<NpcsController> _logger;
     private readonly INpcLogic _logic;
     private readonly IAccountRepository _accountRepository;
+    private readonly IAuthHelper _authHelper;
 
     public NpcsController(
         ILogger<NpcsController> logger, 
         INpcLogic npcLogic,
-        IAccountRepository accountRepository)
+        IAccountRepository accountRepository,
+        IAuthHelper authHelper)
     {
         _logger = logger;
         _logic = npcLogic;
         _accountRepository = accountRepository;
-    }
-
-    /// <summary>
-    /// Helper method to get the authenticated user's account ID from JWT claims
-    /// </summary>
-    private async Task<int> GetAuthenticatedAccountIdAsync()
-    {
-        var cognitoSub = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        
-        if (string.IsNullOrEmpty(cognitoSub))
-        {
-            _logger.LogWarning("No user identifier found in claims");
-            throw new UnauthorizedAccessException("User authentication failed");
-        }
-
-        var account = await _accountRepository.GetByCognitoSubAsync(cognitoSub);
-        if (account == null)
-        {
-            _logger.LogWarning("Account not found for cognitoSub: {CognitoSub}", cognitoSub);
-            throw new InvalidOperationException("Account not found. Please sync account first.");
-        }
-
-        return account.account_id;
+        _authHelper = authHelper;
     }
 
     /// <summary>
@@ -60,7 +41,7 @@ public class NpcsController : ControllerBase
     {
         try
         {
-            int accountId = await GetAuthenticatedAccountIdAsync();
+            int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
             
             _logger.LogInformation("Getting NPCs for account {AccountId}", accountId);
             IEnumerable<BaseNpc> result = await _logic.GetNpcList(accountId);
@@ -98,7 +79,7 @@ public class NpcsController : ControllerBase
     {
         try
         {
-            int accountId = await GetAuthenticatedAccountIdAsync();
+            int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
 
             BaseNpc? npc = await _logic.GetNpc(id);
             if (npc == null)
@@ -139,7 +120,7 @@ public class NpcsController : ControllerBase
     {
         try
         {
-            int accountId = await GetAuthenticatedAccountIdAsync();
+            int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
 
             _logger.LogInformation("Getting NPCs for account {AccountId}", accountId);
             IEnumerable<BaseNpc> result = await _logic.GetNpcList(accountId);
@@ -169,7 +150,7 @@ public class NpcsController : ControllerBase
     {
         try
         {
-            int accountId = await GetAuthenticatedAccountIdAsync();
+            int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
 
             IEnumerable<BaseNpc> npcs = await _logic.GetNpcList(accountId);
             IEnumerable<BaseNpc> filtered = npcs.Where(n => n.System != null && 
@@ -207,7 +188,7 @@ public class NpcsController : ControllerBase
     {
         try
         {
-            int accountId = await GetAuthenticatedAccountIdAsync();
+            int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
 
             IEnumerable<BaseNpc> npcs = await _logic.GetNpcList(accountId);
             
@@ -246,7 +227,7 @@ public class NpcsController : ControllerBase
     {
         try
         {
-            int accountId = await GetAuthenticatedAccountIdAsync();
+            int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
 
             int npcId = await _logic.CreateNpcAsync(accountId, request);
             _logger.LogInformation("Created NPC {NpcId} for account {AccountId}", npcId, accountId);
@@ -283,7 +264,7 @@ public class NpcsController : ControllerBase
     {
         try
         {
-            int accountId = await GetAuthenticatedAccountIdAsync();
+            int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
 
             bool success = await _logic.UpdateNpcAsync(id, accountId, request);
             if (!success)
@@ -317,7 +298,7 @@ public class NpcsController : ControllerBase
     {
         try
         {
-            int accountId = await GetAuthenticatedAccountIdAsync();
+            int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
 
             // First verify the NPC exists and belongs to the authenticated user
             var npc = await _logic.GetNpc(id);

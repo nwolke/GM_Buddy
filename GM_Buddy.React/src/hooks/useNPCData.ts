@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { NPC, Relationship } from '@/types/npc';
-import { npcApi, CreateNpcRequest } from '@/services/api';
+import { npcApi, CreateNpcRequest, relationshipApi, transformApiRelationshipToRelationship, getRelationshipTypeId } from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface UseNPCDataReturn {
@@ -16,7 +16,7 @@ interface UseNPCDataReturn {
 }
 
 export function useNPCData(): UseNPCDataReturn {
-const { user, isAuthenticated } = useAuth();
+const { isAuthenticated } = useAuth();
 const [npcs, setNPCs] = useState<NPC[]>([]);
 const [relationships, setRelationships] = useState<Relationship[]>([]);
 const [loading, setLoading] = useState(true);
@@ -41,11 +41,20 @@ const loadNpcs = useCallback(async () => {
       
     setNPCs(apiNpcs);
 
-      // Load relationships from localStorage
-      const storedRelationships = localStorage.getItem('ttrpg-relationships');
-      if (storedRelationships) {
-        setRelationships(JSON.parse(storedRelationships));
-      }
+    // Load relationship types first (this populates the type map)
+    console.log('[useNPCData] Loading relationship types...');
+    await relationshipApi.getRelationshipTypes();
+
+    // Load relationships from the backend
+    console.log('[useNPCData] Loading relationships from backend...');
+    const apiRelationships = await relationshipApi.getAccountRelationships();
+    console.log(`[useNPCData] API returned ${apiRelationships.length} relationships:`, apiRelationships);
+    
+    // Transform backend relationships to frontend format
+    const transformedRelationships = apiRelationships.map(transformApiRelationshipToRelationship) as Relationship[];
+    setRelationships(transformedRelationships);
+    console.log('[useNPCData] Transformed relationships:', transformedRelationships);
+
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       console.error('[useNPCData] Failed to load NPCs:', errorMessage, err);
@@ -58,6 +67,11 @@ const loadNpcs = useCallback(async () => {
         const localNpcs = JSON.parse(storedNPCs);
         console.log(`[useNPCData] Loaded ${localNpcs.length} NPCs from localStorage`);
         setNPCs(localNpcs);
+      }
+      
+      const storedRelationships = localStorage.getItem('ttrpg-relationships');
+      if (storedRelationships) {
+        setRelationships(JSON.parse(storedRelationships));
       }
     } finally {
       setLoading(false);
@@ -153,15 +167,55 @@ const loadNpcs = useCallback(async () => {
     ));
   }, []);
 
-  const addRelationship = useCallback((relationshipData: Omit<Relationship, 'id'>) => {
-    const newRelationship: Relationship = {
-      ...relationshipData,
-      id: crypto.randomUUID(),
-    };
-    setRelationships(prev => [...prev, newRelationship]);
+  const addRelationship = useCallback(async (relationshipData: Omit<Relationship, 'id'>) => {
+    try {
+      // Create relationship on backend
+      const relationshipTypeId = getRelationshipTypeId(relationshipData.type);
+      const apiRelationship = {
+        source_entity_type: 'npc',
+        source_entity_id: parseInt(relationshipData.npcId1),
+        target_entity_type: 'npc',
+        target_entity_id: parseInt(relationshipData.npcId2),
+        relationship_type_id: relationshipTypeId,
+        description: relationshipData.description,
+      };
+
+      console.log('[useNPCData] Creating relationship:', apiRelationship);
+      const newRelationshipId = await relationshipApi.createRelationship(apiRelationship);
+      console.log('[useNPCData] Created relationship with ID:', newRelationshipId);
+
+      // Add to local state with the backend ID
+      const newRelationship: Relationship = {
+        ...relationshipData,
+        id: newRelationshipId.toString(),
+      };
+      setRelationships(prev => [...prev, newRelationship]);
+    } catch (err) {
+      console.error('[useNPCData] Failed to create relationship:', err);
+      setError('Failed to create relationship on server.');
+      
+      // Fallback to local storage
+      const newRelationship: Relationship = {
+        ...relationshipData,
+        id: crypto.randomUUID(),
+      };
+      setRelationships(prev => [...prev, newRelationship]);
+    }
   }, []);
 
-  const deleteRelationship = useCallback((id: string) => {
+  const deleteRelationship = useCallback(async (id: string) => {
+    try {
+      const relationshipId = parseInt(id);
+      if (!isNaN(relationshipId)) {
+        await relationshipApi.deleteRelationship(relationshipId);
+        console.log('[useNPCData] Deleted relationship:', relationshipId);
+      }
+    } catch (err) {
+      console.error('[useNPCData] Failed to delete relationship from server:', err);
+      // Continue with local deletion even if server fails
+    }
+    
+    // Remove from local state
     setRelationships(prev => prev.filter(rel => rel.id !== id));
   }, []);
 

@@ -118,7 +118,8 @@ export interface ApiRelationshipType {
 }
 
 export interface ApiEntityRelationship {
-  relationship_id?: number;
+  entity_relationship_id?: number;
+  relationship_id?: number; // Alternative casing
   source_entity_type: string;
   source_entity_id: number;
   target_entity_type: string;
@@ -141,6 +142,36 @@ const transformApiNpcToNpc = (apiNpc: ApiNpc): NPC => {
     faction: normalized.faction,
     notes: normalized.notes,
   };
+};
+
+// Map relationship type ID to type name
+// This will be populated when relationship types are loaded
+const relationshipTypeMap = new Map<number, string>();
+const relationshipTypeNameToIdMap = new Map<string, number>();
+
+// Transform API EntityRelationship to frontend Relationship
+const transformApiRelationshipToRelationship = (apiRel: ApiEntityRelationship): { 
+  id: string;
+  npcId1: string;
+  npcId2: string;
+  type: string;
+  description?: string;
+} => {
+  const id = (apiRel.entity_relationship_id ?? apiRel.relationship_id)?.toString() || '';
+  const typeName = relationshipTypeMap.get(apiRel.relationship_type_id) || 'neutral';
+  
+  return {
+    id,
+    npcId1: apiRel.source_entity_id.toString(),
+    npcId2: apiRel.target_entity_id.toString(),
+    type: typeName,
+    description: apiRel.description,
+  };
+};
+
+// Get relationship type ID by name
+export const getRelationshipTypeId = (typeName: string): number => {
+  return relationshipTypeNameToIdMap.get(typeName.toLowerCase()) || 7; // Default to 'neutral' if not found
 };
 
 // Create NPC request type
@@ -201,9 +232,25 @@ export const npcApi = {
 
 // Relationship API calls
 export const relationshipApi = {
-  // Get all relationship types
+  // Get all relationship types and populate the type map
   async getRelationshipTypes(): Promise<ApiRelationshipType[]> {
     const response = await apiClient.get<ApiRelationshipType[]>('/Relationships/types');
+    // Populate the type maps for transformations
+    response.data.forEach(type => {
+      if (type.type_name) {
+        const typeName = type.type_name.toLowerCase();
+        relationshipTypeMap.set(type.relationship_type_id, typeName);
+        relationshipTypeNameToIdMap.set(typeName, type.relationship_type_id);
+      } else {
+        console.warn('[relationshipApi] Skipping relationship type with missing name:', type);
+      }
+    });
+    return response.data;
+  },
+
+  // Get all relationships for the authenticated user's account
+  async getAccountRelationships(): Promise<ApiEntityRelationship[]> {
+    const response = await apiClient.get<ApiEntityRelationship[]>('/Relationships/account');
     return response.data;
   },
 
@@ -274,5 +321,8 @@ export const gameSystemApi = {
     return response.data;
   },
 };
+
+// Export transformation functions for use in hooks
+export { transformApiRelationshipToRelationship };
 
 export default apiClient;
