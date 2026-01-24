@@ -56,17 +56,31 @@ export interface ApiNpc {
   Description?: string; // Alternative casing
   system?: string;      // From BaseNpc.System
   System?: string;      // Alternative casing
-  stats?: {             // Stats object from DndNpc
+  stats?: {             // Stats object from DndNpc (supporting legacy and current shapes)
+    // Legacy fields (older API shape)
     race?: string;
     class?: string;
     faction?: string;
     notes?: string;
+    // Current DnDStats fields (backend shape)
+    lineage?: string;
+    occupation?: string;
+    gender?: string;
+    attributes?: unknown;
+    languages?: string[];
   };
-  Stats?: {             // Alternative casing
+  Stats?: {             // Alternative casing (supporting legacy and current shapes)
+    // Legacy fields (older API shape)
     race?: string;
     class?: string;
     faction?: string;
     notes?: string;
+    // Current DnDStats fields (backend shape)
+    lineage?: string;
+    occupation?: string;
+    gender?: string;
+    attributes?: unknown;
+    languages?: string[];
   };
 }
 
@@ -89,8 +103,9 @@ const normalizeApiNpc = (apiNpc: ApiNpc): {
     name: apiNpc.name ?? apiNpc.Name ?? '',
     description: apiNpc.description ?? apiNpc.Description,
     system: apiNpc.system ?? apiNpc.System,
-    race: stats?.race,
-    class: stats?.class,
+    // Support both legacy shape (race/class) and current DnDStats shape (lineage/occupation)
+    race: stats?.race ?? stats?.lineage,
+    class: stats?.class ?? stats?.occupation,
     faction: stats?.faction,
     notes: stats?.notes,
   };
