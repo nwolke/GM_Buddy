@@ -13,8 +13,8 @@ public class NpcLogic : INpcLogic
     private readonly IGameSystemRepository _gameSystemRepository;
     private readonly ILogger<NpcLogic> _logger;
 
-    // Default game system ID for D&D 5e (assuming it exists in the database)
-    private const int DefaultGameSystemId = 1;
+    // Default game system name for D&D 5e
+    private const string DefaultGameSystemName = "Dungeons & Dragons (5e)";
 
     public NpcLogic(
         INpcRepository npcRepository, 
@@ -24,6 +24,43 @@ public class NpcLogic : INpcLogic
         _npcRepository = npcRepository;
         _gameSystemRepository = gameSystemRepository;
         _logger = logger;
+    }
+
+    /// <summary>
+    /// Resolves a game system ID from the request system name, falling back to the default system.
+    /// </summary>
+    /// <param name="requestedSystemName">The system name from the request (may be null or empty)</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>The resolved game system ID</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the default game system is not found in the database</exception>
+    private async Task<int> ResolveGameSystemIdAsync(string? requestedSystemName, CancellationToken ct = default)
+    {
+        // Try to use the requested system if provided
+        if (!string.IsNullOrWhiteSpace(requestedSystemName))
+        {
+            var gameSystem = await _gameSystemRepository.GetByNameAsync(requestedSystemName, ct);
+            if (gameSystem != null)
+            {
+                _logger.LogInformation("Using game system: {SystemName} (ID: {SystemId})", 
+                    requestedSystemName, gameSystem.game_system_id);
+                return gameSystem.game_system_id;
+            }
+            
+            _logger.LogWarning("Game system '{SystemName}' not found, using default", requestedSystemName);
+        }
+
+        // Fall back to default system
+        var defaultSystem = await _gameSystemRepository.GetByNameAsync(DefaultGameSystemName, ct);
+        if (defaultSystem == null)
+        {
+            var errorMsg = $"Default game system '{DefaultGameSystemName}' not found in database. Please ensure init.sql has been run.";
+            _logger.LogError(errorMsg);
+            throw new InvalidOperationException(errorMsg);
+        }
+
+        _logger.LogInformation("Using default game system: {SystemName} (ID: {SystemId})", 
+            DefaultGameSystemName, defaultSystem.game_system_id);
+        return defaultSystem.game_system_id;
     }
 
     public async Task<IEnumerable<DndNpc>> GetNpcList(int account_id, CancellationToken ct = default)
@@ -51,23 +88,8 @@ public class NpcLogic : INpcLogic
     {
         try
         {
-            // Look up game system by name, or use default
-            int gameSystemId = DefaultGameSystemId;
-            
-            if (!string.IsNullOrWhiteSpace(request.System))
-            {
-                var gameSystem = await _gameSystemRepository.GetByNameAsync(request.System, ct);
-                if (gameSystem != null)
-                {
-                    gameSystemId = gameSystem.game_system_id;
-                    _logger.LogInformation("Using game system: {SystemName} (ID: {SystemId})", 
-                        request.System, gameSystemId);
-                }
-                else
-                {
-                    _logger.LogWarning("Game system '{SystemName}' not found, using default", request.System);
-                }
-            }
+            // Resolve game system ID from request or use default
+            int gameSystemId = await ResolveGameSystemIdAsync(request.System, ct);
 
             // Build a simple stats JSON from the request
             var stats = new
@@ -102,6 +124,9 @@ public class NpcLogic : INpcLogic
     {
         try
         {
+            // Resolve game system ID from request or use default
+            int gameSystemId = await ResolveGameSystemIdAsync(request.System, ct);
+
             // Build a simple stats JSON from the request
             var stats = new
             {
@@ -115,7 +140,7 @@ public class NpcLogic : INpcLogic
             {
                 npc_id = npcId,
                 account_id = accountId,
-                game_system_id = DefaultGameSystemId,
+                game_system_id = gameSystemId,
                 name = request.Name,
                 description = request.Description,
                 stats = JsonSerializer.Serialize(stats)
