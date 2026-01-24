@@ -104,6 +104,7 @@ builder.Services.AddScoped<INpcRepository, NpcRepository>();
 builder.Services.AddScoped<IRelationshipRepository, RelationshipRepository>();
 builder.Services.AddScoped<IPcRepository, PcRepository>();
 builder.Services.AddScoped<IOrganizationRepository, OrganizationRepository>();
+builder.Services.AddScoped<IGameSystemRepository, GameSystemRepository>();
 
 // Register AccountRepository for Cognito user management
 builder.Services.AddScoped<IAccountRepository>(sp =>

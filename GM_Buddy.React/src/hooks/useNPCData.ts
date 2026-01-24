@@ -95,6 +95,7 @@ const loadNpcs = useCallback(async () => {
       const request: CreateNpcRequest = {
         name: npcData.name,
         description: npcData.description,
+        system: npcData.system || 'Dungeons & Dragons (5e)', // Use NPC's system or default
         race: npcData.race,
         class: npcData.class,
         faction: npcData.faction,

@@ -56,16 +56,60 @@ export interface ApiNpc {
   Description?: string; // Alternative casing
   system?: string;      // From BaseNpc.System
   System?: string;      // Alternative casing
+  stats?: {             // Stats object from DndNpc (supporting legacy and current shapes)
+    // Legacy fields (older API shape)
+    race?: string;
+    class?: string;
+    faction?: string;
+    notes?: string;
+    // Current DnDStats fields (backend shape)
+    lineage?: string;
+    occupation?: string;
+    gender?: string;
+    attributes?: unknown;
+    languages?: string[];
+  };
+  Stats?: {             // Alternative casing (supporting legacy and current shapes)
+    // Legacy fields (older API shape)
+    race?: string;
+    class?: string;
+    faction?: string;
+    notes?: string;
+    // Current DnDStats fields (backend shape)
+    lineage?: string;
+    occupation?: string;
+    gender?: string;
+    attributes?: unknown;
+    languages?: string[];
+  };
 }
 
 // Helper to normalize API response
-const normalizeApiNpc = (apiNpc: ApiNpc): { npcId?: number; accountId?: number; name: string; description?: string; system?: string } => ({
-  npcId: apiNpc.npc_Id ?? apiNpc.Npc_Id,
-  accountId: apiNpc.account_Id ?? apiNpc.Account_Id,
-  name: apiNpc.name ?? apiNpc.Name ?? '',
-  description: apiNpc.description ?? apiNpc.Description,
-  system: apiNpc.system ?? apiNpc.System,
-});
+const normalizeApiNpc = (apiNpc: ApiNpc): { 
+  npcId?: number; 
+  accountId?: number; 
+  name: string; 
+  description?: string; 
+  system?: string;
+  race?: string;
+  class?: string;
+  faction?: string;
+  notes?: string;
+} => {
+  const stats = apiNpc.stats ?? apiNpc.Stats;
+  return {
+    npcId: apiNpc.npc_Id ?? apiNpc.Npc_Id,
+    accountId: apiNpc.account_Id ?? apiNpc.Account_Id,
+    name: apiNpc.name ?? apiNpc.Name ?? '',
+    description: apiNpc.description ?? apiNpc.Description,
+    system: apiNpc.system ?? apiNpc.System,
+    // Support both legacy shape (race/class) and current DnDStats shape (lineage/occupation)
+    race: stats?.race ?? stats?.lineage,
+    class: stats?.class ?? stats?.occupation,
+    faction: stats?.faction,
+    notes: stats?.notes,
+  };
+};
 
 export interface ApiRelationshipType {
   relationship_type_id: number;
@@ -90,11 +134,12 @@ const transformApiNpcToNpc = (apiNpc: ApiNpc): NPC => {
   return {
     id: normalized.npcId?.toString() || '',
     name: normalized.name,
-    race: normalized.system || 'Unknown', // Using system as race for now
-    class: 'Adventurer', // Default class
+    race: normalized.race || 'Unknown',
+    class: normalized.class || 'Adventurer',
     description: normalized.description || '',
-    faction: undefined,
-    notes: undefined,
+    system: normalized.system,
+    faction: normalized.faction,
+    notes: normalized.notes,
   };
 };
 
@@ -206,6 +251,27 @@ export const accountApi = {
     } catch {
       return null;
     }
+  },
+};
+
+// Game System API response type
+export interface ApiGameSystem {
+  game_system_id: number;
+  game_system_name: string;
+}
+
+// Game System API calls
+export const gameSystemApi = {
+  // Get all game systems
+  async getGameSystems(): Promise<ApiGameSystem[]> {
+    const response = await apiClient.get<ApiGameSystem[]>('/GameSystems');
+    return response.data;
+  },
+
+  // Get single game system by ID
+  async getGameSystem(id: number): Promise<ApiGameSystem> {
+    const response = await apiClient.get<ApiGameSystem>(`/GameSystems/${id}`);
+    return response.data;
   },
 };
 

@@ -54,6 +54,31 @@ internal class FakeNpcRepository : INpcRepository
     }
 }
 
+internal class FakeGameSystemRepository : IGameSystemRepository
+{
+    private readonly List<Game_System> _gameSystems = new()
+    {
+        new Game_System { game_system_id = 1, game_system_name = "Dungeons & Dragons (5e)" },
+        new Game_System { game_system_id = 2, game_system_name = "Pathfinder 2e" },
+        new Game_System { game_system_id = 3, game_system_name = "Generic" }
+    };
+
+    public Task<IEnumerable<Game_System>> GetAllAsync(CancellationToken ct = default)
+    {
+        return Task.FromResult(_gameSystems.AsEnumerable());
+    }
+
+    public Task<Game_System?> GetByIdAsync(int id, CancellationToken ct = default)
+    {
+        return Task.FromResult(_gameSystems.FirstOrDefault(gs => gs.game_system_id == id));
+    }
+
+    public Task<Game_System?> GetByNameAsync(string name, CancellationToken ct = default)
+    {
+        return Task.FromResult(_gameSystems.FirstOrDefault(gs => gs.game_system_name == name));
+    }
+}
+
 public class NpcLogicTests
 {
     [Fact]
@@ -66,7 +91,8 @@ public class NpcLogicTests
             new Npc { name="test2",npc_id = 2, account_id = 10, game_system_id = 1, stats = string.Empty }
         };
         var repo = new FakeNpcRepository(npcs);
-        var logic = new NpcLogic(repo, NullLogger<NpcLogic>.Instance);
+        var gameSystemRepo = new FakeGameSystemRepository();
+        var logic = new NpcLogic(repo, gameSystemRepo, NullLogger<NpcLogic>.Instance);
 
         // Act
         var result = await logic.GetNpcList(10, CancellationToken.None);
@@ -82,7 +108,8 @@ public class NpcLogicTests
     {
         // Arrange
         var repo = new FakeNpcRepository();
-        var logic = new NpcLogic(repo, NullLogger<NpcLogic>.Instance);
+        var gameSystemRepo = new FakeGameSystemRepository();
+        var logic = new NpcLogic(repo, gameSystemRepo, NullLogger<NpcLogic>.Instance);
 
         // Act
         var result = await logic.GetNpc(999, CancellationToken.None);
@@ -97,7 +124,8 @@ public class NpcLogicTests
         // Arrange
         var npc = new Npc { name = "SupGirl", npc_id = 42, account_id = 5, game_system_id = 1, stats = string.Empty };
         var repo = new FakeNpcRepository(new[] { npc });
-        var logic = new NpcLogic(repo, NullLogger<NpcLogic>.Instance);
+        var gameSystemRepo = new FakeGameSystemRepository();
+        var logic = new NpcLogic(repo, gameSystemRepo, NullLogger<NpcLogic>.Instance);
 
         // Act
         var result = await logic.GetNpc(42, CancellationToken.None);
