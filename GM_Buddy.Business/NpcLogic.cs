@@ -10,14 +10,19 @@ namespace GM_Buddy.Business;
 public class NpcLogic : INpcLogic
 {
     private readonly INpcRepository _npcRepository;
+    private readonly IGameSystemRepository _gameSystemRepository;
     private readonly ILogger<NpcLogic> _logger;
 
     // Default game system ID for D&D 5e (assuming it exists in the database)
     private const int DefaultGameSystemId = 1;
 
-    public NpcLogic(INpcRepository npcRepository, ILogger<NpcLogic> logger)
+    public NpcLogic(
+        INpcRepository npcRepository, 
+        IGameSystemRepository gameSystemRepository,
+        ILogger<NpcLogic> logger)
     {
         _npcRepository = npcRepository;
+        _gameSystemRepository = gameSystemRepository;
         _logger = logger;
     }
 
@@ -46,6 +51,24 @@ public class NpcLogic : INpcLogic
     {
         try
         {
+            // Look up game system by name, or use default
+            int gameSystemId = DefaultGameSystemId;
+            
+            if (!string.IsNullOrWhiteSpace(request.System))
+            {
+                var gameSystem = await _gameSystemRepository.GetByNameAsync(request.System, ct);
+                if (gameSystem != null)
+                {
+                    gameSystemId = gameSystem.game_system_id;
+                    _logger.LogInformation("Using game system: {SystemName} (ID: {SystemId})", 
+                        request.System, gameSystemId);
+                }
+                else
+                {
+                    _logger.LogWarning("Game system '{SystemName}' not found, using default", request.System);
+                }
+            }
+
             // Build a simple stats JSON from the request
             var stats = new
             {
@@ -58,7 +81,7 @@ public class NpcLogic : INpcLogic
             var npc = new Npc
             {
                 account_id = accountId,
-                game_system_id = DefaultGameSystemId,
+                game_system_id = gameSystemId,
                 name = request.Name,
                 description = request.Description,
                 stats = JsonSerializer.Serialize(stats)

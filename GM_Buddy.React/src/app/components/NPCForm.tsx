@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { NPC } from "@/types/npc";
+import { gameSystemApi, ApiGameSystem } from "@/services/api";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
 import { Textarea } from "@/app/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select";
 
 interface NPCFormProps {
   open: boolean;
@@ -14,36 +16,61 @@ interface NPCFormProps {
 }
 
 export function NPCForm({ open, onOpenChange, onSave, editingNPC }: NPCFormProps) {
-  const [formData, setFormData] = useState({
-    name: "",
-    race: "",
-    class: "",
-    description: "",
-    faction: "",
-    notes: ""
-  });
+const [formData, setFormData] = useState({
+  name: "",
+  race: "",
+  class: "",
+  description: "",
+  system: "Dungeons & Dragons (5e)",
+  faction: "",
+  notes: ""
+});
 
-  useEffect(() => {
-    if (editingNPC) {
-      setFormData({
-        name: editingNPC.name,
-        race: editingNPC.race,
-        class: editingNPC.class,
-        description: editingNPC.description,
-        faction: editingNPC.faction || "",
-        notes: editingNPC.notes || ""
-      });
-    } else {
-      setFormData({
-        name: "",
-        race: "",
-        class: "",
-        description: "",
-        faction: "",
-        notes: ""
-      });
+const [gameSystems, setGameSystems] = useState<ApiGameSystem[]>([]);
+const [loadingGameSystems, setLoadingGameSystems] = useState(false);
+
+// Load game systems when component mounts
+useEffect(() => {
+  const loadGameSystems = async () => {
+    try {
+      setLoadingGameSystems(true);
+      const systems = await gameSystemApi.getGameSystems();
+      setGameSystems(systems);
+    } catch (error) {
+      console.error('Failed to load game systems:', error);
+    } finally {
+      setLoadingGameSystems(false);
     }
-  }, [editingNPC, open]);
+  };
+
+  if (open) {
+    loadGameSystems();
+  }
+}, [open]);
+
+useEffect(() => {
+  if (editingNPC) {
+    setFormData({
+      name: editingNPC.name,
+      race: editingNPC.race,
+      class: editingNPC.class,
+      description: editingNPC.description,
+      system: editingNPC.system || "Dungeons & Dragons (5e)",
+      faction: editingNPC.faction || "",
+      notes: editingNPC.notes || ""
+    });
+  } else {
+    setFormData({
+      name: "",
+      race: "",
+      class: "",
+      description: "",
+      system: "Dungeons & Dragons (5e)",
+      faction: "",
+      notes: ""
+    });
+  }
+}, [editingNPC, open]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,6 +104,25 @@ export function NPCForm({ open, onOpenChange, onSave, editingNPC }: NPCFormProps
                 placeholder="Enter NPC name"
                 required
               />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="system">Game System *</Label>
+              <Select
+                value={formData.system}
+                onValueChange={(value) => setFormData({ ...formData, system: value })}
+                disabled={loadingGameSystems}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a game system" />
+                </SelectTrigger>
+                <SelectContent>
+                  {gameSystems.map((system) => (
+                    <SelectItem key={system.game_system_id} value={system.game_system_name}>
+                      {system.game_system_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">

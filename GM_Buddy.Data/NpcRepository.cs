@@ -56,7 +56,7 @@ public class NpcRepository : INpcRepository
         using IDbConnection dbConnection = _dbConnector.CreateConnection();
         const string sql = @"
             INSERT INTO npc (account_id, game_system_id, name, description, stats)
-            VALUES (@account_id, @game_system_id, @name, @description, @stats)
+            VALUES (@account_id, @game_system_id, @name, @description, @stats::jsonb)
             RETURNING npc_id";
         var cmd = new CommandDefinition(sql, npc, cancellationToken: ct);
         return await dbConnection.ExecuteScalarAsync<int>(cmd);
@@ -69,7 +69,7 @@ public class NpcRepository : INpcRepository
             UPDATE npc 
             SET name = @name,
                 description = @description,
-                stats = @stats,
+                stats = @stats::jsonb,
                 game_system_id = @game_system_id
             WHERE npc_id = @npc_id AND account_id = @account_id";
         var cmd = new CommandDefinition(sql, npc, cancellationToken: ct);
