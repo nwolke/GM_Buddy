@@ -112,7 +112,7 @@ useEffect(() => {
                 onValueChange={(value) => setFormData({ ...formData, system: value })}
                 disabled={loadingGameSystems}
               >
-                <SelectTrigger>
+                <SelectTrigger id="system">
                   <SelectValue placeholder="Select a game system" />
                 </SelectTrigger>
                 <SelectContent>
