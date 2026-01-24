@@ -16,61 +16,61 @@ interface NPCFormProps {
 }
 
 export function NPCForm({ open, onOpenChange, onSave, editingNPC }: NPCFormProps) {
-const [formData, setFormData] = useState({
-  name: "",
-  race: "",
-  class: "",
-  description: "",
-  system: "Dungeons & Dragons (5e)",
-  faction: "",
-  notes: ""
-});
+  const [formData, setFormData] = useState({
+    name: "",
+    race: "",
+    class: "",
+    description: "",
+    system: "Dungeons & Dragons (5e)",
+    faction: "",
+    notes: ""
+  });
 
-const [gameSystems, setGameSystems] = useState<ApiGameSystem[]>([]);
-const [loadingGameSystems, setLoadingGameSystems] = useState(false);
+  const [gameSystems, setGameSystems] = useState<ApiGameSystem[]>([]);
+  const [loadingGameSystems, setLoadingGameSystems] = useState(false);
 
-// Load game systems when component mounts
-useEffect(() => {
-  const loadGameSystems = async () => {
-    try {
-      setLoadingGameSystems(true);
-      const systems = await gameSystemApi.getGameSystems();
-      setGameSystems(systems);
-    } catch (error) {
-      console.error('Failed to load game systems:', error);
-    } finally {
-      setLoadingGameSystems(false);
+  // Load game systems when the dialog is opened
+  useEffect(() => {
+    const loadGameSystems = async () => {
+      try {
+        setLoadingGameSystems(true);
+        const systems = await gameSystemApi.getGameSystems();
+        setGameSystems(systems);
+      } catch (error) {
+        console.error('Failed to load game systems:', error);
+      } finally {
+        setLoadingGameSystems(false);
+      }
+    };
+
+    if (open) {
+      loadGameSystems();
     }
-  };
+  }, [open]);
 
-  if (open) {
-    loadGameSystems();
-  }
-}, [open]);
-
-useEffect(() => {
-  if (editingNPC) {
-    setFormData({
-      name: editingNPC.name,
-      race: editingNPC.race,
-      class: editingNPC.class,
-      description: editingNPC.description,
-      system: editingNPC.system || "Dungeons & Dragons (5e)",
-      faction: editingNPC.faction || "",
-      notes: editingNPC.notes || ""
-    });
-  } else {
-    setFormData({
-      name: "",
-      race: "",
-      class: "",
-      description: "",
-      system: "Dungeons & Dragons (5e)",
-      faction: "",
-      notes: ""
-    });
-  }
-}, [editingNPC, open]);
+  useEffect(() => {
+    if (editingNPC) {
+      setFormData({
+        name: editingNPC.name,
+        race: editingNPC.race,
+        class: editingNPC.class,
+        description: editingNPC.description,
+        system: editingNPC.system || "Dungeons & Dragons (5e)",
+        faction: editingNPC.faction || "",
+        notes: editingNPC.notes || ""
+      });
+    } else {
+      setFormData({
+        name: "",
+        race: "",
+        class: "",
+        description: "",
+        system: "Dungeons & Dragons (5e)",
+        faction: "",
+        notes: ""
+      });
+    }
+  }, [editingNPC, open]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

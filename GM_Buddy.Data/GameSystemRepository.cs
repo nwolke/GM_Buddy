@@ -44,9 +44,9 @@ public class GameSystemRepository : IGameSystemRepository
         const string sql = @"
             SELECT game_system_id, game_system_name
             FROM game_system
-            WHERE game_system_name = @Name";
+            WHERE LOWER(game_system_name) = LOWER(@Name)";
         
-        var cmd = new CommandDefinition(sql, new { Name = name }, cancellationToken: ct);
+        var cmd = new CommandDefinition(sql, new { Name = name?.Trim() }, cancellationToken: ct);
         return await dbConnection.QueryFirstOrDefaultAsync<Game_System>(cmd);
     }
 }
