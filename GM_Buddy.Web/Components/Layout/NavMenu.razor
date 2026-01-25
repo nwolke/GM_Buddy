@@ -1,0 +1,68 @@
+﻿@inject NavigationManager Navigation
+
+<header class="site-header">
+    @* Site Brand *@
+    <a href="/" class="site-brand">
+        <img src="/images/logo.png" alt="GM Buddy Logo" class="site-logo" />
+        <div class="brand-text">
+            <h1 class="site-title">GM Buddy</h1>
+            <p class="site-sub">Game Master's Companion</p>
+        </div>
+    </a>
+
+    @* Apps Dropdown *@
+    <div class="header-nav">
+        <div class="app-dropdown">
+            <button class="btn btn-outline dropdown-toggle" @onclick="ToggleAppsDropdown">
+                Apps ▼
+            </button>
+            @if (showAppsDropdown)
+            {
+                <div class="dropdown-menu">
+                    <button class="dropdown-item" @onclick='() => NavigateTo("/npc-manager")'>
+                        NPC Manager
+                    </button>
+                    <AuthorizeView Roles="Admin">
+                        <Authorized>
+                            <button class="dropdown-item admin-item" @onclick='() => NavigateTo("/admin")'>
+                                ⚙️ Admin
+                            </button>
+                        </Authorized>
+                    </AuthorizeView>
+                </div>
+            }
+        </div>
+    </div>
+
+    @* Spacer *@
+    <div class="header-spacer"></div>
+
+    @* Auth Section *@
+    <div class="auth-section">
+        <AuthorizeView>
+            <Authorized>
+                <span class="user-name">@context.User.Identity?.Name</span>
+                <a href="/logout" class="btn btn-outline">Logout</a>
+            </Authorized>
+            <NotAuthorized>
+                <a href="/login" class="btn btn-primary">Sign In</a>
+            </NotAuthorized>
+        </AuthorizeView>
+    </div>
+</header>
+
+@code {
+    private bool showAppsDropdown = false;
+
+    private void ToggleAppsDropdown()
+    {
+        showAppsDropdown = !showAppsDropdown;
+    }
+
+    private void NavigateTo(string path)
+    {
+        showAppsDropdown = false;
+        Navigation.NavigateTo(path);
+    }
+}
+
