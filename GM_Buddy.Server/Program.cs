@@ -2,6 +2,7 @@ using GM_Buddy.Business;
 using GM_Buddy.Contracts;
 using GM_Buddy.Contracts.Interfaces;
 using GM_Buddy.Data;
+using GM_Buddy.Server.Helpers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.IdentityModel.Tokens;
@@ -105,6 +106,8 @@ builder.Services.AddScoped<IRelationshipRepository, RelationshipRepository>();
 builder.Services.AddScoped<IPcRepository, PcRepository>();
 builder.Services.AddScoped<IOrganizationRepository, OrganizationRepository>();
 builder.Services.AddScoped<IGameSystemRepository, GameSystemRepository>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IAuthHelper, AuthHelper>();
 
 // Register AccountRepository for Cognito user management
 builder.Services.AddScoped<IAccountRepository>(sp =>

@@ -226,6 +226,24 @@ public class RelationshipRepository : IRelationshipRepository
         return await dbConnection.QueryAsync<EntityRelationship>(cmd);
     }
 
+    public async Task<IEnumerable<EntityRelationship>> GetAllRelationshipsOfAccountAsync(
+        int accountId,
+        bool includeInactive = false,
+        CancellationToken ct = default)
+    {
+        using IDbConnection dbConnection = _dbConnector.CreateConnection();
+        string sql = BuildRelationshipQuery() + @"
+            WHERE c.account_id = @AccountId";
+
+        if (!includeInactive)
+        {
+            sql += " AND er.is_active = true";
+        }
+
+        CommandDefinition cmd = new(sql, new { AccountId = accountId  }, cancellationToken: ct);
+        return await dbConnection.QueryAsync<EntityRelationship>(cmd);
+    }
+
     public async Task<IEnumerable<EntityRelationship>> GetRelationshipsByTypeAsync(
         string entityType,
         int entityId,

@@ -1,5 +1,6 @@
 using GM_Buddy.Contracts.DbEntities;
 using GM_Buddy.Contracts.Interfaces;
+using GM_Buddy.Server.Helpers;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GM_Buddy.Server.Controllers;
@@ -10,11 +11,13 @@ public class RelationshipsController : ControllerBase
 {
     private readonly ILogger<RelationshipsController> _logger;
     private readonly IRelationshipRepository _repository;
+    private readonly IAuthHelper _authHelper;
 
-    public RelationshipsController(ILogger<RelationshipsController> logger, IRelationshipRepository repository)
+    public RelationshipsController(ILogger<RelationshipsController> logger, IRelationshipRepository repository, IAuthHelper authHelper)
     {
         _logger = logger;
         _repository = repository;
+        _authHelper = authHelper;
     }
 
     #region Relationship Types
@@ -82,7 +85,7 @@ public class RelationshipsController : ControllerBase
 
             int relationshipId = await _repository.CreateRelationshipAsync(relationship);
             _logger.LogInformation("Created relationship {RelationshipId}", relationshipId);
-            
+
             return CreatedAtAction(nameof(GetRelationship), new { id = relationshipId }, relationshipId);
         }
         catch (Exception ex)
@@ -113,8 +116,8 @@ public class RelationshipsController : ControllerBase
 
     [HttpGet("entity/{entityType}/{entityId}")]
     public async Task<ActionResult<IEnumerable<EntityRelationship>>> GetEntityRelationships(
-        string entityType, 
-        int entityId, 
+        string entityType,
+        int entityId,
         [FromQuery] bool includeInactive = false)
     {
         try
@@ -124,12 +127,12 @@ public class RelationshipsController : ControllerBase
                 return BadRequest("Invalid entity type. Must be 'npc', 'pc', or 'organization'");
             }
 
-            IEnumerable<EntityRelationship> relationships = 
+            IEnumerable<EntityRelationship> relationships =
                 await _repository.GetRelationshipsForEntityAsync(entityType, entityId, includeInactive);
-            
-            _logger.LogInformation("Retrieved {Count} relationships for {EntityType} {EntityId}", 
+
+            _logger.LogInformation("Retrieved {Count} relationships for {EntityType} {EntityId}",
                 relationships.Count(), entityType, entityId);
-            
+
             return Ok(relationships);
         }
         catch (Exception ex)
@@ -210,7 +213,7 @@ public class RelationshipsController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving {RelationshipTypeId} relationships for {EntityType} {EntityId}", 
+            _logger.LogError(ex, "Error retrieving {RelationshipTypeId} relationships for {EntityType} {EntityId}",
                 relationshipTypeId, entityType, entityId);
             return StatusCode(500, "Internal server error");
         }
@@ -331,6 +334,34 @@ public class RelationshipsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error reactivating relationship {RelationshipId}", id);
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+    [HttpGet("account")]
+    public async Task<IActionResult> GetAllRelationshipsByAccountId()
+    {
+        try
+        {
+            int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
+            _logger.LogInformation("Getting all relationships for account {AccountId}", accountId);
+            IEnumerable<EntityRelationship> result = await _repository.GetAllRelationshipsOfAccountAsync(accountId);
+
+            _logger.LogInformation("Retrieved {Count} relationships", result.Count());
+            return Ok(result);
+
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving Relationships by account id");
             return StatusCode(500, "Internal server error");
         }
     }

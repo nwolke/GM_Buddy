@@ -217,5 +217,10 @@ internal class FakeRelationshipRepository : IRelationshipRepository
         return Task.FromResult(exists);
     }
 
+    public Task<IEnumerable<EntityRelationship>> GetAllRelationshipsOfAccountAsync(int accountId, bool includeInactive = false, CancellationToken ct = default)
+    {
+        return Task.FromResult(_relationships.AsEnumerable());
+    }
+
     #endregion
 }

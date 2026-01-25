@@ -35,6 +35,10 @@ public interface IRelationshipRepository
     /// Get a specific relationship by ID
     /// </summary>
     Task<EntityRelationship?> GetRelationshipByIdAsync(int relationshipId, CancellationToken ct = default);
+    Task<IEnumerable<EntityRelationship>> GetAllRelationshipsOfAccountAsync(
+        int accountId,
+        bool includeInactive = false,
+        CancellationToken ct = default);
 
     /// <summary>
     /// Get all relationships for a specific entity (as source or target)

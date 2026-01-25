@@ -3,11 +3,9 @@ import { NPC, Relationship } from "@/types/npc";
 import { NPCCard } from "@/app/components/NPCCard";
 import { NPCForm } from "@/app/components/NPCForm";
 import { RelationshipManager } from "@/app/components/RelationshipManager";
-import { NPCNetwork } from "@/app/components/NPCNetwork";
 import { Button } from "@/app/components/ui/button";
-import { Plus, Users, Scroll, RefreshCw, LogIn, LogOut, User } from "lucide-react";
+import { Plus, Scroll, RefreshCw, LogIn, LogOut, Shield } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
-import { Shield } from "lucide-react";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { useNPCData } from "@/hooks/useNPCData";
 
@@ -156,13 +154,6 @@ function NPCApp() {
                 <Shield className="size-4 mr-2" />
                 Characters ({npcs.length})
               </TabsTrigger>
-              <TabsTrigger 
-                value="network"
-                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent data-[state=active]:text-primary-foreground"
-              >
-                <Users className="size-4 mr-2" />
-                Relationship Web
-              </TabsTrigger>
             </TabsList>
             {isAuthenticated && (
               <Button 
@@ -209,7 +200,7 @@ function NPCApp() {
               <div className="text-center py-20">
                 <div className="bg-gradient-to-br from-card to-secondary/30 border border-primary/30 rounded-2xl p-12 max-w-md mx-auto shadow-xl">
                   <div className="bg-gradient-to-br from-primary/20 to-accent/20 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <Users className="size-12 text-primary" />
+                    <Shield className="size-12 text-primary" />
                   </div>
                   <h3 className="text-2xl font-bold mb-3 text-primary">No Characters Yet</h3>
                   <p className="text-muted-foreground mb-6 leading-relaxed">
@@ -242,14 +233,6 @@ function NPCApp() {
                 ))}
               </div>
             )}
-          </TabsContent>
-
-          <TabsContent value="network">
-            <NPCNetwork
-              npcs={npcs}
-              relationships={relationships}
-              onNodeClick={handleOpenRelationshipManager}
-            />
           </TabsContent>
         </Tabs>
       </div>
