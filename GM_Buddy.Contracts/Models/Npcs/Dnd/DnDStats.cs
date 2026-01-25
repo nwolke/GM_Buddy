@@ -10,9 +10,6 @@ public class DnDStats
     [JsonPropertyName("occupation")]
     public string? Occupation { get; set; }    
     
-    [JsonPropertyName("gender")]
-    public string? Gender { get; set; }
-    
     [JsonPropertyName("attributes")]
     public required DndAttributes Attributes { get; set; }
     

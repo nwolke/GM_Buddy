@@ -225,7 +225,6 @@ VALUES
     jsonb_build_object(
       'lineage', 'Human',
       'description', 'A grizzled sellsword who travels between towns, taking contracts from the highest bidder.',
-      'gender', 'Male',
       'attributes', jsonb_build_object(
         'strength', 14,
         'dexterity', 12,
@@ -245,7 +244,6 @@ VALUES
     jsonb_build_object(
       'lineage', 'Elf',
       'occupation', 'Wizard',
-      'gender', 'Female',
       'attributes', jsonb_build_object(
         'strength', 8,
         'dexterity', 14,
@@ -265,7 +263,6 @@ VALUES
     jsonb_build_object(
       'lineage', 'Dwarf',
       'occupation', 'Prospector',
-      'gender', 'Male',
       'attributes', jsonb_build_object(
         'strength', 13,
         'dexterity', 9,
@@ -285,7 +282,6 @@ VALUES
     jsonb_build_object(
       'lineage', 'Human',
       'occupation', 'Fighter',
-      'gender', 'Male',
       'attributes', jsonb_build_object(
         'strength', 15,
         'dexterity', 13,
@@ -305,7 +301,6 @@ VALUES
     jsonb_build_object(
       'lineage', 'Drow',
       'occupation', 'Villain',
-      'gender', 'Male',
       'attributes', jsonb_build_object(
         'strength', 10,
         'dexterity', 16,

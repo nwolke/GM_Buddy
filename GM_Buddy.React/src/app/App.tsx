@@ -1,267 +1,28 @@
-import { useState, useEffect } from "react";
-import { NPC, Relationship } from "@/types/npc";
-import { NPCCard } from "@/app/components/NPCCard";
-import { NPCForm } from "@/app/components/NPCForm";
-import { RelationshipManager } from "@/app/components/RelationshipManager";
-import { Button } from "@/app/components/ui/button";
-import { Plus, Scroll, RefreshCw, LogIn, LogOut, Shield } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
-import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import { useNPCData } from "@/hooks/useNPCData";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { LandingPage } from "@/app/pages/LandingPage";
+import { NPCManagerPage } from "@/app/pages/NPCManagerPage";
+import { ProtectedRoute } from "@/app/components/ProtectedRoute";
 
-console.log('[App] GM Buddy React App loading - v6');
+console.log('[App] GM Buddy React App loading - v7');
 
-function NPCApp() {
-  const { isAuthenticated, user, loginWithCognito, logout, loading: authLoading } = useAuth();
-  const {
-    npcs,
-    relationships,
-    loading,
-    error,
-    refreshNpcs,
-    saveNPC,
-    deleteNPC,
-    addRelationship,
-    deleteRelationship,
-  } = useNPCData();
-  
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingNPC, setEditingNPC] = useState<NPC | null>(null);
-  const [isRelationshipManagerOpen, setIsRelationshipManagerOpen] = useState(false);
-
-  // Log component mount
-  useEffect(() => {
-    console.log('[NPCApp] Component mounted, authLoading:', authLoading, 'loading:', loading);
-  }, []);
-  const [currentNPC, setCurrentNPC] = useState<NPC | null>(null);
-
-  const handleSaveNPC = async (npcData: Omit<NPC, 'id'> | NPC) => {
-    await saveNPC(npcData);
-    setEditingNPC(null);
-  };
-
-  const handleEditNPC = (npc: NPC) => {
-    setEditingNPC(npc);
-    setIsFormOpen(true);
-  };
-
-  const handleDeleteNPC = async (id: string) => {
-    if (confirm('Are you sure you want to delete this NPC? This will also remove all their relationships.')) {
-      await deleteNPC(id);
-    }
-  };
-
-  const handleOpenRelationshipManager = (npc: NPC) => {
-    setCurrentNPC(npc);
-    setIsRelationshipManagerOpen(true);
-  };
-
-  const handleAddRelationship = (relationshipData: Omit<Relationship, 'id'>) => {
-    addRelationship(relationshipData);
-  };
-
-  const handleDeleteRelationship = (id: string) => {
-    deleteRelationship(id);
-  };
-
-  const getRelationshipCount = (npcId: string) => {
-    return relationships.filter(
-      rel => rel.npcId1 === npcId || rel.npcId2 === npcId
-    ).length;
-  };
-
-  // No demo login - using Cognito authentication only
-
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20 flex items-center justify-center">
-        <div className="text-center">
-          <RefreshCw className="size-8 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20">
-      {/* Decorative background pattern */}
-      <div className="fixed inset-0 opacity-5 pointer-events-none">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `radial-gradient(circle at 2px 2px, currentColor 1px, transparent 0)`,
-          backgroundSize: '40px 40px'
-        }} />
-      </div>
-
-      <div className="container mx-auto py-8 px-4 relative">
-        {/* Header with auth controls */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <div className="bg-gradient-to-br from-primary to-accent p-3 rounded-xl shadow-lg shadow-primary/30">
-              <Scroll className="size-8 text-primary-foreground" />
-            </div>
-            <div>
-              <h1 className="text-5xl font-bold mb-2 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-                GM Buddy
-              </h1>
-              <p className="text-muted-foreground flex items-center gap-2">
-                <span className="text-accent">⚔️</span>
-                Manage your campaign's characters and their bonds
-                <span className="text-primary">✨</span>
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            {error && (
-              <span className="text-sm text-destructive">{error}</span>
-            )}
-            {loading && (
-              <RefreshCw className="size-4 animate-spin text-muted-foreground" />
-            )}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={refreshNpcs}
-              disabled={loading}
-              title="Refresh NPCs"
-            >
-              <RefreshCw className={`size-4 ${loading ? 'animate-spin' : ''}`} />
-            </Button>
-            {isAuthenticated ? (
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">{user?.email}</span>
-                <Button variant="outline" size="sm" onClick={logout}>
-                  <LogOut className="size-4 mr-2" />
-                  Logout
-                </Button>
-              </div>
-            ) : (
-              <Button variant="default" size="sm" onClick={loginWithCognito}>
-                <LogIn className="size-4 mr-2" />
-                Sign In
-              </Button>
-            )}
-          </div>
-        </div>
-
-        <Tabs defaultValue="npcs" className="w-full">
-          <div className="flex items-center justify-between mb-6">
-            <TabsList className="bg-card/50 border border-primary/20 p-1">
-              <TabsTrigger 
-                value="npcs"
-                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent data-[state=active]:text-primary-foreground"
-              >
-                <Shield className="size-4 mr-2" />
-                Characters ({npcs.length})
-              </TabsTrigger>
-            </TabsList>
-            {isAuthenticated && (
-              <Button 
-                onClick={() => {
-                  setEditingNPC(null);
-                  setIsFormOpen(true);
-                }} 
-                size="lg"
-                className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 shadow-lg shadow-primary/30"
-              >
-                <Plus className="size-4 mr-2" />
-                Recruit NPC
-              </Button>
-            )}
-          </div>
-
-          <TabsContent value="npcs">
-            {!isAuthenticated ? (
-              <div className="text-center py-20">
-                <div className="bg-gradient-to-br from-card to-secondary/30 border border-primary/30 rounded-2xl p-12 max-w-md mx-auto shadow-xl">
-                  <div className="bg-gradient-to-br from-primary/20 to-accent/20 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <LogIn className="size-12 text-primary" />
-                  </div>
-                  <h3 className="text-2xl font-bold mb-3 text-primary">Sign In Required</h3>
-                  <p className="text-muted-foreground mb-6 leading-relaxed">
-                    Sign in to manage your campaign's characters and relationships
-                  </p>
-                  <Button 
-                    onClick={loginWithCognito}
-                    size="lg"
-                    className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 shadow-lg"
-                  >
-                    <LogIn className="size-4 mr-2" />
-                    Sign In with Cognito
-                  </Button>
-                </div>
-              </div>
-            ) : loading ? (
-              <div className="text-center py-20">
-                <RefreshCw className="size-12 animate-spin text-primary mx-auto mb-4" />
-                <p className="text-muted-foreground">Loading NPCs...</p>
-              </div>
-            ) : npcs.length === 0 ? (
-              <div className="text-center py-20">
-                <div className="bg-gradient-to-br from-card to-secondary/30 border border-primary/30 rounded-2xl p-12 max-w-md mx-auto shadow-xl">
-                  <div className="bg-gradient-to-br from-primary/20 to-accent/20 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <Shield className="size-12 text-primary" />
-                  </div>
-                  <h3 className="text-2xl font-bold mb-3 text-primary">No Characters Yet</h3>
-                  <p className="text-muted-foreground mb-6 leading-relaxed">
-                    Begin your epic tale by recruiting your first NPC to the compendium
-                  </p>
-                  <Button 
-                    onClick={() => {
-                      setEditingNPC(null);
-                      setIsFormOpen(true);
-                    }}
-                    size="lg"
-                    className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 shadow-lg"
-                  >
-                    <Plus className="size-4 mr-2" />
-                    Recruit First Character
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {npcs.map(npc => (
-                  <NPCCard
-                    key={npc.id}
-                    npc={npc}
-                    onEdit={handleEditNPC}
-                    onDelete={handleDeleteNPC}
-                    onManageRelationships={handleOpenRelationshipManager}
-                    relationshipCount={getRelationshipCount(npc.id)}
-                  />
-                ))}
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
-      </div>
-
-      <NPCForm
-        open={isFormOpen}
-        onOpenChange={setIsFormOpen}
-        onSave={handleSaveNPC}
-        editingNPC={editingNPC}
-      />
-
-      <RelationshipManager
-        open={isRelationshipManagerOpen}
-        onOpenChange={setIsRelationshipManagerOpen}
-        currentNPC={currentNPC}
-        allNPCs={npcs}
-        relationships={relationships}
-        onAddRelationship={handleAddRelationship}
-        onDeleteRelationship={handleDeleteRelationship}
-      />
-    </div>
-  );
-}
-
-// Wrap the app with AuthProvider
 export default function App() {
   return (
-    <AuthProvider>
-      <NPCApp />
-    </AuthProvider>
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route 
+            path="/npc-manager" 
+            element={
+              <ProtectedRoute>
+                <NPCManagerPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route path="/callback" element={<LandingPage />} />
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
