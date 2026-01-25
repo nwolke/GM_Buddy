@@ -19,8 +19,8 @@ jobs:
             const issueNumber = issue.number;
             const prefix = `GM-${issueNumber}: `;
             
-            // Only add prefix if it's not already there
-            if (!currentTitle.startsWith('GM-')) {
+            // Only add prefix if it's not already there with the exact format
+            if (!currentTitle.startsWith(prefix)) {
               const newTitle = prefix + currentTitle;
               
               await github.rest.issues.update({
@@ -32,5 +32,8 @@ jobs:
               
               console.log(`Updated issue #${issueNumber} title to: ${newTitle}`);
             } else {
-              console.log(`Issue #${issueNumber} already has GM prefix`);
+              console.log(
+                `Issue #${issueNumber} already has correct ` +
+                `GM-${issueNumber} prefix`
+              );
             }
