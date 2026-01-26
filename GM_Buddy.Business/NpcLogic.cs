@@ -130,7 +130,7 @@ public class NpcLogic : INpcLogic
             // Build a simple stats JSON from the request
             var stats = new
             {
-                race = request.Race ?? "Unknown",
+                lineage = request.Race ?? "Unknown",
                 @class = request.Class ?? "Adventurer",
                 faction = request.Faction,
                 notes = request.Notes
