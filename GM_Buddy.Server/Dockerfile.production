@@ -22,7 +22,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:9.0
 WORKDIR /app
 COPY --from=build /app/publish .
 
-# App Runner expects port 8080
+# Configure ASP.NET Core to listen on port 8080 for the container environment
 ENV ASPNETCORE_HTTP_PORTS=8080
 EXPOSE 8080
 
