@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { NPC, Relationship } from "@/types/npc";
 import { NPCCard } from "@/app/components/NPCCard";
 import { NPCForm } from "@/app/components/NPCForm";
@@ -28,6 +28,18 @@ export function NPCManagerPage() {
   const [editingNPC, setEditingNPC] = useState<NPC | null>(null);
   const [isRelationshipManagerOpen, setIsRelationshipManagerOpen] = useState(false);
   const [currentNPC, setCurrentNPC] = useState<NPC | null>(null);
+
+  // Precompute relationship counts to avoid repeated filtering on every render
+  const relationshipCountMap = useMemo(() => {
+    const counts = new Map<string, number>();
+    npcs.forEach(npc => {
+      const count = relationships.filter(
+        rel => rel.npcId1 === npc.id || rel.npcId2 === npc.id
+      ).length;
+      counts.set(npc.id, count);
+    });
+    return counts;
+  }, [npcs, relationships]);
 
   useEffect(() => {
     console.log('[NPCManagerPage] Auth/loading state changed or component mounted. authLoading:', authLoading, 'loading:', loading);
@@ -63,9 +75,7 @@ export function NPCManagerPage() {
   };
 
   const getRelationshipCount = (npcId: string) => {
-    return relationships.filter(
-      rel => rel.npcId1 === npcId || rel.npcId2 === npcId
-    ).length;
+    return relationshipCountMap.get(npcId) ?? 0;
   };
 
   if (authLoading) {
