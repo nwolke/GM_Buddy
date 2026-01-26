@@ -65,8 +65,6 @@ export interface ApiNpc {
     // Current DnDStats fields (backend shape)
     lineage?: string;
     occupation?: string;
-    attributes?: unknown;
-    languages?: string[];
   };
   Stats?: {             // Alternative casing (supporting legacy and current shapes)
     // Legacy fields (older API shape)
@@ -77,8 +75,6 @@ export interface ApiNpc {
     // Current DnDStats fields (backend shape)
     lineage?: string;
     occupation?: string;
-    attributes?: unknown;
-    languages?: string[];
   };
 }
 
