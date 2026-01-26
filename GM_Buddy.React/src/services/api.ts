@@ -65,7 +65,6 @@ export interface ApiNpc {
     // Current DnDStats fields (backend shape)
     lineage?: string;
     occupation?: string;
-    gender?: string;
     attributes?: unknown;
     languages?: string[];
   };
@@ -78,7 +77,6 @@ export interface ApiNpc {
     // Current DnDStats fields (backend shape)
     lineage?: string;
     occupation?: string;
-    gender?: string;
     attributes?: unknown;
     languages?: string[];
   };
