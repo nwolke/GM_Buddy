@@ -30,7 +30,7 @@ export function NPCManagerPage() {
   const [currentNPC, setCurrentNPC] = useState<NPC | null>(null);
 
   useEffect(() => {
-    console.log('[NPCManagerPage] Component mounted, authLoading:', authLoading, 'loading:', loading);
+    console.log('[NPCManagerPage] Auth/loading state changed or component mounted. authLoading:', authLoading, 'loading:', loading);
   }, [authLoading, loading]);
 
   const handleSaveNPC = async (npcData: Omit<NPC, 'id'> | NPC) => {
