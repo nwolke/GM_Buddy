@@ -17,7 +17,7 @@ public class NpcMapper
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
             ) ?? new DnDStats { Attributes = new DndAttributes(), Languages = Array.Empty<string>() };
         }
-        catch(Exception ex)
+        catch (Exception)
         {
 
             stats = new DnDStats { Attributes = new DndAttributes(), Languages = Array.Empty<string>() };
