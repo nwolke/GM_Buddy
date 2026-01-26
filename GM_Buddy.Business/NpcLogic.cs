@@ -94,8 +94,8 @@ public class NpcLogic : INpcLogic
             // Build a simple stats JSON from the request
             var stats = new
             {
-                race = request.Race ?? "Unknown",
-                @class = request.Class ?? "Adventurer",
+                lineage = request.Race ?? "Unknown",
+                occupation = request.Class ?? "Adventurer",
                 faction = request.Faction,
                 notes = request.Notes
             };
@@ -131,7 +131,7 @@ public class NpcLogic : INpcLogic
             var stats = new
             {
                 lineage = request.Race ?? "Unknown",
-                @class = request.Class ?? "Adventurer",
+                occupation = request.Class ?? "Adventurer",
                 faction = request.Faction,
                 notes = request.Notes
             };
