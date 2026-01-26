@@ -19,7 +19,6 @@ public class NpcMapper
         }
         catch (Exception)
         {
-
             stats = new DnDStats { Attributes = new DndAttributes(), Languages = Array.Empty<string>() };
         }
 
