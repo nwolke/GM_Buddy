@@ -221,19 +221,10 @@ VALUES
     (SELECT id FROM auth.account WHERE username = 'gm_admin' LIMIT 1),
     (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
     'Bob The Coolguy',
-    'A mysterious figure with a penchant for adventure.',
+    'A grizzled sellsword who travels between towns, taking contracts from the highest bidder.',
     jsonb_build_object(
       'lineage', 'Human',
-      'description', 'A grizzled sellsword who travels between towns, taking contracts from the highest bidder.',
-      'attributes', jsonb_build_object(
-        'strength', 14,
-        'dexterity', 12,
-        'constitution', 13,
-        'intelligence', 10,
-        'wisdom', 11,
-        'charisma', 9
-      ),
-      'languages', jsonb_build_array('Common', 'Thieves'' Cant')
+      'occupation', 'Sellsword'
     )
   ),
   (
@@ -243,16 +234,7 @@ VALUES
     'A scholarly mage who studies ancient arcane texts in her tower.',
     jsonb_build_object(
       'lineage', 'Elf',
-      'occupation', 'Wizard',
-      'attributes', jsonb_build_object(
-        'strength', 8,
-        'dexterity', 14,
-        'constitution', 10,
-        'intelligence', 17,
-        'wisdom', 13,
-        'charisma', 12
-      ),
-      'languages', jsonb_build_array('Common', 'Elvish', 'Draconic')
+      'occupation', 'Wizard'
     )
   ),
   (
@@ -262,16 +244,7 @@ VALUES
     'A dwarf prospector who discovered the location of Wave Echo Cave.',
     jsonb_build_object(
       'lineage', 'Dwarf',
-      'occupation', 'Prospector',
-      'attributes', jsonb_build_object(
-        'strength', 13,
-        'dexterity', 9,
-        'constitution', 15,
-        'intelligence', 12,
-        'wisdom', 14,
-        'charisma', 10
-      ),
-      'languages', jsonb_build_array('Common', 'Dwarvish')
+      'occupation', 'Prospector'
     )
   ),
   (
@@ -281,16 +254,7 @@ VALUES
     'A human warrior and member of the Lords'' Alliance.',
     jsonb_build_object(
       'lineage', 'Human',
-      'occupation', 'Fighter',
-      'attributes', jsonb_build_object(
-        'strength', 15,
-        'dexterity', 13,
-        'constitution', 14,
-        'intelligence', 11,
-        'wisdom', 12,
-        'charisma', 13
-      ),
-      'languages', jsonb_build_array('Common')
+      'occupation', 'Fighter'
     )
   ),
   (
@@ -300,16 +264,7 @@ VALUES
     'A mysterious drow villain seeking to claim Wave Echo Cave.',
     jsonb_build_object(
       'lineage', 'Drow',
-      'occupation', 'Villain',
-      'attributes', jsonb_build_object(
-        'strength', 10,
-        'dexterity', 16,
-        'constitution', 12,
-        'intelligence', 14,
-        'wisdom', 13,
-        'charisma', 15
-      ),
-      'languages', jsonb_build_array('Common', 'Elvish', 'Undercommon')
+      'occupation', 'Villain'
     )
   )
 ON CONFLICT DO NOTHING;
