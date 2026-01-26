@@ -221,10 +221,10 @@ VALUES
     (SELECT id FROM auth.account WHERE username = 'gm_admin' LIMIT 1),
     (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
     'Bob The Coolguy',
-    'A mysterious figure with a penchant for adventure.',
+    'A grizzled sellsword who travels between towns, taking contracts from the highest bidder.',
     jsonb_build_object(
       'lineage', 'Human',
-      'description', 'A grizzled sellsword who travels between towns, taking contracts from the highest bidder.'
+      'occupation', 'Sellsword'
     )
   ),
   (
