@@ -416,3 +416,8 @@ appsettings.Development.json
 /docs/TROUBLESHOOTING_COGNITO.md
 /QUICK_FIX.md
 /GM_Buddy.React/RESTART_VITE.md
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
