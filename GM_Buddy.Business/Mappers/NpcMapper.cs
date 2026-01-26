@@ -15,11 +15,11 @@ public class NpcMapper
             stats = JsonSerializer.Deserialize<DnDStats>(
                 npc.stats ?? "{}",
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
-            ) ?? new DnDStats { Attributes = new DndAttributes(), Languages = Array.Empty<string>() };
+            ) ?? new DnDStats();
         }
         catch (Exception)
         {
-            stats = new DnDStats { Attributes = new DndAttributes(), Languages = Array.Empty<string>() };
+            stats = new DnDStats();
         }
 
         return new DndNpc

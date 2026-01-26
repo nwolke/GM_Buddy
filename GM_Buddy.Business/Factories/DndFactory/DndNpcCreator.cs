@@ -14,19 +14,7 @@ public class DndNpcCreator : NpcCreator
         var newNpc = new DndNpc
         {
             Name = "New DnD NPC",
-            Stats = new DnDStats
-            {
-                Attributes = new DndAttributes
-                {
-                    Strength = 10,
-                    Dexterity = 10,
-                    Constitution = 10,
-                    Intelligence = 10,
-                    Wisdom = 10,
-                    Charisma = 10
-                },
-                Languages = ["Common"]
-            },
+            Stats = new DnDStats()
         };
         return newNpc;
     }
