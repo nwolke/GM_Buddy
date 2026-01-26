@@ -13,16 +13,8 @@ public class NpcMapperTests
         // Arrange
         var statsJson = JsonSerializer.Serialize(new DnDStats
         {
-            Attributes = new DndAttributes
-            {
-                Strength = 10,
-                Dexterity = 12,
-                Constitution = 14,
-                Intelligence = 8,
-                Wisdom = 10,
-                Charisma = 16
-            },
-            Languages = new[] { "Common" }
+            Lineage = "Goblin",
+            Occupation = "Warrior"
         });
 
         var npc = new Npc
@@ -43,9 +35,8 @@ public class NpcMapperTests
         Assert.Equal(npc.npc_id, dto.Npc_Id);
         Assert.Equal(npc.account_id, dto.Account_Id);
         Assert.NotNull(dto.Stats);
-        Assert.Equal(14, dto.Stats.Attributes.Constitution);
-        Assert.Single(dto.Stats.Languages);
-        Assert.Equal("Common", dto.Stats.Languages[0]);
+        Assert.Equal("Goblin", dto.Stats.Lineage);
+        Assert.Equal("Warrior", dto.Stats.Occupation);
     }
 
     [Fact]
@@ -67,8 +58,8 @@ public class NpcMapperTests
         // Assert
         Assert.NotNull(dto);
         Assert.NotNull(dto.Stats);
-        // Fallback produces DndAttributes with default ints (0) and empty languages
-        Assert.Equal(0, dto.Stats.Attributes.Strength);
-        Assert.Empty(dto.Stats.Languages);
+        // Fallback produces empty DnDStats
+        Assert.Null(dto.Stats.Lineage);
+        Assert.Null(dto.Stats.Occupation);
     }
 }
