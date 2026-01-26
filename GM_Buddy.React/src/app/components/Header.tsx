@@ -43,6 +43,7 @@ export function Header({ showRefresh = false, onRefresh, loading = false, error 
             onClick={onRefresh}
             disabled={loading}
             title="Refresh NPCs"
+            aria-label="Refresh NPCs"
           >
             <RefreshCw className={`size-4 ${loading ? 'animate-spin' : ''}`} />
           </Button>
