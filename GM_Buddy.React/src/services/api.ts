@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { NPC } from '@/types/npc';
+import { Campaign } from '@/types/campaign';
 import { getIdToken } from './cognito';
 
 // API base URL - proxied through nginx in production, Vite in development
@@ -313,6 +314,75 @@ export const gameSystemApi = {
   async getGameSystem(id: number): Promise<ApiGameSystem> {
     const response = await apiClient.get<ApiGameSystem>(`/GameSystems/${id}`);
     return response.data;
+  },
+};
+
+
+// Campaign API response type
+export interface ApiCampaign {
+  campaign_id: number;
+  account_id: number;
+  game_system_id: number;
+  name: string;
+  description?: string;
+  created_at: string;
+  updated_at: string;
+  game_system_name?: string;
+}
+
+// Create/Update Campaign request type
+export interface CreateCampaignRequest {
+  name: string;
+  description?: string;
+  game_system_id: number;
+}
+
+// Transform API Campaign to frontend Campaign
+const transformApiCampaignToCampaign = (apiCampaign: ApiCampaign): Campaign => {
+  return {
+    id: apiCampaign.campaign_id.toString(),
+    name: apiCampaign.name,
+    description: apiCampaign.description,
+    gameSystemId: apiCampaign.game_system_id,
+    gameSystemName: apiCampaign.game_system_name,
+    accountId: apiCampaign.account_id,
+    createdAt: apiCampaign.created_at,
+    updatedAt: apiCampaign.updated_at,
+  };
+};
+
+// Campaign API calls
+export const campaignApi = {
+  // Get all campaigns for the authenticated user's account
+  async getCampaignsByAccount(): Promise<Campaign[]> {
+    const response = await apiClient.get<ApiCampaign[]>('/Campaigns/account');
+    return response.data.map(transformApiCampaignToCampaign);
+  },
+
+  // Get single campaign by ID
+  async getCampaign(id: number): Promise<Campaign> {
+    const response = await apiClient.get<ApiCampaign>(`/Campaigns/${id}`);
+    return transformApiCampaignToCampaign(response.data);
+  },
+
+  // Create a new campaign
+  async createCampaign(campaign: CreateCampaignRequest): Promise<Campaign> {
+    const response = await apiClient.post<number>('/Campaigns', campaign);
+    // The backend returns the new campaign ID, fetch the full campaign
+    return await campaignApi.getCampaign(response.data);
+  },
+
+  // Update an existing campaign
+  async updateCampaign(id: number, campaign: CreateCampaignRequest): Promise<void> {
+    await apiClient.put(`/Campaigns/${id}`, {
+      campaign_id: id,
+      ...campaign,
+    });
+  },
+
+  // Delete a campaign
+  async deleteCampaign(id: number): Promise<void> {
+    await apiClient.delete(`/Campaigns/${id}`);
   },
 };
 
