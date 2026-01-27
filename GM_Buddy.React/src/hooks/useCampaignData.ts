@@ -86,12 +86,18 @@ export function useCampaignData(): UseCampaignDataReturn {
       if ('id' in campaignData && campaignData.id) {
         // Update existing campaign
         console.log('[useCampaignData] Updating campaign:', campaignData.id);
+        
+        const campaignId = parseInt(campaignData.id);
+        if (!Number.isFinite(campaignId)) {
+          throw new Error(`Invalid campaign ID: "${campaignData.id}" is not a valid number`);
+        }
+        
         const updateRequest: CreateCampaignRequest = {
           name: campaignData.name,
           description: campaignData.description,
           game_system_id: campaignData.gameSystemId,
         };
-        await campaignApi.updateCampaign(parseInt(campaignData.id), updateRequest);
+        await campaignApi.updateCampaign(campaignId, updateRequest);
         
         setCampaigns(prev => 
           prev.map(c => c.id === campaignData.id ? { ...c, ...campaignData } : c)
@@ -118,7 +124,13 @@ export function useCampaignData(): UseCampaignDataReturn {
   const deleteCampaign = async (id: string) => {
     try {
       console.log('[useCampaignData] Deleting campaign:', id);
-      await campaignApi.deleteCampaign(parseInt(id));
+      
+      const campaignId = parseInt(id);
+      if (!Number.isFinite(campaignId)) {
+        throw new Error(`Invalid campaign ID: "${id}" is not a valid number`);
+      }
+      
+      await campaignApi.deleteCampaign(campaignId);
       setCampaigns(prev => prev.filter(c => c.id !== id));
     } catch (err) {
       console.error('[useCampaignData] Failed to delete campaign:', err);
