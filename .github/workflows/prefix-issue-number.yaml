@@ -1,0 +1,39 @@
+name: Add GM Prefix to Issues
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  add-prefix:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Add GM prefix to issue title
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const currentTitle = issue.title;
+            const issueNumber = issue.number;
+            const prefix = `GM-${issueNumber}: `;
+            
+            // Only add prefix if it's not already there with the exact format
+            if (!currentTitle.startsWith(prefix)) {
+              const newTitle = prefix + currentTitle;
+              
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                title: newTitle
+              });
+              
+              console.log(`Updated issue #${issueNumber} title to: ${newTitle}`);
+            } else {
+              console.log(
+                `Issue #${issueNumber} already has correct ` +
+                `GM-${issueNumber} prefix`
+              );
+            }
