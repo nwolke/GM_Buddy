@@ -67,25 +67,30 @@ export function CampaignForm({ open, onOpenChange, onSave, editingCampaign }: Ca
     }
   }, [editingCampaign, open, gameSystems]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     const selectedGameSystem = gameSystems.find(gs => gs.game_system_id === formData.gameSystemId);
     
-    if (editingCampaign) {
-      onSave({ 
-        ...editingCampaign, 
-        ...formData,
-        gameSystemName: selectedGameSystem?.game_system_name
-      });
-    } else {
-      onSave({
-        ...formData,
-        gameSystemName: selectedGameSystem?.game_system_name
-      });
+    try {
+      if (editingCampaign) {
+        await onSave({ 
+          ...editingCampaign, 
+          ...formData,
+          gameSystemName: selectedGameSystem?.game_system_name
+        });
+      } else {
+        await onSave({
+          ...formData,
+          gameSystemName: selectedGameSystem?.game_system_name
+        });
+      }
+      
+      onOpenChange(false);
+    } catch (error) {
+      // Let the error propagate to be handled by parent component
+      console.error('Failed to save campaign:', error);
     }
-    
-    onOpenChange(false);
   };
 
   return (

@@ -43,9 +43,21 @@ export function useCampaignData(): UseCampaignDataReturn {
       console.log('[useCampaignData] Falling back to localStorage...');
       const storedCampaigns = localStorage.getItem('ttrpg-campaigns');
       if (storedCampaigns) {
-        const localCampaigns = JSON.parse(storedCampaigns);
-        console.log(`[useCampaignData] Loaded ${localCampaigns.length} campaigns from localStorage`);
-        setCampaigns(localCampaigns);
+        try {
+          const localCampaigns = JSON.parse(storedCampaigns);
+          console.log(
+            `[useCampaignData] Loaded ${
+              Array.isArray(localCampaigns) ? localCampaigns.length : 0
+            } campaigns from localStorage`
+          );
+          setCampaigns(localCampaigns);
+        } catch (parseError) {
+          console.error(
+            '[useCampaignData] Failed to parse campaigns from localStorage, clearing corrupted data:',
+            parseError
+          );
+          localStorage.removeItem('ttrpg-campaigns');
+        }
       }
     } finally {
       setLoading(false);
