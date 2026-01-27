@@ -87,8 +87,8 @@ export function useCampaignData(): UseCampaignDataReturn {
         // Update existing campaign
         console.log('[useCampaignData] Updating campaign:', campaignData.id);
         
-        const campaignId = parseInt(campaignData.id);
-        if (!Number.isFinite(campaignId)) {
+        const campaignId = parseInt(campaignData.id, 10);
+        if (!Number.isFinite(campaignId) || campaignId.toString() !== campaignData.id) {
           throw new Error(`Invalid campaign ID: "${campaignData.id}" is not a valid number`);
         }
         
@@ -125,8 +125,8 @@ export function useCampaignData(): UseCampaignDataReturn {
     try {
       console.log('[useCampaignData] Deleting campaign:', id);
       
-      const campaignId = parseInt(id);
-      if (!Number.isFinite(campaignId)) {
+      const campaignId = parseInt(id, 10);
+      if (!Number.isFinite(campaignId) || campaignId.toString() !== id) {
         throw new Error(`Invalid campaign ID: "${id}" is not a valid number`);
       }
       
