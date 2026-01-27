@@ -88,7 +88,7 @@ export function CampaignForm({ open, onOpenChange, onSave, editingCampaign }: Ca
       
       onOpenChange(false);
     } catch (error) {
-      // Let the error propagate to be handled by parent component
+      // Error is logged but dialog remains open so user can retry
       console.error('Failed to save campaign:', error);
     }
   };
