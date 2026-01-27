@@ -93,15 +93,18 @@ builder.Services.AddOutputCache(options =>
 {
     options.AddBasePolicy(builder => builder.Expire(TimeSpan.FromMinutes(5)));
     options.AddPolicy("NpcList", builder => builder.Expire(TimeSpan.FromMinutes(2)).Tag("npcs"));
+    options.AddPolicy("CampaignList", builder => builder.Expire(TimeSpan.FromMinutes(2)).Tag("campaigns"));
     options.AddPolicy("ShortCache", builder => builder.Expire(TimeSpan.FromSeconds(30)));
 });
 
 builder.Services.Configure<DbSettings>(builder.Configuration.GetSection("DbSettings"));
 builder.Services.AddTransient<IDbConnector, DbConnector>();
 builder.Services.AddScoped<INpcLogic, NpcLogic>();
+builder.Services.AddScoped<ICampaignLogic, CampaignLogic>();
 builder.Services.AddSingleton<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IAuthObjectResolver, AuthObjectResolver>();
 builder.Services.AddScoped<INpcRepository, NpcRepository>();
+builder.Services.AddScoped<ICampaignRepository, CamapaignRepository>();
 builder.Services.AddScoped<IRelationshipRepository, RelationshipRepository>();
 builder.Services.AddScoped<IPcRepository, PcRepository>();
 builder.Services.AddScoped<IOrganizationRepository, OrganizationRepository>();
