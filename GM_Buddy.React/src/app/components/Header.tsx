@@ -36,9 +36,9 @@ export function Header({ showRefresh = false, onRefresh, loading = false, error 
             </h1>
           </Link>
           <p className="text-muted-foreground flex items-center gap-2">
-            <span className="text-accent">?</span>
+            <span className="text-accent" aria-hidden="true">?</span>
             Manage your campaign's characters and their bonds
-            <span className="text-primary">?</span>
+            <span className="text-primary" aria-hidden="true">?</span>
           </p>
         </div>
       </div>
