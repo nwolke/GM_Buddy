@@ -104,7 +104,7 @@ builder.Services.AddScoped<ICampaignLogic, CampaignLogic>();
 builder.Services.AddSingleton<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IAuthObjectResolver, AuthObjectResolver>();
 builder.Services.AddScoped<INpcRepository, NpcRepository>();
-builder.Services.AddScoped<ICampaignRepository, CamapaignRepository>();
+builder.Services.AddScoped<ICampaignRepository, CampaignRepository>();
 builder.Services.AddScoped<IRelationshipRepository, RelationshipRepository>();
 builder.Services.AddScoped<IPcRepository, PcRepository>();
 builder.Services.AddScoped<IOrganizationRepository, OrganizationRepository>();
