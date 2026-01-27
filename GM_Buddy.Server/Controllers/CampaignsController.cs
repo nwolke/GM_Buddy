@@ -126,6 +126,11 @@ public class CampaignsController : ControllerBase
         {
             return Unauthorized(ex.Message);
         }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogInformation(ex, "Authenticated account is not synced");
+            return NotFound(ex.Message);
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating campaign");
