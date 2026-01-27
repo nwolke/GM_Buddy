@@ -3,7 +3,6 @@ using GM_Buddy.Contracts.Interfaces;
 using GM_Buddy.Server.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.OutputCaching;
 
 namespace GM_Buddy.Server.Controllers;
 
@@ -30,7 +29,6 @@ public class CampaignsController : ControllerBase
     /// Get all campaigns for the authenticated user's account
     /// </summary>
     [HttpGet("account")]
-    [OutputCache(PolicyName = "CampaignList")]
     public async Task<ActionResult<IEnumerable<Campaign>>> GetCampaignsByAccount()
     {
         try
@@ -62,7 +60,6 @@ public class CampaignsController : ControllerBase
     /// Get a specific campaign by ID (must be owned by the authenticated user)
     /// </summary>
     [HttpGet("{id}")]
-    [OutputCache(PolicyName = "ShortCache")]
     public async Task<ActionResult<Campaign>> GetCampaign(int id)
     {
         try
