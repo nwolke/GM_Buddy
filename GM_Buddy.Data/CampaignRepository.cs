@@ -5,10 +5,10 @@ using System.Data;
 
 namespace GM_Buddy.Data;
 
-public class CamapaignRepository : ICampaignRepository
+public class CampaignRepository : ICampaignRepository
 {
     private readonly IDbConnector _dbConnector;
-    public CamapaignRepository(IDbConnector dbConnector)
+    public CampaignRepository(IDbConnector dbConnector)
     {
         _dbConnector = dbConnector;
     }

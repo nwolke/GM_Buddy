@@ -1,4 +1,3 @@
-using GM_Buddy.Business.Helpers;
 using GM_Buddy.Contracts.DbEntities;
 using GM_Buddy.Contracts.Interfaces;
 using Microsoft.Extensions.Logging;
@@ -8,16 +7,13 @@ namespace GM_Buddy.Business;
 public class CampaignLogic : ICampaignLogic
 {
     private readonly ICampaignRepository _campaignRepository;
-    private readonly GameSystemHelper _gameSystemHelper;
     private readonly ILogger<CampaignLogic> _logger;
 
     public CampaignLogic(
         ICampaignRepository campaignRepository,
-        IGameSystemRepository gameSystemRepository,
         ILogger<CampaignLogic> logger)
     {
         _campaignRepository = campaignRepository;
-        _gameSystemHelper = new GameSystemHelper(gameSystemRepository, logger);
         _logger = logger;
     }
 

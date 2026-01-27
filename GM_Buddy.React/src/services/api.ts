@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { NPC } from '@/types/npc';
+import { Campaign } from '@/types/campaign';
 import { getIdToken } from './cognito';
 
 // API base URL - proxied through nginx in production, Vite in development
@@ -337,7 +338,7 @@ export interface CreateCampaignRequest {
 }
 
 // Transform API Campaign to frontend Campaign
-const transformApiCampaignToCampaign = (apiCampaign: ApiCampaign): import('@/types/campaign').Campaign => {
+const transformApiCampaignToCampaign = (apiCampaign: ApiCampaign): Campaign => {
   return {
     id: apiCampaign.campaign_id.toString(),
     name: apiCampaign.name,
@@ -353,19 +354,19 @@ const transformApiCampaignToCampaign = (apiCampaign: ApiCampaign): import('@/typ
 // Campaign API calls
 export const campaignApi = {
   // Get all campaigns for the authenticated user's account
-  async getCampaignsByAccount(): Promise<import('@/types/campaign').Campaign[]> {
+  async getCampaignsByAccount(): Promise<Campaign[]> {
     const response = await apiClient.get<ApiCampaign[]>('/Campaigns/account');
     return response.data.map(transformApiCampaignToCampaign);
   },
 
   // Get single campaign by ID
-  async getCampaign(id: number): Promise<import('@/types/campaign').Campaign> {
+  async getCampaign(id: number): Promise<Campaign> {
     const response = await apiClient.get<ApiCampaign>(`/Campaigns/${id}`);
     return transformApiCampaignToCampaign(response.data);
   },
 
   // Create a new campaign
-  async createCampaign(campaign: CreateCampaignRequest): Promise<import('@/types/campaign').Campaign> {
+  async createCampaign(campaign: CreateCampaignRequest): Promise<Campaign> {
     const response = await apiClient.post<number>('/Campaigns', campaign);
     // The backend returns the new campaign ID, fetch the full campaign
     return await this.getCampaign(response.data);

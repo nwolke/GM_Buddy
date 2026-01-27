@@ -1,7 +1,7 @@
 import { Scroll, RefreshCw, LogIn, LogOut, Users } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 
 interface HeaderProps {
   showRefresh?: boolean;
@@ -21,19 +21,20 @@ export function Header({ showRefresh = false, onRefresh, loading = false, error 
   return (
     <div className="flex items-center justify-between mb-8">
       <div className="flex items-center gap-4">
-        <div 
-          className="bg-gradient-to-br from-primary to-accent p-3 rounded-xl shadow-lg shadow-primary/30 cursor-pointer"
-          onClick={() => navigate('/')}
+        <Link 
+          to="/"
+          className="bg-gradient-to-br from-primary to-accent p-3 rounded-xl shadow-lg shadow-primary/30 cursor-pointer inline-block"
         >
           <Scroll className="size-8 text-primary-foreground" />
-        </div>
+        </Link>
         <div>
-          <h1 
-            className="text-5xl font-bold mb-2 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent cursor-pointer"
-            onClick={() => navigate('/')}
-          >
-            GM Buddy
-          </h1>
+          <Link to="/">
+            <h1 
+              className="text-5xl font-bold mb-2 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent cursor-pointer"
+            >
+              GM Buddy
+            </h1>
+          </Link>
           <p className="text-muted-foreground flex items-center gap-2">
             <span className="text-accent">?</span>
             Manage your campaign's characters and their bonds
