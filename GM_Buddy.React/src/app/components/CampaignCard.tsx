@@ -49,6 +49,8 @@ export function CampaignCard({ campaign, onEdit, onDelete }: CampaignCardProps) 
             size="sm"
             onClick={() => onDelete(campaign.id)}
             className="hover:bg-destructive/10 hover:border-destructive/50 hover:text-destructive"
+            aria-label="Delete campaign"
+            title="Delete campaign"
           >
             <Trash2 className="size-4" />
           </Button>

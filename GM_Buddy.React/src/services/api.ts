@@ -369,7 +369,7 @@ export const campaignApi = {
   async createCampaign(campaign: CreateCampaignRequest): Promise<Campaign> {
     const response = await apiClient.post<number>('/Campaigns', campaign);
     // The backend returns the new campaign ID, fetch the full campaign
-    return await this.getCampaign(response.data);
+    return await campaignApi.getCampaign(response.data);
   },
 
   // Update an existing campaign
