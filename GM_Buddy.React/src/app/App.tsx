@@ -23,11 +23,7 @@ export default function App() {
           />
           <Route 
             path="/campaign-manager" 
-            element={
-              <ProtectedRoute>
-                <CampaignManagerPage />
-              </ProtectedRoute>
-            } 
+            element={<CampaignManagerPage />} 
           />
           <Route path="/callback" element={<LandingPage />} />
         </Routes>
