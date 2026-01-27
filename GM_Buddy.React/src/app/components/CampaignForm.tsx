@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 interface CampaignFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (campaign: Omit<Campaign, 'id'> | Campaign) => void;
+  onSave: (campaign: Omit<Campaign, 'id'> | Campaign) => Promise<void>;
   editingCampaign?: Campaign | null;
 }
 
@@ -33,11 +33,17 @@ export function CampaignForm({ open, onOpenChange, onSave, editingCampaign }: Ca
         setGameSystems(systems);
         
         // Set default game system if none selected and systems loaded
-        if (formData.gameSystemId === 0 && systems.length > 0) {
-          setFormData(prev => ({
-            ...prev,
-            gameSystemId: systems[0].game_system_id
-          }));
+        if (systems.length > 0) {
+          setFormData(prev => {
+            if (prev.gameSystemId !== 0) {
+              return prev;
+            }
+
+            return {
+              ...prev,
+              gameSystemId: systems[0].game_system_id
+            };
+          });
         }
       } catch (error) {
         console.error('Failed to load game systems:', error);
