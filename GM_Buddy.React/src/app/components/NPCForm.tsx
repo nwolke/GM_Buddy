@@ -156,16 +156,17 @@ export function NPCForm({ open, onOpenChange, onSave, editingNPC }: NPCFormProps
                   <Info className="h-4 w-4" />
                   <AlertDescription>
                     You need to create a campaign before you can add NPCs.{' '}
-                    <Button
-                      variant="link"
-                      className="h-auto p-0 text-sm font-normal underline"
-                      onClick={() => {
+                    <a
+                      href="/campaign-manager"
+                      className="text-primary underline hover:no-underline"
+                      onClick={(e) => {
+                        e.preventDefault();
                         onOpenChange(false);
                         navigate('/campaign-manager');
                       }}
                     >
                       Create a campaign
-                    </Button>
+                    </a>
                   </AlertDescription>
                 </Alert>
               )}
@@ -232,7 +233,7 @@ export function NPCForm({ open, onOpenChange, onSave, editingNPC }: NPCFormProps
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit">
+            <Button type="submit" disabled={!loadingCampaigns && campaigns.length === 0}>
               {editingNPC ? "Update" : "Create"} NPC
             </Button>
           </DialogFooter>
