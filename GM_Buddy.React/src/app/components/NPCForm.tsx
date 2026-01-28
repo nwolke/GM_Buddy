@@ -16,38 +16,38 @@ interface NPCFormProps {
 }
 
 export function NPCForm({ open, onOpenChange, onSave, editingNPC }: NPCFormProps) {
-const [formData, setFormData] = useState({
-  name: "",
-  race: "",
-  class: "",
-  description: "",
-  campaignId: undefined as number | undefined,
-  faction: "",
-  notes: ""
-});
+  const [formData, setFormData] = useState({
+    name: "",
+    race: "",
+    class: "",
+    description: "",
+    campaignId: undefined as number | undefined,
+    faction: "",
+    notes: ""
+  });
 
-const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-const [loadingCampaigns, setLoadingCampaigns] = useState(false);
-const [selectedCampaignSystem, setSelectedCampaignSystem] = useState<string>("");
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [loadingCampaigns, setLoadingCampaigns] = useState(false);
+  const [selectedCampaignSystem, setSelectedCampaignSystem] = useState<string>("");
 
-// Load campaigns when the dialog is opened
-useEffect(() => {
-  const loadCampaigns = async () => {
-    try {
-      setLoadingCampaigns(true);
-      const userCampaigns = await campaignApi.getCampaignsByAccount();
-      setCampaigns(userCampaigns);
-    } catch (error) {
-      console.error('Failed to load campaigns:', error);
-    } finally {
-      setLoadingCampaigns(false);
+  // Load campaigns when the dialog is opened
+  useEffect(() => {
+    const loadCampaigns = async () => {
+      try {
+        setLoadingCampaigns(true);
+        const userCampaigns = await campaignApi.getCampaignsByAccount();
+        setCampaigns(userCampaigns);
+      } catch (error) {
+        console.error('Failed to load campaigns:', error);
+      } finally {
+        setLoadingCampaigns(false);
+      }
+    };
+
+    if (open) {
+      loadCampaigns();
     }
-  };
-
-  if (open) {
-    loadCampaigns();
-  }
-}, [open]);
+  }, [open]);
 
   useEffect(() => {
     if (editingNPC) {
