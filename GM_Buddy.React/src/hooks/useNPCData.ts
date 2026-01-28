@@ -106,10 +106,15 @@ const loadNpcs = useCallback(async () => {
 
   const saveNPC = useCallback(async (npcData: Omit<NPC, 'id'> | NPC) => {
     try {
+      if (!npcData.campaignId) {
+        setError('Campaign is required to save an NPC.');
+        return;
+      }
+
       const request: CreateNpcRequest = {
         name: npcData.name,
         description: npcData.description,
-        system: npcData.system || 'Dungeons & Dragons (5e)', // Use NPC's system or default
+        campaignId: npcData.campaignId,
         race: npcData.race,
         class: npcData.class,
         faction: npcData.faction,

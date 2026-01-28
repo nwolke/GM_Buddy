@@ -21,6 +21,7 @@ public class NpcMapperTests
         {
             npc_id = 1,
             account_id = 2,
+            campaign_id = 1,
             game_system_name = "D&D",
             name = "GoblinBoy",
             stats = statsJson,
@@ -47,6 +48,7 @@ public class NpcMapperTests
         {
             npc_id = 3,
             account_id = 4,
+            campaign_id = 1,
             stats = "not a json",
             name = "OrcWarriorGuy",
             game_system_id = 1

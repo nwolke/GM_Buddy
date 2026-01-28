@@ -26,6 +26,7 @@ public class NpcMapper
         {
             Npc_Id = npc.npc_id,
             Account_Id = npc.account_id,
+            Campaign_Id = npc.campaign_id,
             Name = npc.name,
             Description = npc.description,
             System = npc.game_system_name,
