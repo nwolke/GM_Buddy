@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { NPC } from "@/types/npc";
-import { gameSystemApi, ApiGameSystem } from "@/services/api";
+import { campaignApi, Campaign } from "@/services/api";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
@@ -16,37 +16,38 @@ interface NPCFormProps {
 }
 
 export function NPCForm({ open, onOpenChange, onSave, editingNPC }: NPCFormProps) {
-  const [formData, setFormData] = useState({
-    name: "",
-    race: "",
-    class: "",
-    description: "",
-    system: "Dungeons & Dragons (5e)",
-    faction: "",
-    notes: ""
-  });
+const [formData, setFormData] = useState({
+  name: "",
+  race: "",
+  class: "",
+  description: "",
+  campaignId: undefined as number | undefined,
+  faction: "",
+  notes: ""
+});
 
-  const [gameSystems, setGameSystems] = useState<ApiGameSystem[]>([]);
-  const [loadingGameSystems, setLoadingGameSystems] = useState(false);
+const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+const [loadingCampaigns, setLoadingCampaigns] = useState(false);
+const [selectedCampaignSystem, setSelectedCampaignSystem] = useState<string>("");
 
-  // Load game systems when the dialog is opened
-  useEffect(() => {
-    const loadGameSystems = async () => {
-      try {
-        setLoadingGameSystems(true);
-        const systems = await gameSystemApi.getGameSystems();
-        setGameSystems(systems);
-      } catch (error) {
-        console.error('Failed to load game systems:', error);
-      } finally {
-        setLoadingGameSystems(false);
-      }
-    };
-
-    if (open) {
-      loadGameSystems();
+// Load campaigns when the dialog is opened
+useEffect(() => {
+  const loadCampaigns = async () => {
+    try {
+      setLoadingCampaigns(true);
+      const userCampaigns = await campaignApi.getCampaignsByAccount();
+      setCampaigns(userCampaigns);
+    } catch (error) {
+      console.error('Failed to load campaigns:', error);
+    } finally {
+      setLoadingCampaigns(false);
     }
-  }, [open]);
+  };
+
+  if (open) {
+    loadCampaigns();
+  }
+}, [open]);
 
   useEffect(() => {
     if (editingNPC) {
@@ -55,33 +56,56 @@ export function NPCForm({ open, onOpenChange, onSave, editingNPC }: NPCFormProps
         race: editingNPC.race,
         class: editingNPC.class,
         description: editingNPC.description,
-        system: editingNPC.system || "Dungeons & Dragons (5e)",
+        campaignId: editingNPC.campaignId,
         faction: editingNPC.faction || "",
         notes: editingNPC.notes || ""
       });
+      
+      // Set the game system label for the selected campaign
+      if (editingNPC.campaignId) {
+        const campaign = campaigns.find(c => c.id === editingNPC.campaignId?.toString());
+        setSelectedCampaignSystem(campaign?.gameSystemName || editingNPC.system || "");
+      } else if (editingNPC.system) {
+        setSelectedCampaignSystem(editingNPC.system);
+      }
     } else {
       setFormData({
         name: "",
         race: "",
         class: "",
         description: "",
-        system: "Dungeons & Dragons (5e)",
+        campaignId: undefined,
         faction: "",
         notes: ""
       });
+      setSelectedCampaignSystem("");
     }
-  }, [editingNPC, open]);
+  }, [editingNPC, open, campaigns]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!formData.campaignId) {
+      alert('Please select a campaign');
+      return;
+    }
+    
     if (editingNPC) {
       onSave({ ...editingNPC, ...formData });
     } else {
-      onSave(formData);
+      onSave(formData as Omit<NPC, 'id'>);
     }
     
     onOpenChange(false);
+  };
+
+  const handleCampaignChange = (campaignId: string) => {
+    const numericId = parseInt(campaignId);
+    setFormData({ ...formData, campaignId: numericId });
+    
+    // Update the game system label
+    const campaign = campaigns.find(c => c.id === campaignId);
+    setSelectedCampaignSystem(campaign?.gameSystemName || "");
   };
 
   return (
@@ -106,23 +130,28 @@ export function NPCForm({ open, onOpenChange, onSave, editingNPC }: NPCFormProps
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="system">Game System *</Label>
+              <Label htmlFor="campaign">Campaign *</Label>
               <Select
-                value={formData.system}
-                onValueChange={(value) => setFormData({ ...formData, system: value })}
-                disabled={loadingGameSystems}
+                value={formData.campaignId?.toString() || ""}
+                onValueChange={handleCampaignChange}
+                disabled={loadingCampaigns}
               >
-                <SelectTrigger id="system">
-                  <SelectValue placeholder="Select a game system" />
+                <SelectTrigger id="campaign">
+                  <SelectValue placeholder="Select a campaign" />
                 </SelectTrigger>
                 <SelectContent>
-                  {gameSystems.map((system) => (
-                    <SelectItem key={system.game_system_id} value={system.game_system_name}>
-                      {system.game_system_name}
+                  {campaigns.map((campaign) => (
+                    <SelectItem key={campaign.id} value={campaign.id}>
+                      {campaign.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              {selectedCampaignSystem && (
+                <p className="text-sm text-muted-foreground">
+                  Game System: {selectedCampaignSystem}
+                </p>
+              )}
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">

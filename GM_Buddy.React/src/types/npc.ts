@@ -4,7 +4,8 @@ export interface NPC {
   race: string;
   class: string;
   description: string;
-  system?: string; // Game system name
+  campaignId?: number;
+  system?: string; // Game system name (read-only from campaign)
   faction?: string;
   notes?: string;
   accountId?: number;

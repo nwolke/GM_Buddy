@@ -20,13 +20,15 @@ public class NpcRepository : INpcRepository
         const string sql = @"
             SELECT n.npc_id,
                    n.account_id,
-                   n.game_system_id,
+                   n.campaign_id,
                    n.name,
                    n.description,
                    n.stats,
+                   c.game_system_id,
                    gs.game_system_name
             FROM npc AS n
-            JOIN game_system AS gs ON n.game_system_id = gs.game_system_id
+            JOIN campaign AS c ON n.campaign_id = c.campaign_id
+            JOIN game_system AS gs ON c.game_system_id = gs.game_system_id
             WHERE n.account_id = @AccountId
             ORDER BY n.npc_id";
         var cmd = new CommandDefinition(sql, new { AccountId = account_id }, cancellationToken: ct);
@@ -39,13 +41,15 @@ public class NpcRepository : INpcRepository
         const string sql = @"
             SELECT n.npc_id,
                    n.account_id,
-                   n.game_system_id,
+                   n.campaign_id,
                    n.name,
                    n.description,
                    n.stats,
+                   c.game_system_id,
                    gs.game_system_name
             FROM npc AS n
-            JOIN game_system AS gs ON n.game_system_id = gs.game_system_id
+            JOIN campaign AS c ON n.campaign_id = c.campaign_id
+            JOIN game_system AS gs ON c.game_system_id = gs.game_system_id
             WHERE n.npc_id = @NpcId";
         var cmd = new CommandDefinition(sql, new { NpcId = npc_id }, cancellationToken: ct);
         return await dbConnection.QueryFirstOrDefaultAsync<Npc>(cmd);
@@ -55,8 +59,8 @@ public class NpcRepository : INpcRepository
     {
         using IDbConnection dbConnection = _dbConnector.CreateConnection();
         const string sql = @"
-            INSERT INTO npc (account_id, game_system_id, name, description, stats)
-            VALUES (@account_id, @game_system_id, @name, @description, @stats::jsonb)
+            INSERT INTO npc (account_id, campaign_id, name, description, stats)
+            VALUES (@account_id, @campaign_id, @name, @description, @stats::jsonb)
             RETURNING npc_id";
         var cmd = new CommandDefinition(sql, npc, cancellationToken: ct);
         return await dbConnection.ExecuteScalarAsync<int>(cmd);
@@ -70,7 +74,7 @@ public class NpcRepository : INpcRepository
             SET name = @name,
                 description = @description,
                 stats = @stats::jsonb,
-                game_system_id = @game_system_id
+                campaign_id = @campaign_id
             WHERE npc_id = @npc_id AND account_id = @account_id";
         var cmd = new CommandDefinition(sql, npc, cancellationToken: ct);
         int rowsAffected = await dbConnection.ExecuteAsync(cmd);

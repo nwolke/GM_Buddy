@@ -79,6 +79,52 @@ internal class FakeGameSystemRepository : IGameSystemRepository
     }
 }
 
+internal class FakeCampaignRepository : ICampaignRepository
+{
+    private readonly List<Campaign> _campaigns = new()
+    {
+        new Campaign { campaign_id = 1, account_id = 10, game_system_id = 1, name = "Test Campaign 1" },
+        new Campaign { campaign_id = 2, account_id = 10, game_system_id = 2, name = "Test Campaign 2" },
+        new Campaign { campaign_id = 3, account_id = 5, game_system_id = 1, name = "Test Campaign 3" }
+    };
+
+    public Task<IEnumerable<Campaign>> GetByAccountIdAsync(int accountId, CancellationToken ct = default)
+    {
+        return Task.FromResult(_campaigns.Where(c => c.account_id == accountId).AsEnumerable());
+    }
+
+    public Task<Campaign?> GetByIdAsync(int campaignId, CancellationToken ct = default)
+    {
+        return Task.FromResult(_campaigns.FirstOrDefault(c => c.campaign_id == campaignId));
+    }
+
+    public Task<int> CreateAsync(Campaign campaign, CancellationToken ct = default)
+    {
+        campaign.campaign_id = _campaigns.Max(c => c.campaign_id) + 1;
+        _campaigns.Add(campaign);
+        return Task.FromResult(campaign.campaign_id);
+    }
+
+    public Task<bool> DeleteAsync(int campaignId, CancellationToken ct = default)
+    {
+        var campaign = _campaigns.FirstOrDefault(c => c.campaign_id == campaignId);
+        if (campaign == null) return Task.FromResult(false);
+        _campaigns.Remove(campaign);
+        return Task.FromResult(true);
+    }
+
+    public Task<bool> UpdateAsync(Campaign campaign, CancellationToken ct = default)
+    {
+        var existing = _campaigns.FirstOrDefault(c => c.campaign_id == campaign.campaign_id);
+        if (existing == null) return Task.FromResult(false);
+        
+        existing.name = campaign.name;
+        existing.description = campaign.description;
+        existing.game_system_id = campaign.game_system_id;
+        return Task.FromResult(true);
+    }
+}
+
 public class NpcLogicTests
 {
     [Fact]
@@ -87,12 +133,12 @@ public class NpcLogicTests
         // Arrange
         var npcs = new[]
         {
-            new Npc { name="test", npc_id = 1, account_id = 10, game_system_id = 1, stats = string.Empty},
-            new Npc { name="test2",npc_id = 2, account_id = 10, game_system_id = 1, stats = string.Empty }
+            new Npc { name="test", npc_id = 1, account_id = 10, campaign_id = 1, game_system_id = 1, stats = string.Empty},
+            new Npc { name="test2",npc_id = 2, account_id = 10, campaign_id = 1, game_system_id = 1, stats = string.Empty }
         };
         var repo = new FakeNpcRepository(npcs);
-        var gameSystemRepo = new FakeGameSystemRepository();
-        var logic = new NpcLogic(repo, gameSystemRepo, NullLogger<NpcLogic>.Instance);
+        var campaignRepo = new FakeCampaignRepository();
+        var logic = new NpcLogic(repo, campaignRepo, NullLogger<NpcLogic>.Instance);
 
         // Act
         var result = await logic.GetNpcList(10, CancellationToken.None);
@@ -108,8 +154,8 @@ public class NpcLogicTests
     {
         // Arrange
         var repo = new FakeNpcRepository();
-        var gameSystemRepo = new FakeGameSystemRepository();
-        var logic = new NpcLogic(repo, gameSystemRepo, NullLogger<NpcLogic>.Instance);
+        var campaignRepo = new FakeCampaignRepository();
+        var logic = new NpcLogic(repo, campaignRepo, NullLogger<NpcLogic>.Instance);
 
         // Act
         var result = await logic.GetNpc(999, CancellationToken.None);
@@ -122,10 +168,10 @@ public class NpcLogicTests
     public async Task GetNpc_ReturnsMappedNpc_WhenFound()
     {
         // Arrange
-        var npc = new Npc { name = "SupGirl", npc_id = 42, account_id = 5, game_system_id = 1, stats = string.Empty };
+        var npc = new Npc { name = "SupGirl", npc_id = 42, account_id = 5, campaign_id = 3, game_system_id = 1, stats = string.Empty };
         var repo = new FakeNpcRepository(new[] { npc });
-        var gameSystemRepo = new FakeGameSystemRepository();
-        var logic = new NpcLogic(repo, gameSystemRepo, NullLogger<NpcLogic>.Instance);
+        var campaignRepo = new FakeCampaignRepository();
+        var logic = new NpcLogic(repo, campaignRepo, NullLogger<NpcLogic>.Instance);
 
         // Act
         var result = await logic.GetNpc(42, CancellationToken.None);

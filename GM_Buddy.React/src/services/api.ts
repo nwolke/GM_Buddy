@@ -51,6 +51,8 @@ export interface ApiNpc {
   Npc_Id?: number;      // Alternative casing
   account_Id?: number;  // From BaseNpc.Account_Id  
   Account_Id?: number;  // Alternative casing
+  campaign_Id?: number; // From BaseNpc.Campaign_Id
+  Campaign_Id?: number; // Alternative casing
   name?: string;        // From BaseNpc.Name
   Name?: string;        // Alternative casing
   description?: string; // From BaseNpc.Description
@@ -83,6 +85,7 @@ export interface ApiNpc {
 const normalizeApiNpc = (apiNpc: ApiNpc): { 
   npcId?: number; 
   accountId?: number; 
+  campaignId?: number;
   name: string; 
   description?: string; 
   system?: string;
@@ -95,6 +98,7 @@ const normalizeApiNpc = (apiNpc: ApiNpc): {
   return {
     npcId: apiNpc.npc_Id ?? apiNpc.Npc_Id,
     accountId: apiNpc.account_Id ?? apiNpc.Account_Id,
+    campaignId: apiNpc.campaign_Id ?? apiNpc.Campaign_Id,
     name: apiNpc.name ?? apiNpc.Name ?? '',
     description: apiNpc.description ?? apiNpc.Description,
     system: apiNpc.system ?? apiNpc.System,
@@ -133,6 +137,7 @@ const transformApiNpcToNpc = (apiNpc: ApiNpc): NPC => {
     race: normalized.race || 'Unknown',
     class: normalized.class || 'Adventurer',
     description: normalized.description || '',
+    campaignId: normalized.campaignId,
     system: normalized.system,
     faction: normalized.faction,
     notes: normalized.notes,
@@ -173,7 +178,7 @@ export const getRelationshipTypeId = (typeName: string): number => {
 export interface CreateNpcRequest {
   name: string;
   description?: string;
-  system?: string;
+  campaignId: number;
   race?: string;
   class?: string;
   faction?: string;
@@ -388,5 +393,8 @@ export const campaignApi = {
 
 // Export transformation functions for use in hooks
 export { transformApiRelationshipToRelationship };
+
+// Re-export Campaign type for convenience
+export type { Campaign } from '@/types/campaign';
 
 export default apiClient;
