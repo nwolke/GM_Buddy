@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS public.npc (
     created_at      timestamptz NOT NULL DEFAULT now(),
     updated_at      timestamptz NOT NULL DEFAULT now(),
     FOREIGN KEY (account_id) REFERENCES auth.account(id) ON DELETE CASCADE,
-    FOREIGN KEY (campaign_id) REFERENCES public.campaign(campaign_id) ON DELETE CASCADE
+    FOREIGN KEY (campaign_id) REFERENCES public.campaign(campaign_id) ON DELETE RESTRICT
 );
 
 -- PC table:
