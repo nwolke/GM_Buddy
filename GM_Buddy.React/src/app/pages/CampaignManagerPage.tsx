@@ -32,7 +32,7 @@ export function CampaignManagerPage() {
     setIsFormOpen(true);
   };
 
-  const handleDeleteCampaign = async (id: string) => {
+  const handleDeleteCampaign = async (id: number) => {
     if (confirm('Are you sure you want to delete this campaign?')) {
       await deleteCampaign(id);
     }

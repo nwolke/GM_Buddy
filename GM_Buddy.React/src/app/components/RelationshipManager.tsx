@@ -15,7 +15,7 @@ interface RelationshipManagerProps {
   allNPCs: NPC[];
   relationships: Relationship[];
   onAddRelationship: (relationship: Omit<Relationship, 'id'>) => void;
-  onDeleteRelationship: (id: string) => void;
+  onDeleteRelationship: (id: number) => void;
 }
 
 const relationshipTypes: RelationshipType[] = ['ally', 'enemy', 'family', 'rival', 'mentor', 'student', 'neutral'];
@@ -67,7 +67,7 @@ export function RelationshipManager({
 
     onAddRelationship({
       npcId1: currentNPC.id,
-      npcId2: selectedNPCId,
+      npcId2: parseInt(selectedNPCId),
       type: relationshipType,
       description: description || undefined
     });
@@ -77,7 +77,7 @@ export function RelationshipManager({
     setDescription("");
   };
 
-  const getNPCName = (id: string) => {
+  const getNPCName = (id: number) => {
     return allNPCs.find(npc => npc.id === id)?.name || "Unknown";
   };
 
@@ -143,7 +143,7 @@ export function RelationshipManager({
                     </SelectTrigger>
                     <SelectContent>
                       {availableNPCs.map(npc => (
-                        <SelectItem key={npc.id} value={npc.id}>
+                        <SelectItem key={npc.id} value={npc.id.toString()}>
                           {npc.name} ({npc.race} {npc.class})
                         </SelectItem>
                       ))}

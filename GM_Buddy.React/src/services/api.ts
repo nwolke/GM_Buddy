@@ -132,7 +132,7 @@ const transformApiNpcToNpc = (apiNpc: ApiNpc): NPC => {
   const normalized = normalizeApiNpc(apiNpc);
   console.log('[transformApiNpcToNpc] Raw:', apiNpc, 'Normalized:', normalized);
   return {
-    id: normalized.npcId?.toString() || '',
+    id: normalized.npcId || 0,
     name: normalized.name,
     race: normalized.race || 'Unknown',
     class: normalized.class || 'Adventurer',
@@ -151,19 +151,19 @@ const relationshipTypeNameToIdMap = new Map<string, number>();
 
 // Transform API EntityRelationship to frontend Relationship
 const transformApiRelationshipToRelationship = (apiRel: ApiEntityRelationship): { 
-  id: string;
-  npcId1: string;
-  npcId2: string;
+  id: number;
+  npcId1: number;
+  npcId2: number;
   type: string;
   description?: string;
 } => {
-  const id = (apiRel.entity_relationship_id ?? apiRel.relationship_id)?.toString() || '';
+  const id = (apiRel.entity_relationship_id ?? apiRel.relationship_id) || 0;
   const typeName = relationshipTypeMap.get(apiRel.relationship_type_id) || 'neutral';
   
   return {
     id,
-    npcId1: apiRel.source_entity_id.toString(),
-    npcId2: apiRel.target_entity_id.toString(),
+    npcId1: apiRel.source_entity_id,
+    npcId2: apiRel.target_entity_id,
     type: typeName,
     description: apiRel.description,
   };
@@ -345,7 +345,7 @@ export interface CreateCampaignRequest {
 // Transform API Campaign to frontend Campaign
 const transformApiCampaignToCampaign = (apiCampaign: ApiCampaign): Campaign => {
   return {
-    id: apiCampaign.campaign_id.toString(),
+    id: apiCampaign.campaign_id,
     name: apiCampaign.name,
     description: apiCampaign.description,
     gameSystemId: apiCampaign.game_system_id,

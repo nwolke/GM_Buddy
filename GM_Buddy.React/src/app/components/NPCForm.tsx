@@ -63,7 +63,7 @@ export function NPCForm({ open, onOpenChange, onSave, editingNPC }: NPCFormProps
       
       // Set the game system label for the selected campaign
       if (editingNPC.campaignId) {
-        const campaign = campaigns.find(c => c.id === editingNPC.campaignId?.toString());
+        const campaign = campaigns.find(c => c.id === editingNPC.campaignId);
         setSelectedCampaignSystem(campaign?.gameSystemName || editingNPC.system || "");
       } else if (editingNPC.system) {
         setSelectedCampaignSystem(editingNPC.system);
@@ -104,7 +104,7 @@ export function NPCForm({ open, onOpenChange, onSave, editingNPC }: NPCFormProps
     setFormData({ ...formData, campaignId: numericId });
     
     // Update the game system label
-    const campaign = campaigns.find(c => c.id === campaignId);
+    const campaign = campaigns.find(c => c.id === numericId);
     setSelectedCampaignSystem(campaign?.gameSystemName || "");
   };
 
@@ -141,7 +141,7 @@ export function NPCForm({ open, onOpenChange, onSave, editingNPC }: NPCFormProps
                 </SelectTrigger>
                 <SelectContent>
                   {campaigns.map((campaign) => (
-                    <SelectItem key={campaign.id} value={campaign.id}>
+                    <SelectItem key={campaign.id} value={campaign.id.toString()}>
                       {campaign.name}
                     </SelectItem>
                   ))}
