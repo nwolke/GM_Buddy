@@ -131,8 +131,14 @@ export interface ApiEntityRelationship {
 const transformApiNpcToNpc = (apiNpc: ApiNpc): NPC => {
   const normalized = normalizeApiNpc(apiNpc);
   console.log('[transformApiNpcToNpc] Raw:', apiNpc, 'Normalized:', normalized);
+  
+  if (!normalized.npcId) {
+    console.error('[transformApiNpcToNpc] Missing NPC ID in API response:', apiNpc);
+    throw new Error('Invalid API response: NPC ID is required');
+  }
+  
   return {
-    id: normalized.npcId || 0,
+    id: normalized.npcId,
     name: normalized.name,
     race: normalized.race || 'Unknown',
     class: normalized.class || 'Adventurer',
@@ -157,7 +163,12 @@ const transformApiRelationshipToRelationship = (apiRel: ApiEntityRelationship): 
   type: string;
   description?: string;
 } => {
-  const id = (apiRel.entity_relationship_id ?? apiRel.relationship_id) || 0;
+  const id = apiRel.entity_relationship_id ?? apiRel.relationship_id;
+  if (!id) {
+    console.error('[transformApiRelationshipToRelationship] Missing relationship ID in API response:', apiRel);
+    throw new Error('Invalid API response: Relationship ID is required');
+  }
+  
   const typeName = relationshipTypeMap.get(apiRel.relationship_type_id) || 'neutral';
   
   return {

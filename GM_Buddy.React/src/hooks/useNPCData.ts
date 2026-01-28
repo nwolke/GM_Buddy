@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { NPC, Relationship } from '@/types/npc';
 import { npcApi, CreateNpcRequest, relationshipApi, transformApiRelationshipToRelationship, getRelationshipTypeId } from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
@@ -21,6 +21,10 @@ const [npcs, setNPCs] = useState<NPC[]>([]);
 const [relationships, setRelationships] = useState<Relationship[]>([]);
 const [loading, setLoading] = useState(true);
 const [error, setError] = useState<string | null>(null);
+
+// Counters for generating temporary IDs
+const tempNpcIdCounter = useRef(-1);
+const tempRelationshipIdCounter = useRef(-1);
 
 // Log on mount to verify code is running
 useEffect(() => {
@@ -142,7 +146,7 @@ const loadNpcs = useCallback(async () => {
       if (!('id' in npcData)) {
         const newNPC: NPC = {
           ...npcData,
-          id: Date.now(), // Use timestamp as temporary ID
+          id: tempNpcIdCounter.current--, // Use negative IDs for temporary entries
         };
         setNPCs(prev => [...prev, newNPC]);
       }
@@ -196,7 +200,7 @@ const loadNpcs = useCallback(async () => {
       // Fallback to local storage
       const newRelationship: Relationship = {
         ...relationshipData,
-        id: Date.now(), // Use timestamp as temporary ID
+        id: tempRelationshipIdCounter.current--, // Use negative IDs for temporary entries
       };
       setRelationships(prev => [...prev, newRelationship]);
     }

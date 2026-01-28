@@ -100,7 +100,11 @@ export function NPCForm({ open, onOpenChange, onSave, editingNPC }: NPCFormProps
   };
 
   const handleCampaignChange = (campaignId: string) => {
-    const numericId = parseInt(campaignId);
+    const numericId = parseInt(campaignId, 10);
+    if (isNaN(numericId)) {
+      console.error('[NPCForm] Invalid campaign ID:', campaignId);
+      return;
+    }
     setFormData({ ...formData, campaignId: numericId });
     
     // Update the game system label

@@ -65,9 +65,15 @@ export function RelationshipManager({
   const handleAddRelationship = () => {
     if (!selectedNPCId) return;
 
+    const numericId = parseInt(selectedNPCId, 10);
+    if (isNaN(numericId)) {
+      console.error('[RelationshipManager] Invalid NPC ID:', selectedNPCId);
+      return;
+    }
+
     onAddRelationship({
       npcId1: currentNPC.id,
-      npcId2: parseInt(selectedNPCId),
+      npcId2: numericId,
       type: relationshipType,
       description: description || undefined
     });
