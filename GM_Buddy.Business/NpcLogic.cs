@@ -11,16 +11,16 @@ namespace GM_Buddy.Business;
 public class NpcLogic : INpcLogic
 {
     private readonly INpcRepository _npcRepository;
-    private readonly GameSystemHelper _gameSystemHelper;
+    private readonly ICampaignRepository _campaignRepository;
     private readonly ILogger<NpcLogic> _logger;
 
     public NpcLogic(
         INpcRepository npcRepository, 
-        IGameSystemRepository gameSystemRepository,
+        ICampaignRepository campaignRepository,
         ILogger<NpcLogic> logger)
     {
         _npcRepository = npcRepository;
-        _gameSystemHelper = new GameSystemHelper(gameSystemRepository, logger);
+        _campaignRepository = campaignRepository;
         _logger = logger;
     }
 
@@ -49,8 +49,17 @@ public class NpcLogic : INpcLogic
     {
         try
         {
-            // Resolve game system ID from request or use default
-            int gameSystemId = await _gameSystemHelper.ResolveGameSystemIdAsync(request.System, ct);
+            // Verify the campaign exists and belongs to the account
+            var campaign = await _campaignRepository.GetByIdAsync(request.CampaignId, ct);
+            if (campaign == null)
+            {
+                throw new InvalidOperationException($"Campaign with ID {request.CampaignId} not found");
+            }
+
+            if (campaign.account_id != accountId)
+            {
+                throw new UnauthorizedAccessException($"Campaign {request.CampaignId} does not belong to account {accountId}");
+            }
 
             // Build a simple stats JSON from the request
             var stats = new
@@ -64,7 +73,7 @@ public class NpcLogic : INpcLogic
             var npc = new Npc
             {
                 account_id = accountId,
-                game_system_id = gameSystemId,
+                campaign_id = request.CampaignId,
                 name = request.Name,
                 description = request.Description,
                 stats = JsonSerializer.Serialize(stats)
@@ -85,8 +94,17 @@ public class NpcLogic : INpcLogic
     {
         try
         {
-            // Resolve game system ID from request or use default
-            int gameSystemId = await _gameSystemHelper.ResolveGameSystemIdAsync(request.System, ct);
+            // Verify the campaign exists and belongs to the account
+            var campaign = await _campaignRepository.GetByIdAsync(request.CampaignId, ct);
+            if (campaign == null)
+            {
+                throw new InvalidOperationException($"Campaign with ID {request.CampaignId} not found");
+            }
+
+            if (campaign.account_id != accountId)
+            {
+                throw new UnauthorizedAccessException($"Campaign {request.CampaignId} does not belong to account {accountId}");
+            }
 
             // Build a simple stats JSON from the request
             var stats = new
@@ -101,7 +119,7 @@ public class NpcLogic : INpcLogic
             {
                 npc_id = npcId,
                 account_id = accountId,
-                game_system_id = gameSystemId,
+                campaign_id = request.CampaignId,
                 name = request.Name,
                 description = request.Description,
                 stats = JsonSerializer.Serialize(stats)

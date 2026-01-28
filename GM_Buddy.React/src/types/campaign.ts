@@ -1,5 +1,5 @@
 export interface Campaign {
-  id: string;
+  id: number;
   name: string;
   description?: string;
   gameSystemId: number;

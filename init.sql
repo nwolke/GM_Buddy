@@ -75,12 +75,13 @@ CREATE TABLE IF NOT EXISTS public.campaign (
 );
 
 -- NPC table:
+-- NPCs are now associated with campaigns, which in turn have game systems.
 -- Keep a lightweight `stats` column for backward compatibility / quick reads,
 -- and store strongly-typed or system-specific JSON in `npc_additional_data`.
 CREATE TABLE IF NOT EXISTS public.npc (
     npc_id          int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     account_id      int NOT NULL,
-    game_system_id  int NOT NULL,
+    campaign_id     int NOT NULL,
     name            text NOT NULL,
     description     text,
     -- Use jsonb for the stats blob to enable JSON queries/indexing.
@@ -88,7 +89,7 @@ CREATE TABLE IF NOT EXISTS public.npc (
     created_at      timestamptz NOT NULL DEFAULT now(),
     updated_at      timestamptz NOT NULL DEFAULT now(),
     FOREIGN KEY (account_id) REFERENCES auth.account(id) ON DELETE CASCADE,
-    FOREIGN KEY (game_system_id) REFERENCES public.game_system(game_system_id)
+    FOREIGN KEY (campaign_id) REFERENCES public.campaign(campaign_id) ON DELETE RESTRICT
 );
 
 -- PC table:
@@ -197,74 +198,74 @@ VALUES
   ('Generic')
 ON CONFLICT (game_system_name) DO NOTHING;
 
--- Insert sample campaign
+-- Insert sample campaigns (generic fantasy content)
 INSERT INTO public.campaign (account_id, game_system_id, name, description)
 VALUES
   (
     (SELECT id FROM auth.account WHERE username = 'gm_admin' LIMIT 1),
     (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
-    'The Lost Mines of Phandelver',
-    'A classic adventure in the Sword Coast region, where adventurers seek to uncover the secrets of Wave Echo Cave.'
+    'Shadows Over Millhaven',
+    'A mystery unfolds in the peaceful town of Millhaven as strange occurrences and disappearances plague the locals.'
   ),
   (
     (SELECT id FROM auth.account WHERE username = 'gm_admin' LIMIT 1),
     (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
-    'Curse of Strahd',
-    'A gothic horror campaign set in the dread realm of Barovia, ruled by the vampire lord Strahd von Zarovich.'
+    'The Northern Frontier',
+    'An exploration campaign in the untamed wilderness, where adventurers seek fortune and face the dangers of the wild.'
   )
 ON CONFLICT DO NOTHING;
 
--- Insert sample NPCs
-INSERT INTO public.npc (account_id, game_system_id, name, description, stats)
+-- Insert sample NPCs (generic fantasy characters)
+INSERT INTO public.npc (account_id, campaign_id, name, description, stats)
 VALUES
   (
     (SELECT id FROM auth.account WHERE username = 'gm_admin' LIMIT 1),
-    (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
-    'Bob The Coolguy',
-    'A grizzled sellsword who travels between towns, taking contracts from the highest bidder.',
+    (SELECT campaign_id FROM public.campaign WHERE name = 'Shadows Over Millhaven' LIMIT 1),
+    'Marcus Blackwood',
+    'The town magistrate who oversees law and order in Millhaven. Known for his fair judgment and dedication to the community.',
     jsonb_build_object(
       'lineage', 'Human',
-      'occupation', 'Sellsword'
+      'occupation', 'Magistrate'
     )
   ),
   (
     (SELECT id FROM auth.account WHERE username = 'gm_admin' LIMIT 1),
-    (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
-    'Elara Moonwhisper',
-    'A scholarly mage who studies ancient arcane texts in her tower.',
+    (SELECT campaign_id FROM public.campaign WHERE name = 'Shadows Over Millhaven' LIMIT 1),
+    'Lyanna Swift',
+    'A traveling merchant who deals in rare herbs and alchemical components. She has connections throughout the region.',
     jsonb_build_object(
-      'lineage', 'Elf',
-      'occupation', 'Wizard'
+      'lineage', 'Half-Elf',
+      'occupation', 'Merchant'
     )
   ),
   (
     (SELECT id FROM auth.account WHERE username = 'gm_admin' LIMIT 1),
-    (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
-    'Gundren Rockseeker',
-    'A dwarf prospector who discovered the location of Wave Echo Cave.',
+    (SELECT campaign_id FROM public.campaign WHERE name = 'The Northern Frontier' LIMIT 1),
+    'Thorgar Stonefist',
+    'A seasoned explorer and guide who knows the northern mountains better than anyone.',
     jsonb_build_object(
       'lineage', 'Dwarf',
-      'occupation', 'Prospector'
+      'occupation', 'Guide'
     )
   ),
   (
     (SELECT id FROM auth.account WHERE username = 'gm_admin' LIMIT 1),
-    (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
-    'Sildar Hallwinter',
-    'A human warrior and member of the Lords'' Alliance.',
+    (SELECT campaign_id FROM public.campaign WHERE name = 'The Northern Frontier' LIMIT 1),
+    'Kael Windrunner',
+    'A skilled tracker and hunter who makes a living by trapping and guiding hunting expeditions.',
     jsonb_build_object(
-      'lineage', 'Human',
-      'occupation', 'Fighter'
+      'lineage', 'Elf',
+      'occupation', 'Tracker'
     )
   ),
   (
     (SELECT id FROM auth.account WHERE username = 'gm_admin' LIMIT 1),
-    (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
-    'The Black Spider',
-    'A mysterious drow villain seeking to claim Wave Echo Cave.',
+    (SELECT campaign_id FROM public.campaign WHERE name = 'The Northern Frontier' LIMIT 1),
+    'Red Scar',
+    'A notorious bandit leader who controls the mountain passes and demands tribute from travelers.',
     jsonb_build_object(
-      'lineage', 'Drow',
-      'occupation', 'Villain'
+      'lineage', 'Half-Orc',
+      'occupation', 'Bandit Chief'
     )
   )
 ON CONFLICT DO NOTHING;

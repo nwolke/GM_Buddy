@@ -51,6 +51,8 @@ export interface ApiNpc {
   Npc_Id?: number;      // Alternative casing
   account_Id?: number;  // From BaseNpc.Account_Id  
   Account_Id?: number;  // Alternative casing
+  campaign_Id?: number; // From BaseNpc.Campaign_Id
+  Campaign_Id?: number; // Alternative casing
   name?: string;        // From BaseNpc.Name
   Name?: string;        // Alternative casing
   description?: string; // From BaseNpc.Description
@@ -83,6 +85,7 @@ export interface ApiNpc {
 const normalizeApiNpc = (apiNpc: ApiNpc): { 
   npcId?: number; 
   accountId?: number; 
+  campaignId?: number;
   name: string; 
   description?: string; 
   system?: string;
@@ -95,6 +98,7 @@ const normalizeApiNpc = (apiNpc: ApiNpc): {
   return {
     npcId: apiNpc.npc_Id ?? apiNpc.Npc_Id,
     accountId: apiNpc.account_Id ?? apiNpc.Account_Id,
+    campaignId: apiNpc.campaign_Id ?? apiNpc.Campaign_Id,
     name: apiNpc.name ?? apiNpc.Name ?? '',
     description: apiNpc.description ?? apiNpc.Description,
     system: apiNpc.system ?? apiNpc.System,
@@ -128,11 +132,12 @@ const transformApiNpcToNpc = (apiNpc: ApiNpc): NPC => {
   const normalized = normalizeApiNpc(apiNpc);
   console.log('[transformApiNpcToNpc] Raw:', apiNpc, 'Normalized:', normalized);
   return {
-    id: normalized.npcId?.toString() || '',
+    id: normalized.npcId || 0,
     name: normalized.name,
     race: normalized.race || 'Unknown',
     class: normalized.class || 'Adventurer',
     description: normalized.description || '',
+    campaignId: normalized.campaignId,
     system: normalized.system,
     faction: normalized.faction,
     notes: normalized.notes,
@@ -146,19 +151,19 @@ const relationshipTypeNameToIdMap = new Map<string, number>();
 
 // Transform API EntityRelationship to frontend Relationship
 const transformApiRelationshipToRelationship = (apiRel: ApiEntityRelationship): { 
-  id: string;
-  npcId1: string;
-  npcId2: string;
+  id: number;
+  npcId1: number;
+  npcId2: number;
   type: string;
   description?: string;
 } => {
-  const id = (apiRel.entity_relationship_id ?? apiRel.relationship_id)?.toString() || '';
+  const id = (apiRel.entity_relationship_id ?? apiRel.relationship_id) || 0;
   const typeName = relationshipTypeMap.get(apiRel.relationship_type_id) || 'neutral';
   
   return {
     id,
-    npcId1: apiRel.source_entity_id.toString(),
-    npcId2: apiRel.target_entity_id.toString(),
+    npcId1: apiRel.source_entity_id,
+    npcId2: apiRel.target_entity_id,
     type: typeName,
     description: apiRel.description,
   };
@@ -173,7 +178,7 @@ export const getRelationshipTypeId = (typeName: string): number => {
 export interface CreateNpcRequest {
   name: string;
   description?: string;
-  system?: string;
+  campaignId: number;
   race?: string;
   class?: string;
   faction?: string;
@@ -340,7 +345,7 @@ export interface CreateCampaignRequest {
 // Transform API Campaign to frontend Campaign
 const transformApiCampaignToCampaign = (apiCampaign: ApiCampaign): Campaign => {
   return {
-    id: apiCampaign.campaign_id.toString(),
+    id: apiCampaign.campaign_id,
     name: apiCampaign.name,
     description: apiCampaign.description,
     gameSystemId: apiCampaign.game_system_id,
@@ -388,5 +393,8 @@ export const campaignApi = {
 
 // Export transformation functions for use in hooks
 export { transformApiRelationshipToRelationship };
+
+// Re-export Campaign type for convenience
+export type { Campaign } from '@/types/campaign';
 
 export default apiClient;
