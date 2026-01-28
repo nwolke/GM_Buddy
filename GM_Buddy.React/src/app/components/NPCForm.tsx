@@ -151,7 +151,7 @@ export function NPCForm({ open, onOpenChange, onSave, editingNPC }: NPCFormProps
                   ))}
                 </SelectContent>
               </Select>
-              {!loadingCampaigns && campaigns.length === 0 && (
+              {!editingNPC && !loadingCampaigns && campaigns.length === 0 && (
                 <Alert>
                   <Info className="h-4 w-4" />
                   <AlertDescription>
@@ -233,7 +233,7 @@ export function NPCForm({ open, onOpenChange, onSave, editingNPC }: NPCFormProps
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={!loadingCampaigns && campaigns.length === 0}>
+            <Button type="submit" disabled={!editingNPC && !loadingCampaigns && campaigns.length === 0}>
               {editingNPC ? "Update" : "Create"} NPC
             </Button>
           </DialogFooter>
