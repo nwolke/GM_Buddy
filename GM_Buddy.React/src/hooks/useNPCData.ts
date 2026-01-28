@@ -10,9 +10,9 @@ interface UseNPCDataReturn {
   error: string | null;
   refreshNpcs: () => Promise<void>;
   saveNPC: (npcData: Omit<NPC, 'id'> | NPC) => Promise<void>;
-  deleteNPC: (id: string) => Promise<void>;
+  deleteNPC: (id: number) => Promise<void>;
   addRelationship: (relationship: Omit<Relationship, 'id'>) => void;
-  deleteRelationship: (id: string) => void;
+  deleteRelationship: (id: number) => void;
 }
 
 export function useNPCData(): UseNPCDataReturn {
@@ -106,10 +106,15 @@ const loadNpcs = useCallback(async () => {
 
   const saveNPC = useCallback(async (npcData: Omit<NPC, 'id'> | NPC) => {
     try {
+      if (!npcData.campaignId) {
+        setError('Campaign is required to save an NPC.');
+        return;
+      }
+
       const request: CreateNpcRequest = {
         name: npcData.name,
         description: npcData.description,
-        system: npcData.system || 'Dungeons & Dragons (5e)', // Use NPC's system or default
+        campaignId: npcData.campaignId,
         race: npcData.race,
         class: npcData.class,
         faction: npcData.faction,
@@ -118,11 +123,8 @@ const loadNpcs = useCallback(async () => {
 
       if ('id' in npcData && npcData.id) {
         // Update existing NPC
-        const npcId = parseInt(npcData.id);
-        if (!isNaN(npcId)) {
-          await npcApi.updateNpc(npcId, request);
-          console.log('Updated NPC:', npcId);
-        }
+        await npcApi.updateNpc(npcData.id, request);
+        console.log('Updated NPC:', npcData.id);
         // Update local state
         setNPCs(prev => prev.map(npc => npc.id === npcData.id ? npcData : npc));
       } else {
@@ -135,25 +137,13 @@ const loadNpcs = useCallback(async () => {
     } catch (err) {
       console.error('Failed to save NPC:', err);
       setError('Failed to save NPC to server.');
-      
-      // Fallback to local storage for new NPCs
-      if (!('id' in npcData)) {
-        const newNPC: NPC = {
-          ...npcData,
-          id: crypto.randomUUID(),
-        };
-        setNPCs(prev => [...prev, newNPC]);
-      }
     }
   }, []);
 
-  const deleteNPC = useCallback(async (id: string) => {
+  const deleteNPC = useCallback(async (id: number) => {
     try {
-      const npcId = parseInt(id);
-      if (!isNaN(npcId)) {
-        await npcApi.deleteNpc(npcId);
-        console.log('Deleted NPC:', npcId);
-      }
+      await npcApi.deleteNpc(id);
+      console.log('Deleted NPC:', id);
     } catch (err) {
       console.error('Failed to delete NPC from server:', err);
       // Continue with local deletion even if server fails
@@ -173,9 +163,9 @@ const loadNpcs = useCallback(async () => {
       const relationshipTypeId = getRelationshipTypeId(relationshipData.type);
       const apiRelationship = {
         source_entity_type: 'npc',
-        source_entity_id: parseInt(relationshipData.npcId1),
+        source_entity_id: relationshipData.npcId1,
         target_entity_type: 'npc',
-        target_entity_id: parseInt(relationshipData.npcId2),
+        target_entity_id: relationshipData.npcId2,
         relationship_type_id: relationshipTypeId,
         description: relationshipData.description,
       };
@@ -187,29 +177,20 @@ const loadNpcs = useCallback(async () => {
       // Add to local state with the backend ID
       const newRelationship: Relationship = {
         ...relationshipData,
-        id: newRelationshipId.toString(),
+        id: newRelationshipId,
       };
       setRelationships(prev => [...prev, newRelationship]);
     } catch (err) {
       console.error('[useNPCData] Failed to create relationship:', err);
       setError('Failed to create relationship on server.');
-      
-      // Fallback to local storage
-      const newRelationship: Relationship = {
-        ...relationshipData,
-        id: crypto.randomUUID(),
-      };
-      setRelationships(prev => [...prev, newRelationship]);
+      throw err; // Throw error instead of creating local fallback
     }
   }, []);
 
-  const deleteRelationship = useCallback(async (id: string) => {
+  const deleteRelationship = useCallback(async (id: number) => {
     try {
-      const relationshipId = parseInt(id);
-      if (!isNaN(relationshipId)) {
-        await relationshipApi.deleteRelationship(relationshipId);
-        console.log('[useNPCData] Deleted relationship:', relationshipId);
-      }
+      await relationshipApi.deleteRelationship(id);
+      console.log('[useNPCData] Deleted relationship:', id);
     } catch (err) {
       console.error('[useNPCData] Failed to delete relationship from server:', err);
       // Continue with local deletion even if server fails

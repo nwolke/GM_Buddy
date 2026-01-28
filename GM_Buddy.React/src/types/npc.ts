@@ -1,19 +1,20 @@
 export interface NPC {
-  id: string;
+  id: number;
   name: string;
   race: string;
   class: string;
   description: string;
-  system?: string; // Game system name
+  campaignId?: string;
+  system?: string; // Game system name (read-only from campaign)
   faction?: string;
   notes?: string;
   accountId?: number;
 }
 
 export interface Relationship {
-  id: string;
-  npcId1: string;
-  npcId2: string;
+  id: number;
+  npcId1: number;
+  npcId2: number;
   type: RelationshipType;
   description?: string;
 }
