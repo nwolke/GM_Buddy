@@ -180,4 +180,79 @@ public class NpcLogicTests
         Assert.NotNull(result);
         Assert.Equal(42, result!.Npc_Id);
     }
+
+    [Fact]
+    public async Task UpdateNpcAsync_ThrowsInvalidOperationException_WhenCampaignDoesNotExist()
+    {
+        // Arrange
+        var npc = new Npc { name = "TestNpc", npc_id = 1, account_id = 10, campaign_id = 1, game_system_id = 1, stats = string.Empty };
+        var repo = new FakeNpcRepository(new[] { npc });
+        var campaignRepo = new FakeCampaignRepository();
+        var logic = new NpcLogic(repo, campaignRepo, NullLogger<NpcLogic>.Instance);
+
+        var updateRequest = new GM_Buddy.Contracts.Models.Npcs.UpdateNpcRequest
+        {
+            Name = "Updated NPC",
+            CampaignId = 999, // Campaign that doesn't exist
+            Description = "Test description",
+            Race = "Elf",
+            Class = "Wizard"
+        };
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => logic.UpdateNpcAsync(1, 10, updateRequest, CancellationToken.None)
+        );
+        Assert.Contains("Campaign with ID 999 not found", exception.Message);
+    }
+
+    [Fact]
+    public async Task UpdateNpcAsync_ThrowsUnauthorizedAccessException_WhenCampaignBelongsToDifferentAccount()
+    {
+        // Arrange
+        var npc = new Npc { name = "TestNpc", npc_id = 1, account_id = 10, campaign_id = 1, game_system_id = 1, stats = string.Empty };
+        var repo = new FakeNpcRepository(new[] { npc });
+        var campaignRepo = new FakeCampaignRepository(); // Campaign 3 belongs to account 5
+        var logic = new NpcLogic(repo, campaignRepo, NullLogger<NpcLogic>.Instance);
+
+        var updateRequest = new GM_Buddy.Contracts.Models.Npcs.UpdateNpcRequest
+        {
+            Name = "Updated NPC",
+            CampaignId = 3, // Campaign belongs to account 5, not 10
+            Description = "Test description",
+            Race = "Dwarf",
+            Class = "Fighter"
+        };
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<UnauthorizedAccessException>(
+            () => logic.UpdateNpcAsync(1, 10, updateRequest, CancellationToken.None)
+        );
+        Assert.Contains("Campaign 3 does not belong to account 10", exception.Message);
+    }
+
+    [Fact]
+    public async Task UpdateNpcAsync_ReturnsTrue_WhenCampaignIsValidAndBelongsToAccount()
+    {
+        // Arrange
+        var npc = new Npc { name = "TestNpc", npc_id = 1, account_id = 10, campaign_id = 1, game_system_id = 1, stats = string.Empty };
+        var repo = new FakeNpcRepository(new[] { npc });
+        var campaignRepo = new FakeCampaignRepository(); // Campaign 1 belongs to account 10
+        var logic = new NpcLogic(repo, campaignRepo, NullLogger<NpcLogic>.Instance);
+
+        var updateRequest = new GM_Buddy.Contracts.Models.Npcs.UpdateNpcRequest
+        {
+            Name = "Updated NPC",
+            CampaignId = 1, // Valid campaign that belongs to account 10
+            Description = "Test description",
+            Race = "Human",
+            Class = "Paladin"
+        };
+
+        // Act
+        var result = await logic.UpdateNpcAsync(1, 10, updateRequest, CancellationToken.None);
+
+        // Assert
+        Assert.True(result);
+    }
 }
