@@ -9,7 +9,7 @@ interface UseCampaignDataReturn {
   error: string | null;
   refreshCampaigns: () => Promise<void>;
   saveCampaign: (campaignData: Omit<Campaign, 'id'> | Campaign) => Promise<void>;
-  deleteCampaign: (id: string) => Promise<void>;
+  deleteCampaign: (id: number) => Promise<void>;
 }
 
 export function useCampaignData(): UseCampaignDataReturn {
@@ -87,17 +87,12 @@ export function useCampaignData(): UseCampaignDataReturn {
         // Update existing campaign
         console.log('[useCampaignData] Updating campaign:', campaignData.id);
         
-        const campaignId = parseInt(campaignData.id, 10);
-        if (!Number.isFinite(campaignId) || campaignId.toString() !== campaignData.id) {
-          throw new Error(`Invalid campaign ID: "${campaignData.id}" is not a valid number`);
-        }
-        
         const updateRequest: CreateCampaignRequest = {
           name: campaignData.name,
           description: campaignData.description,
           game_system_id: campaignData.gameSystemId,
         };
-        await campaignApi.updateCampaign(campaignId, updateRequest);
+        await campaignApi.updateCampaign(campaignData.id, updateRequest);
         
         setCampaigns(prev => 
           prev.map(c => c.id === campaignData.id ? { ...c, ...campaignData } : c)
@@ -121,16 +116,11 @@ export function useCampaignData(): UseCampaignDataReturn {
     }
   };
 
-  const deleteCampaign = async (id: string) => {
+  const deleteCampaign = async (id: number) => {
     try {
       console.log('[useCampaignData] Deleting campaign:', id);
       
-      const campaignId = parseInt(id, 10);
-      if (!Number.isFinite(campaignId) || campaignId.toString() !== id) {
-        throw new Error(`Invalid campaign ID: "${id}" is not a valid number`);
-      }
-      
-      await campaignApi.deleteCampaign(campaignId);
+      await campaignApi.deleteCampaign(id);
       setCampaigns(prev => prev.filter(c => c.id !== id));
     } catch (err) {
       console.error('[useCampaignData] Failed to delete campaign:', err);
