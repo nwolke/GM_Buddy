@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { NPC } from "@/types/npc";
 import { campaignApi, Campaign } from "@/services/api";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
@@ -7,6 +8,8 @@ import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
 import { Textarea } from "@/app/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select";
+import { Alert, AlertDescription } from "@/app/components/ui/alert";
+import { Info } from "lucide-react";
 
 interface NPCFormProps {
   open: boolean;
@@ -16,6 +19,7 @@ interface NPCFormProps {
 }
 
 export function NPCForm({ open, onOpenChange, onSave, editingNPC }: NPCFormProps) {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: "",
     race: "",
@@ -147,6 +151,24 @@ export function NPCForm({ open, onOpenChange, onSave, editingNPC }: NPCFormProps
                   ))}
                 </SelectContent>
               </Select>
+              {!loadingCampaigns && campaigns.length === 0 && (
+                <Alert>
+                  <Info className="h-4 w-4" />
+                  <AlertDescription>
+                    You need to create a campaign before you can add NPCs.{' '}
+                    <Button
+                      variant="link"
+                      className="h-auto p-0 text-sm font-normal underline"
+                      onClick={() => {
+                        onOpenChange(false);
+                        navigate('/campaign-manager');
+                      }}
+                    >
+                      Create a campaign
+                    </Button>
+                  </AlertDescription>
+                </Alert>
+              )}
               {selectedCampaignSystem && (
                 <p className="text-sm text-muted-foreground">
                   Game System: {selectedCampaignSystem}
