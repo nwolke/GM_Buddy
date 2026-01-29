@@ -31,11 +31,10 @@ public class NpcsController : ControllerBase
     }
 
     /// <summary>
-    /// Get all NPCs for the authenticated user's account, optionally filtered by game system.
+    /// Get all NPCs for the authenticated user's account, optionally filtered by campaign.
     /// Account must exist (call /account/sync first).
     /// </summary>
     [HttpGet]
-    [OutputCache(PolicyName = "NpcList")]
     public async Task<ActionResult<IEnumerable<BaseNpc>>> GetNpcs(
         [FromQuery] int? campaign_id = null)
     {

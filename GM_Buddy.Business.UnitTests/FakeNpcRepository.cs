@@ -14,9 +14,13 @@ internal class FakeNpcRepository : INpcRepository
         _npcs = npcs?.ToList() ?? new List<Npc>();
     }
 
-    public Task<IEnumerable<Npc>> GetNpcs(int accountId, int? campaign_id, CancellationToken ct = default)
+    public Task<IEnumerable<Npc>> GetNpcs(int accountId, int? campaignId, CancellationToken ct = default)
     {
         var result = _npcs.Where(n => n.account_id == accountId);
+        if (campaignId.HasValue)
+        {
+            result = result.Where(n => n.campaign_id == campaignId.Value);
+        }
         return Task.FromResult(result.AsEnumerable());
     }
 
@@ -141,12 +145,36 @@ public class NpcLogicTests
         var logic = new NpcLogic(repo, campaignRepo, NullLogger<NpcLogic>.Instance);
 
         // Act
-        var result = await logic.GetNpcList(10, 0, CancellationToken.None);
+        var result = await logic.GetNpcList(10, null, CancellationToken.None);
 
         // Assert
         Assert.NotNull(result);
         var list = result.ToList();
         Assert.Equal(2, list.Count);
+    }
+
+    [Fact]
+    public async Task GetNpcList_FiltersOnCampaignId_WhenProvided()
+    {
+        // Arrange
+        var npcs = new[]
+        {
+            new Npc { name="Campaign1NPC", npc_id = 1, account_id = 10, campaign_id = 1, game_system_id = 1, stats = string.Empty},
+            new Npc { name="Campaign2NPC", npc_id = 2, account_id = 10, campaign_id = 2, game_system_id = 1, stats = string.Empty },
+            new Npc { name="Campaign1NPC2", npc_id = 3, account_id = 10, campaign_id = 1, game_system_id = 1, stats = string.Empty }
+        };
+        var repo = new FakeNpcRepository(npcs);
+        var campaignRepo = new FakeCampaignRepository();
+        var logic = new NpcLogic(repo, campaignRepo, NullLogger<NpcLogic>.Instance);
+
+        // Act
+        var result = await logic.GetNpcList(10, 1, CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(result);
+        var list = result.ToList();
+        Assert.Equal(2, list.Count);
+        Assert.All(list, npc => Assert.Equal(1, npc.Campaign_Id));
     }
 
     [Fact]
