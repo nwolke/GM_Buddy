@@ -36,14 +36,14 @@ public class NpcsController : ControllerBase
     /// </summary>
     [HttpGet]
     public async Task<ActionResult<IEnumerable<BaseNpc>>> GetNpcs(
-        [FromQuery] int? campaign_id = null)
+        [FromQuery] int? campaignId = null)
     {
         try
         {
             int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
 
             _logger.LogInformation("Getting NPCs for account {AccountId}", accountId);
-            IEnumerable<BaseNpc> result = await _logic.GetNpcList(accountId, campaign_id);
+            IEnumerable<BaseNpc> result = await _logic.GetNpcList(accountId, campaignId);
             _logger.LogInformation("Retrieved {Count} NPCs", result.Count());
             return Ok(result);
         }
