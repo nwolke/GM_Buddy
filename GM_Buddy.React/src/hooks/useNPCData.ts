@@ -65,12 +65,16 @@ useEffect(() => {
       console.error('[useNPCData] Failed to load NPCs:', errorMessage, err);
       setError(`Failed to load NPCs. Using local storage as fallback.`);
       
-      // Fallback to localStorage
+      // Fallback to localStorage with campaign-specific key
       console.log('[useNPCData] Falling back to localStorage...');
-      const storedNPCs = localStorage.getItem('ttrpg-npcs');
+      const storageKey = selectedCampaignId !== undefined && selectedCampaignId !== null
+        ? `ttrpg-npcs-campaign-${selectedCampaignId}`
+        : 'ttrpg-npcs';
+      
+      const storedNPCs = localStorage.getItem(storageKey);
       if (storedNPCs) {
         const localNpcs = JSON.parse(storedNPCs);
-        console.log(`[useNPCData] Loaded ${localNpcs.length} NPCs from localStorage`);
+        console.log(`[useNPCData] Loaded ${localNpcs.length} NPCs from localStorage (${storageKey})`);
         setNPCs(localNpcs);
       }
       
@@ -96,9 +100,16 @@ useEffect(() => {
   }, [loadNpcs, isAuthenticated]);
 
   // Save NPCs to localStorage whenever they change
+  // Store both the full list and campaign-specific lists
   useEffect(() => {
-    localStorage.setItem('ttrpg-npcs', JSON.stringify(npcs));
-  }, [npcs]);
+    if (selectedCampaignId !== undefined && selectedCampaignId !== null) {
+      // Save campaign-filtered NPCs
+      localStorage.setItem(`ttrpg-npcs-campaign-${selectedCampaignId}`, JSON.stringify(npcs));
+    } else {
+      // Save all NPCs when no filter is applied
+      localStorage.setItem('ttrpg-npcs', JSON.stringify(npcs));
+    }
+  }, [npcs, selectedCampaignId]);
 
   // Save relationships to localStorage whenever they change
   useEffect(() => {
