@@ -15,7 +15,7 @@ interface RelationshipManagerProps {
   allNPCs: NPC[];
   relationships: Relationship[];
   onAddRelationship: (relationship: Omit<Relationship, 'id'>) => void;
-  onDeleteRelationship: (id: string) => void;
+  onDeleteRelationship: (id: number) => void;
 }
 
 const relationshipTypes: RelationshipType[] = ['ally', 'enemy', 'family', 'rival', 'mentor', 'student', 'neutral'];

@@ -7,6 +7,7 @@ import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
 import { Textarea } from "@/app/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select";
+import { Badge } from "@/app/components/ui/badge";
 
 interface NPCFormProps {
   open: boolean;
@@ -114,7 +115,9 @@ export function NPCForm({ open, onOpenChange, onSave, editingNPC }: NPCFormProps
         <DialogHeader>
           <DialogTitle>{editingNPC ? "Edit NPC" : "Create New NPC"}</DialogTitle>
           <DialogDescription>
-            {editingNPC ? "Update the details of your NPC." : "Add a new NPC to your campaign."}
+            {editingNPC 
+              ? "Update the details of your NPC. Note: NPCs cannot be moved between campaigns." 
+              : "Add a new NPC to your campaign."}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
@@ -131,26 +134,43 @@ export function NPCForm({ open, onOpenChange, onSave, editingNPC }: NPCFormProps
             </div>
             <div className="grid gap-2">
               <Label htmlFor="campaign">Campaign *</Label>
-              <Select
-                value={formData.campaignId?.toString() || ""}
-                onValueChange={handleCampaignChange}
-                disabled={loadingCampaigns}
-              >
-                <SelectTrigger id="campaign">
-                  <SelectValue placeholder="Select a campaign" />
-                </SelectTrigger>
-                <SelectContent>
-                  {campaigns.map((campaign) => (
-                    <SelectItem key={campaign.id} value={campaign.id.toString()}>
-                      {campaign.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {selectedCampaignSystem && (
-                <p className="text-sm text-muted-foreground">
-                  Game System: {selectedCampaignSystem}
-                </p>
+              {editingNPC ? (
+                // Read-only campaign display when editing
+                <div className="flex items-center gap-2 p-3 border rounded-md bg-muted/50">
+                  <Badge variant="secondary" className="text-sm">
+                    {campaigns.find(c => c.id === formData.campaignId)?.name || 'Unknown Campaign'}
+                  </Badge>
+                  {selectedCampaignSystem && (
+                    <span className="text-sm text-muted-foreground">
+                      ({selectedCampaignSystem})
+                    </span>
+                  )}
+                </div>
+              ) : (
+                // Editable campaign dropdown when creating
+                <>
+                  <Select
+                    value={formData.campaignId?.toString() || ""}
+                    onValueChange={handleCampaignChange}
+                    disabled={loadingCampaigns}
+                  >
+                    <SelectTrigger id="campaign">
+                      <SelectValue placeholder="Select a campaign" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {campaigns.map((campaign) => (
+                        <SelectItem key={campaign.id} value={campaign.id.toString()}>
+                          {campaign.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {selectedCampaignSystem && (
+                    <p className="text-sm text-muted-foreground">
+                      Game System: {selectedCampaignSystem}
+                    </p>
+                  )}
+                </>
               )}
             </div>
             <div className="grid grid-cols-2 gap-4">

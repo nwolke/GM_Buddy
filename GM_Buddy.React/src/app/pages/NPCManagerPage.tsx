@@ -53,7 +53,7 @@ const {
     setIsFormOpen(true);
   };
 
-  const handleDeleteNPC = async (id: string) => {
+  const handleDeleteNPC = async (id: number) => {
     if (confirm('Are you sure you want to delete this NPC? This will also remove all their relationships.')) {
       await deleteNPC(id);
     }
@@ -68,11 +68,11 @@ const {
     addRelationship(relationshipData);
   };
 
-  const handleDeleteRelationship = (id: string) => {
+  const handleDeleteRelationship = (id: number) => {
     deleteRelationship(id);
   };
 
-  const getRelationshipCount = (npcId: string) => {
+  const getRelationshipCount = (npcId: number) => {
     return relationships.filter(
       rel => rel.npcId1 === npcId || rel.npcId2 === npcId
     ).length;
