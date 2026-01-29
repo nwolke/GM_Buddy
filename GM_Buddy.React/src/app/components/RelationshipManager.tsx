@@ -65,9 +65,12 @@ export function RelationshipManager({
   const handleAddRelationship = () => {
     if (!selectedNPCId) return;
 
+    const numericNPCId = Number(selectedNPCId);
+    if (Number.isNaN(numericNPCId)) return;
+
     onAddRelationship({
       npcId1: currentNPC.id,
-      npcId2: selectedNPCId,
+      npcId2: numericNPCId,
       type: relationshipType,
       description: description || undefined
     });
@@ -77,7 +80,7 @@ export function RelationshipManager({
     setDescription("");
   };
 
-  const getNPCName = (id: string) => {
+  const getNPCName = (id: number) => {
     return allNPCs.find(npc => npc.id === id)?.name || "Unknown";
   };
 
@@ -143,7 +146,7 @@ export function RelationshipManager({
                     </SelectTrigger>
                     <SelectContent>
                       {availableNPCs.map(npc => (
-                        <SelectItem key={npc.id} value={npc.id}>
+                        <SelectItem key={npc.id} value={npc.id.toString()}>
                           {npc.name} ({npc.race} {npc.class})
                         </SelectItem>
                       ))}
