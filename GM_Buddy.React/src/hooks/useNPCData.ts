@@ -15,7 +15,7 @@ interface UseNPCDataReturn {
   deleteRelationship: (id: number) => void;
 }
 
-export function useNPCData(): UseNPCDataReturn {
+export function useNPCData(selectedCampaignId?: number): UseNPCDataReturn {
 const { isAuthenticated } = useAuth();
 const [npcs, setNPCs] = useState<NPC[]>([]);
 const [relationships, setRelationships] = useState<Relationship[]>([]);
@@ -27,17 +27,22 @@ useEffect(() => {
   console.log('[useNPCData] Hook initialized - v2');
 }, []);
 
-// Load NPCs from API
-const loadNpcs = useCallback(async () => {
-  setLoading(true);
-  setError(null);
+  // Load NPCs from API
+  const loadNpcs = useCallback(async () => {
+    setLoading(true);
+    setError(null);
 
-  console.log(`[useNPCData] Loading NPCs for authenticated user, isAuthenticated: ${isAuthenticated}`);
+    console.log(`[useNPCData] Loading NPCs for authenticated user, isAuthenticated: ${isAuthenticated}, campaignId: ${selectedCampaignId}`);
 
-  try {
-    console.log(`[useNPCData] Calling npcApi.getNpcsByAccount()...`);
-    const apiNpcs = await npcApi.getNpcsByAccount();
-    console.log(`[useNPCData] API returned ${apiNpcs.length} NPCs:`, apiNpcs);
+    try {
+      // Only pass filter if we have a valid campaign ID
+      const filters = selectedCampaignId !== undefined && selectedCampaignId !== null
+        ? { campaign_id: selectedCampaignId }
+        : undefined;
+      
+      console.log(`[useNPCData] Calling npcApi.getNpcs() with filters:`, filters);
+      const apiNpcs = await npcApi.getNpcs(filters);
+      console.log(`[useNPCData] API returned ${apiNpcs.length} NPCs:`, apiNpcs);
       
     setNPCs(apiNpcs);
 
@@ -52,8 +57,20 @@ const loadNpcs = useCallback(async () => {
     
     // Transform backend relationships to frontend format
     const transformedRelationships = apiRelationships.map(transformApiRelationshipToRelationship) as Relationship[];
-    setRelationships(transformedRelationships);
-    console.log('[useNPCData] Transformed relationships:', transformedRelationships);
+    
+    // When filtering by campaign, only show relationships where both NPCs are in the loaded set
+    // This prevents showing relationships to NPCs outside the selected campaign
+    let filteredRelationships = transformedRelationships;
+    if (selectedCampaignId !== undefined && selectedCampaignId !== null) {
+      const npcIds = new Set(apiNpcs.map(npc => npc.id));
+      filteredRelationships = transformedRelationships.filter(
+        rel => npcIds.has(rel.npcId1) && npcIds.has(rel.npcId2)
+      );
+      console.log(`[useNPCData] Filtered relationships to match campaign NPCs: ${filteredRelationships.length} of ${transformedRelationships.length}`);
+    }
+    
+    setRelationships(filteredRelationships);
+    console.log('[useNPCData] Transformed relationships:', filteredRelationships);
 
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
@@ -64,19 +81,37 @@ const loadNpcs = useCallback(async () => {
       console.log('[useNPCData] Falling back to localStorage...');
       const storedNPCs = localStorage.getItem('ttrpg-npcs');
       if (storedNPCs) {
-        const localNpcs = JSON.parse(storedNPCs);
+        let localNpcs = JSON.parse(storedNPCs);
+        
+        // Apply campaign filter to localStorage data if selectedCampaignId is set
+        if (selectedCampaignId !== undefined && selectedCampaignId !== null) {
+          localNpcs = localNpcs.filter((npc: NPC) => npc.campaignId === selectedCampaignId);
+          console.log(`[useNPCData] Applied campaign filter to localStorage, ${localNpcs.length} NPCs remaining`);
+        }
+        
         console.log(`[useNPCData] Loaded ${localNpcs.length} NPCs from localStorage`);
         setNPCs(localNpcs);
       }
       
       const storedRelationships = localStorage.getItem('ttrpg-relationships');
       if (storedRelationships) {
-        setRelationships(JSON.parse(storedRelationships));
+        let localRelationships = JSON.parse(storedRelationships);
+        
+        // When filtering by campaign, only show relationships where both NPCs are in the loaded set
+        if (selectedCampaignId !== undefined && selectedCampaignId !== null && localNpcs.length > 0) {
+          const npcIds = new Set(localNpcs.map((npc: NPC) => npc.id));
+          localRelationships = localRelationships.filter(
+            (rel: Relationship) => npcIds.has(rel.npcId1) && npcIds.has(rel.npcId2)
+          );
+          console.log(`[useNPCData] Filtered localStorage relationships to match campaign NPCs`);
+        }
+        
+        setRelationships(localRelationships);
       }
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, selectedCampaignId]);
 
   useEffect(() => {
     // Only load NPCs if user is authenticated
@@ -89,16 +124,6 @@ const loadNpcs = useCallback(async () => {
       setLoading(false);
     }
   }, [loadNpcs, isAuthenticated]);
-
-  // Save NPCs to localStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem('ttrpg-npcs', JSON.stringify(npcs));
-  }, [npcs]);
-
-  // Save relationships to localStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem('ttrpg-relationships', JSON.stringify(relationships));
-  }, [relationships]);
 
   const refreshNpcs = useCallback(async () => {
     await loadNpcs();
@@ -122,23 +147,44 @@ const loadNpcs = useCallback(async () => {
       };
 
       if ('id' in npcData && npcData.id) {
+        // Check if campaign changed - if so, delete relationships first
+        const existingNpc = npcs.find(n => n.id === npcData.id);
+        if (existingNpc && existingNpc.campaignId !== npcData.campaignId) {
+          console.log('[useNPCData] Campaign changed, deleting relationships for NPC:', npcData.id);
+          
+          // Delete all relationships for this NPC
+          const npcRelationships = relationships.filter(
+            rel => rel.npcId1 === npcData.id || rel.npcId2 === npcData.id
+          );
+          
+          for (const rel of npcRelationships) {
+            try {
+              await relationshipApi.deleteRelationship(rel.id);
+              console.log('[useNPCData] Deleted relationship:', rel.id);
+            } catch (err) {
+              console.error('[useNPCData] Failed to delete relationship:', rel.id, err);
+            }
+          }
+        }
+        
         // Update existing NPC
         await npcApi.updateNpc(npcData.id, request);
         console.log('Updated NPC:', npcData.id);
-        // Update local state
-        setNPCs(prev => prev.map(npc => npc.id === npcData.id ? npcData : npc));
       } else {
         // Create new NPC
         console.log('Creating new NPC for authenticated user');
         const createdNpc = await npcApi.createNpc(request);
         console.log('Created NPC:', createdNpc);
-        setNPCs(prev => [...prev, createdNpc]);
       }
+      
+      // Refresh NPCs from server to respect current campaign filter
+      // This ensures if an NPC was moved to a different campaign, it disappears from the current view
+      await loadNpcs();
     } catch (err) {
       console.error('Failed to save NPC:', err);
       setError('Failed to save NPC to server.');
     }
-  }, []);
+  }, [loadNpcs, npcs, relationships]);
 
   const deleteNPC = useCallback(async (id: number) => {
     try {
