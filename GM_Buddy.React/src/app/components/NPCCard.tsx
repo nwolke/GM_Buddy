@@ -6,7 +6,7 @@ import { Pencil, Trash2, Users, Shield, Sparkles } from "lucide-react";
 interface NPCCardProps {
   npc: NPC;
   onEdit: (npc: NPC) => void;
-  onDelete: (id: string) => void;
+  onDelete: (id: number) => void;
   onManageRelationships: (npc: NPC) => void;
   relationshipCount: number;
 }

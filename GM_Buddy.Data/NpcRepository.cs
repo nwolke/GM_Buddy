@@ -14,10 +14,10 @@ public class NpcRepository : INpcRepository
         _dbConnector = dbConnector;
     }
 
-    public async Task<IEnumerable<Npc>> GetNpcsByAccountId(int account_id, CancellationToken ct = default)
+    public async Task<IEnumerable<Npc>> GetNpcs(int account_id, int? campaignId, CancellationToken ct = default)
     {
         using IDbConnection dbConnection = _dbConnector.CreateConnection();
-        const string sql = @"
+        string sql = @"
             SELECT n.npc_id,
                    n.account_id,
                    n.campaign_id,
@@ -29,9 +29,13 @@ public class NpcRepository : INpcRepository
             FROM npc AS n
             JOIN campaign AS c ON n.campaign_id = c.campaign_id
             JOIN game_system AS gs ON c.game_system_id = gs.game_system_id
-            WHERE n.account_id = @AccountId
-            ORDER BY n.npc_id";
-        var cmd = new CommandDefinition(sql, new { AccountId = account_id }, cancellationToken: ct);
+            WHERE n.account_id = @AccountId";
+        if (campaignId != null)
+        {
+            sql += " AND c.campaign_id = @CampaignId";
+        }
+        sql += " ORDER BY n.npc_id";
+        var cmd = new CommandDefinition(sql, new { AccountId = account_id, CampaignId = campaignId }, cancellationToken: ct);
         return await dbConnection.QueryAsync<Npc>(cmd);
     }
 

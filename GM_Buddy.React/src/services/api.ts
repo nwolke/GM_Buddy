@@ -185,17 +185,23 @@ export interface CreateNpcRequest {
   notes?: string;
 }
 
+// NPC filter params
+export interface NpcFilterParams {
+  campaign_id?: number;
+}
+
 // NPC API calls
 export const npcApi = {
-  // Get all NPCs for the authenticated user
-  async getNpcs(): Promise<NPC[]> {
-    const response = await apiClient.get<ApiNpc[]>('/Npcs');
-    return response.data.map(transformApiNpcToNpc);
-  },
-
-  // Get all NPCs for the authenticated user's account
-  async getNpcsByAccount(): Promise<NPC[]> {
-    const response = await apiClient.get<ApiNpc[]>('/Npcs/account');
+  // Get all NPCs for the authenticated user with optional filters
+  async getNpcs(filters?: NpcFilterParams): Promise<NPC[]> {
+    // Remove undefined/null values from params
+    const cleanParams = filters && Object.fromEntries(
+      Object.entries(filters).filter(([_, v]) => v !== undefined && v !== null)
+    );
+    
+    const response = await apiClient.get<ApiNpc[]>('/Npcs', {
+      params: cleanParams,
+    });
     return response.data.map(transformApiNpcToNpc);
   },
 
@@ -203,14 +209,6 @@ export const npcApi = {
   async getNpc(id: number): Promise<NPC> {
     const response = await apiClient.get<ApiNpc>(`/Npcs/${id}`);
     return transformApiNpcToNpc(response.data);
-  },
-
-  // Search NPCs (searches within authenticated user's NPCs)
-  async searchNpcs(name?: string): Promise<NPC[]> {
-    const response = await apiClient.get<ApiNpc[]>('/Npcs/search', {
-      params: { name },
-    });
-    return response.data.map(transformApiNpcToNpc);
   },
 
   // Create a new NPC for the authenticated user

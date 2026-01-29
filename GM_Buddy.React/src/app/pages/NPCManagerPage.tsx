@@ -4,25 +4,35 @@ import { NPCCard } from "@/app/components/NPCCard";
 import { NPCForm } from "@/app/components/NPCForm";
 import { RelationshipManager } from "@/app/components/RelationshipManager";
 import { Button } from "@/app/components/ui/button";
-import { Plus, RefreshCw, LogIn, Shield } from "lucide-react";
+import { Plus, RefreshCw, LogIn, Shield, Filter } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/app/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNPCData } from "@/hooks/useNPCData";
+import { useCampaignData } from "@/hooks/useCampaignData";
 import { Header } from "@/app/components/Header";
 
 export function NPCManagerPage() {
-  const { isAuthenticated, loginWithCognito, loading: authLoading } = useAuth();
-  const {
-    npcs,
-    relationships,
-    loading,
-    error,
-    refreshNpcs,
-    saveNPC,
-    deleteNPC,
-    addRelationship,
-    deleteRelationship,
-  } = useNPCData();
+const { isAuthenticated, loginWithCognito, loading: authLoading } = useAuth();
+const { campaigns, loading: campaignsLoading } = useCampaignData();
+const [selectedCampaignId, setSelectedCampaignId] = useState<number | undefined>(undefined);
+const {
+  npcs,
+  relationships,
+  loading,
+  error,
+  refreshNpcs,
+  saveNPC,
+  deleteNPC,
+  addRelationship,
+  deleteRelationship,
+} = useNPCData(selectedCampaignId);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingNPC, setEditingNPC] = useState<NPC | null>(null);
@@ -43,7 +53,7 @@ export function NPCManagerPage() {
     setIsFormOpen(true);
   };
 
-  const handleDeleteNPC = async (id: string) => {
+  const handleDeleteNPC = async (id: number) => {
     if (confirm('Are you sure you want to delete this NPC? This will also remove all their relationships.')) {
       await deleteNPC(id);
     }
@@ -58,11 +68,11 @@ export function NPCManagerPage() {
     addRelationship(relationshipData);
   };
 
-  const handleDeleteRelationship = (id: string) => {
+  const handleDeleteRelationship = (id: number) => {
     deleteRelationship(id);
   };
 
-  const getRelationshipCount = (npcId: string) => {
+  const getRelationshipCount = (npcId: number) => {
     return relationships.filter(
       rel => rel.npcId1 === npcId || rel.npcId2 === npcId
     ).length;
@@ -98,16 +108,46 @@ export function NPCManagerPage() {
         />
 
         <Tabs defaultValue="npcs" className="w-full">
-          <div className="flex items-center justify-between mb-6">
-            <TabsList className="bg-card/50 border border-primary/20 p-1">
-              <TabsTrigger 
-                value="npcs"
-                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent data-[state=active]:text-primary-foreground"
-              >
-                <Shield className="size-4 mr-2" />
-                Characters ({npcs.length})
-              </TabsTrigger>
-            </TabsList>
+          <div className="flex items-center justify-between mb-6 gap-4">
+            <div className="flex items-center gap-4">
+              <TabsList className="bg-card/50 border border-primary/20 p-1">
+                <TabsTrigger 
+                  value="npcs"
+                  className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent data-[state=active]:text-primary-foreground"
+                >
+                  <Shield className="size-4 mr-2" />
+                  Characters ({npcs.length})
+                </TabsTrigger>
+              </TabsList>
+              
+              {isAuthenticated && !campaignsLoading && campaigns.length > 0 && (
+                <Select
+                  value={selectedCampaignId?.toString() ?? "all"}
+                  onValueChange={(value) => {
+                    if (value === "all") {
+                      setSelectedCampaignId(undefined);
+                      return;
+                    }
+
+                    const numericId = Number(value);
+                    setSelectedCampaignId(Number.isNaN(numericId) ? undefined : numericId);
+                  }}
+                >
+                  <SelectTrigger className="w-[250px] bg-card/50 border-primary/20">
+                    <Filter className="size-4 mr-2" />
+                    <SelectValue placeholder="All Campaigns" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Campaigns</SelectItem>
+                    {campaigns.map((campaign) => (
+                      <SelectItem key={campaign.id} value={campaign.id.toString()}>
+                        {campaign.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
             {isAuthenticated && (
               <Button 
                 onClick={() => {
