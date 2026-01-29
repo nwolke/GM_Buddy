@@ -72,24 +72,35 @@ useEffect(() => {
     setRelationships(filteredRelationships);
     console.log('[useNPCData] Transformed relationships:', filteredRelationships);
 
+      
+      // Save to localStorage with campaign-specific key
+      const storageKey = selectedCampaignId !== undefined && selectedCampaignId !== null
+        ? `ttrpg-npcs-campaign-${selectedCampaignId}`
+        : 'ttrpg-npcs';
+      
+      // Only save to localStorage if we have data (prevent overwriting cache during loading)
+      if (apiNpcs.length > 0) {
+        localStorage.setItem(storageKey, JSON.stringify(apiNpcs));
+      }
+      
+      if (filteredRelationships.length > 0 || transformedRelationships.length > 0) {
+        localStorage.setItem('ttrpg-relationships', JSON.stringify(transformedRelationships));
+      }
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       console.error('[useNPCData] Failed to load NPCs:', errorMessage, err);
       setError(`Failed to load NPCs. Using local storage as fallback.`);
       
-      // Fallback to localStorage
+      // Fallback to localStorage with campaign-specific key
       console.log('[useNPCData] Falling back to localStorage...');
-      const storedNPCs = localStorage.getItem('ttrpg-npcs');
+      const storageKey = selectedCampaignId !== undefined && selectedCampaignId !== null
+        ? `ttrpg-npcs-campaign-${selectedCampaignId}`
+        : 'ttrpg-npcs';
+      
+      const storedNPCs = localStorage.getItem(storageKey);
       if (storedNPCs) {
-        let localNpcs = JSON.parse(storedNPCs);
-        
-        // Apply campaign filter to localStorage data if selectedCampaignId is set
-        if (selectedCampaignId !== undefined && selectedCampaignId !== null) {
-          localNpcs = localNpcs.filter((npc: NPC) => npc.campaignId === selectedCampaignId);
-          console.log(`[useNPCData] Applied campaign filter to localStorage, ${localNpcs.length} NPCs remaining`);
-        }
-        
-        console.log(`[useNPCData] Loaded ${localNpcs.length} NPCs from localStorage`);
+        const localNpcs = JSON.parse(storedNPCs);
+        console.log(`[useNPCData] Loaded ${localNpcs.length} NPCs from localStorage with key: ${storageKey}`);
         setNPCs(localNpcs);
       }
       
@@ -98,7 +109,8 @@ useEffect(() => {
         let localRelationships = JSON.parse(storedRelationships);
         
         // When filtering by campaign, only show relationships where both NPCs are in the loaded set
-        if (selectedCampaignId !== undefined && selectedCampaignId !== null && localNpcs.length > 0) {
+        if (selectedCampaignId !== undefined && selectedCampaignId !== null && storedNPCs) {
+          const localNpcs = JSON.parse(storedNPCs);
           const npcIds = new Set(localNpcs.map((npc: NPC) => npc.id));
           localRelationships = localRelationships.filter(
             (rel: Relationship) => npcIds.has(rel.npcId1) && npcIds.has(rel.npcId2)
