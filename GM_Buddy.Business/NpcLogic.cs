@@ -24,9 +24,9 @@ public class NpcLogic : INpcLogic
         _logger = logger;
     }
 
-    public async Task<IEnumerable<DndNpc>> GetNpcList(int account_id, int? campaign_id, CancellationToken ct = default)
+    public async Task<IEnumerable<DndNpc>> GetNpcList(int account_id, int? campaignId, CancellationToken ct = default)
     {
-        var allNpcs = await _npcRepository.GetNpcs(account_id, campaign_id, ct);
+        var allNpcs = await _npcRepository.GetNpcs(account_id, campaignId, ct);
         return allNpcs?.Select(Mappers.NpcMapper.MapToNpcDto) ?? [];
     }
 

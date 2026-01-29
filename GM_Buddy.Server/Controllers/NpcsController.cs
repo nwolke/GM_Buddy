@@ -31,20 +31,19 @@ public class NpcsController : ControllerBase
     }
 
     /// <summary>
-    /// Get all NPCs for the authenticated user's account, optionally filtered by game system.
+    /// Get all NPCs for the authenticated user's account, optionally filtered by campaign.
     /// Account must exist (call /account/sync first).
     /// </summary>
     [HttpGet]
-    [OutputCache(PolicyName = "NpcList")]
     public async Task<ActionResult<IEnumerable<BaseNpc>>> GetNpcs(
-        [FromQuery] int? campaign_id = null)
+        [FromQuery] int? campaignId = null)
     {
         try
         {
             int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
 
             _logger.LogInformation("Getting NPCs for account {AccountId}", accountId);
-            IEnumerable<BaseNpc> result = await _logic.GetNpcList(accountId, campaign_id);
+            IEnumerable<BaseNpc> result = await _logic.GetNpcList(accountId, campaignId);
             _logger.LogInformation("Retrieved {Count} NPCs", result.Count());
             return Ok(result);
         }
