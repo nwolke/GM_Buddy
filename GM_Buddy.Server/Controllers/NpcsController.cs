@@ -19,7 +19,7 @@ public class NpcsController : ControllerBase
     private readonly IAuthHelper _authHelper;
 
     public NpcsController(
-        ILogger<NpcsController> logger, 
+        ILogger<NpcsController> logger,
         INpcLogic npcLogic,
         IAccountRepository accountRepository,
         IAuthHelper authHelper)
@@ -37,21 +37,14 @@ public class NpcsController : ControllerBase
     [HttpGet]
     [OutputCache(PolicyName = "NpcList")]
     public async Task<ActionResult<IEnumerable<BaseNpc>>> GetNpcs(
-        [FromQuery] string? gameSystem = null)
+        [FromQuery] int? campaign_id = null)
     {
         try
         {
             int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
-            
+
             _logger.LogInformation("Getting NPCs for account {AccountId}", accountId);
-            IEnumerable<BaseNpc> result = await _logic.GetNpcList(accountId);
-            
-            if (!string.IsNullOrWhiteSpace(gameSystem))
-            {
-                result = result.Where(n => n.System != null && 
-                    n.System.Equals(gameSystem, StringComparison.OrdinalIgnoreCase));
-            }
-            
+            IEnumerable<BaseNpc> result = await _logic.GetNpcList(accountId, campaign_id);
             _logger.LogInformation("Retrieved {Count} NPCs", result.Count());
             return Ok(result);
         }
@@ -112,114 +105,6 @@ public class NpcsController : ControllerBase
     }
 
     /// <summary>
-    /// Get all NPCs for the authenticated user's account
-    /// </summary>
-    [HttpGet("account")]
-    [OutputCache(PolicyName = "NpcList")]
-    public async Task<ActionResult<IEnumerable<BaseNpc>>> GetNpcsByAccount()
-    {
-        try
-        {
-            int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
-
-            _logger.LogInformation("Getting NPCs for account {AccountId}", accountId);
-            IEnumerable<BaseNpc> result = await _logic.GetNpcList(accountId);
-            return Ok(result);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Unauthorized(ex.Message);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving NPCs");
-            return StatusCode(500, "Internal server error");
-        }
-    }
-
-    /// <summary>
-    /// Get all NPCs for a specific game system from the authenticated user's account
-    /// </summary>
-    [HttpGet("game-system/{gameSystem}")]
-    [OutputCache(PolicyName = "NpcList")]
-    public async Task<ActionResult<IEnumerable<BaseNpc>>> GetNpcsByGameSystem(string gameSystem)
-    {
-        try
-        {
-            int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
-
-            IEnumerable<BaseNpc> npcs = await _logic.GetNpcList(accountId);
-            IEnumerable<BaseNpc> filtered = npcs.Where(n => n.System != null && 
-                n.System.Equals(gameSystem, StringComparison.OrdinalIgnoreCase));
-            
-            _logger.LogInformation("Retrieved {Count} NPCs for game system {GameSystem}", 
-                filtered.Count(), gameSystem);
-            
-            return Ok(filtered);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Unauthorized(ex.Message);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving NPCs for game system {GameSystem}", gameSystem);
-            return StatusCode(500, "Internal server error");
-        }
-    }
-
-    /// <summary>
-    /// Search NPCs by name or other criteria in the authenticated user's account
-    /// </summary>
-    [HttpGet("search")]
-    [OutputCache(PolicyName = "ShortCache")]
-    public async Task<ActionResult<IEnumerable<BaseNpc>>> SearchNpcs(
-        [FromQuery] string? name = null,
-        [FromQuery] string? lineage = null,
-        [FromQuery] string? occupation = null)
-    {
-        try
-        {
-            int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
-
-            IEnumerable<BaseNpc> npcs = await _logic.GetNpcList(accountId);
-            
-            if (!string.IsNullOrWhiteSpace(name))
-            {
-                npcs = npcs.Where(n => n.Name != null && 
-                    n.Name.Contains(name, StringComparison.OrdinalIgnoreCase));
-            }
-
-            // Note: lineage and occupation filtering would require accessing the Stats object
-            // which varies by game system. This is a simplified example.
-            
-            _logger.LogInformation("Search returned {Count} NPCs", npcs.Count());
-            return Ok(npcs);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Unauthorized(ex.Message);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error searching NPCs");
-            return StatusCode(500, "Internal server error");
-        }
-    }
-
-    /// <summary>
     /// Create a new NPC for the authenticated user's account
     /// </summary>
     [HttpPost]
@@ -231,14 +116,14 @@ public class NpcsController : ControllerBase
 
             int npcId = await _logic.CreateNpcAsync(accountId, request);
             _logger.LogInformation("Created NPC {NpcId} for account {AccountId}", npcId, accountId);
-            
+
             // Fetch the created NPC to return
             var createdNpc = await _logic.GetNpc(npcId);
             if (createdNpc == null)
             {
                 return StatusCode(500, "NPC was created but could not be retrieved");
             }
-            
+
             return CreatedAtAction(nameof(GetNpc), new { id = npcId }, createdNpc);
         }
         catch (UnauthorizedAccessException ex)
@@ -271,7 +156,7 @@ public class NpcsController : ControllerBase
             {
                 return NotFound($"NPC with ID {id} not found or not owned by your account");
             }
-            
+
             _logger.LogInformation("Updated NPC {NpcId}", id);
             return NoContent();
         }
@@ -318,7 +203,7 @@ public class NpcsController : ControllerBase
             {
                 return NotFound($"NPC with ID {id} not found");
             }
-            
+
             _logger.LogInformation("Deleted NPC {NpcId}", id);
             return NoContent();
         }

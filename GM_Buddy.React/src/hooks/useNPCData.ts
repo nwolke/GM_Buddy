@@ -15,7 +15,7 @@ interface UseNPCDataReturn {
   deleteRelationship: (id: number) => void;
 }
 
-export function useNPCData(): UseNPCDataReturn {
+export function useNPCData(selectedCampaignId?: number): UseNPCDataReturn {
 const { isAuthenticated } = useAuth();
 const [npcs, setNPCs] = useState<NPC[]>([]);
 const [relationships, setRelationships] = useState<Relationship[]>([]);
@@ -27,17 +27,22 @@ useEffect(() => {
   console.log('[useNPCData] Hook initialized - v2');
 }, []);
 
-// Load NPCs from API
-const loadNpcs = useCallback(async () => {
-  setLoading(true);
-  setError(null);
+  // Load NPCs from API
+  const loadNpcs = useCallback(async () => {
+    setLoading(true);
+    setError(null);
 
-  console.log(`[useNPCData] Loading NPCs for authenticated user, isAuthenticated: ${isAuthenticated}`);
+    console.log(`[useNPCData] Loading NPCs for authenticated user, isAuthenticated: ${isAuthenticated}, campaignId: ${selectedCampaignId}`);
 
-  try {
-    console.log(`[useNPCData] Calling npcApi.getNpcsByAccount()...`);
-    const apiNpcs = await npcApi.getNpcsByAccount();
-    console.log(`[useNPCData] API returned ${apiNpcs.length} NPCs:`, apiNpcs);
+    try {
+      // Only pass filter if we have a valid campaign ID
+      const filters = selectedCampaignId !== undefined && selectedCampaignId !== null
+        ? { campaign_id: selectedCampaignId }
+        : undefined;
+      
+      console.log(`[useNPCData] Calling npcApi.getNpcs() with filters:`, filters);
+      const apiNpcs = await npcApi.getNpcs(filters);
+      console.log(`[useNPCData] API returned ${apiNpcs.length} NPCs:`, apiNpcs);
       
     setNPCs(apiNpcs);
 
@@ -76,7 +81,7 @@ const loadNpcs = useCallback(async () => {
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, selectedCampaignId]);
 
   useEffect(() => {
     // Only load NPCs if user is authenticated
@@ -125,20 +130,21 @@ const loadNpcs = useCallback(async () => {
         // Update existing NPC
         await npcApi.updateNpc(npcData.id, request);
         console.log('Updated NPC:', npcData.id);
-        // Update local state
-        setNPCs(prev => prev.map(npc => npc.id === npcData.id ? npcData : npc));
       } else {
         // Create new NPC
         console.log('Creating new NPC for authenticated user');
         const createdNpc = await npcApi.createNpc(request);
         console.log('Created NPC:', createdNpc);
-        setNPCs(prev => [...prev, createdNpc]);
       }
+      
+      // Refresh NPCs from server to respect current campaign filter
+      // This ensures if an NPC was moved to a different campaign, it disappears from the current view
+      await loadNpcs();
     } catch (err) {
       console.error('Failed to save NPC:', err);
       setError('Failed to save NPC to server.');
     }
-  }, []);
+  }, [loadNpcs]);
 
   const deleteNPC = useCallback(async (id: number) => {
     try {
