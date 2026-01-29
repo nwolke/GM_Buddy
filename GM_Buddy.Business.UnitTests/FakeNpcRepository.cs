@@ -14,7 +14,7 @@ internal class FakeNpcRepository : INpcRepository
         _npcs = npcs?.ToList() ?? new List<Npc>();
     }
 
-    public Task<IEnumerable<Npc>> GetNpcsByAccountId(int accountId, CancellationToken ct = default)
+    public Task<IEnumerable<Npc>> GetNpcs(int accountId, int? campaign_id, CancellationToken ct = default)
     {
         var result = _npcs.Where(n => n.account_id == accountId);
         return Task.FromResult(result.AsEnumerable());
@@ -141,7 +141,7 @@ public class NpcLogicTests
         var logic = new NpcLogic(repo, campaignRepo, NullLogger<NpcLogic>.Instance);
 
         // Act
-        var result = await logic.GetNpcList(10, CancellationToken.None);
+        var result = await logic.GetNpcList(10, 0, CancellationToken.None);
 
         // Assert
         Assert.NotNull(result);
