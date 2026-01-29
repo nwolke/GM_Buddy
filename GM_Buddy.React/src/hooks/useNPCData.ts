@@ -95,7 +95,18 @@ useEffect(() => {
       
       const storedRelationships = localStorage.getItem('ttrpg-relationships');
       if (storedRelationships) {
-        setRelationships(JSON.parse(storedRelationships));
+        let localRelationships = JSON.parse(storedRelationships);
+        
+        // When filtering by campaign, only show relationships where both NPCs are in the loaded set
+        if (selectedCampaignId !== undefined && selectedCampaignId !== null && localNpcs.length > 0) {
+          const npcIds = new Set(localNpcs.map((npc: NPC) => npc.id));
+          localRelationships = localRelationships.filter(
+            (rel: Relationship) => npcIds.has(rel.npcId1) && npcIds.has(rel.npcId2)
+          );
+          console.log(`[useNPCData] Filtered localStorage relationships to match campaign NPCs`);
+        }
+        
+        setRelationships(localRelationships);
       }
     } finally {
       setLoading(false);
