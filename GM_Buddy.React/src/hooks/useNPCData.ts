@@ -102,6 +102,9 @@ useEffect(() => {
   // Save NPCs to localStorage whenever they change
   // Store both the full list and campaign-specific lists
   useEffect(() => {
+    // Don't overwrite localStorage with empty data during loading
+    if (loading || npcs.length === 0) return;
+    
     if (selectedCampaignId !== undefined && selectedCampaignId !== null) {
       // Save campaign-filtered NPCs
       localStorage.setItem(`ttrpg-npcs-campaign-${selectedCampaignId}`, JSON.stringify(npcs));
@@ -109,7 +112,7 @@ useEffect(() => {
       // Save all NPCs when no filter is applied
       localStorage.setItem('ttrpg-npcs', JSON.stringify(npcs));
     }
-  }, [npcs, selectedCampaignId]);
+  }, [npcs, selectedCampaignId, loading]);
 
   // Save relationships to localStorage whenever they change
   useEffect(() => {
