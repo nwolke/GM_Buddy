@@ -127,6 +127,26 @@ useEffect(() => {
       };
 
       if ('id' in npcData && npcData.id) {
+        // Check if campaign changed - if so, delete relationships first
+        const existingNpc = npcs.find(n => n.id === npcData.id);
+        if (existingNpc && existingNpc.campaignId !== npcData.campaignId) {
+          console.log('[useNPCData] Campaign changed, deleting relationships for NPC:', npcData.id);
+          
+          // Delete all relationships for this NPC
+          const npcRelationships = relationships.filter(
+            rel => rel.npcId1 === npcData.id || rel.npcId2 === npcData.id
+          );
+          
+          for (const rel of npcRelationships) {
+            try {
+              await relationshipApi.deleteRelationship(rel.id);
+              console.log('[useNPCData] Deleted relationship:', rel.id);
+            } catch (err) {
+              console.error('[useNPCData] Failed to delete relationship:', rel.id, err);
+            }
+          }
+        }
+        
         // Update existing NPC
         await npcApi.updateNpc(npcData.id, request);
         console.log('Updated NPC:', npcData.id);
@@ -144,7 +164,7 @@ useEffect(() => {
       console.error('Failed to save NPC:', err);
       setError('Failed to save NPC to server.');
     }
-  }, [loadNpcs]);
+  }, [loadNpcs, npcs, relationships]);
 
   const deleteNPC = useCallback(async (id: number) => {
     try {

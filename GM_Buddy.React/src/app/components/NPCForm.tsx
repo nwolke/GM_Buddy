@@ -7,7 +7,7 @@ import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
 import { Textarea } from "@/app/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select";
-import { Badge } from "@/app/components/ui/badge";
+import { AlertTriangle } from "lucide-react";
 
 interface NPCFormProps {
   open: boolean;
@@ -17,19 +17,21 @@ interface NPCFormProps {
 }
 
 export function NPCForm({ open, onOpenChange, onSave, editingNPC }: NPCFormProps) {
-  const [formData, setFormData] = useState({
-    name: "",
-    race: "",
-    class: "",
-    description: "",
-    campaignId: undefined as number | undefined,
-    faction: "",
-    notes: ""
-  });
+const [formData, setFormData] = useState({
+  name: "",
+  race: "",
+  class: "",
+  description: "",
+  campaignId: undefined as number | undefined,
+  faction: "",
+  notes: ""
+});
 
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [loadingCampaigns, setLoadingCampaigns] = useState(false);
-  const [selectedCampaignSystem, setSelectedCampaignSystem] = useState<string>("");
+const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+const [loadingCampaigns, setLoadingCampaigns] = useState(false);
+const [selectedCampaignSystem, setSelectedCampaignSystem] = useState<string>("");
+const [originalCampaignId, setOriginalCampaignId] = useState<number | undefined>(undefined);
+const [showCampaignChangeWarning, setShowCampaignChangeWarning] = useState(false);
 
   // Load campaigns when the dialog is opened
   useEffect(() => {
@@ -61,6 +63,7 @@ export function NPCForm({ open, onOpenChange, onSave, editingNPC }: NPCFormProps
         faction: editingNPC.faction || "",
         notes: editingNPC.notes || ""
       });
+      setOriginalCampaignId(editingNPC.campaignId);
       
       // Set the game system label for the selected campaign
       if (editingNPC.campaignId) {
@@ -79,6 +82,7 @@ export function NPCForm({ open, onOpenChange, onSave, editingNPC }: NPCFormProps
         faction: "",
         notes: ""
       });
+      setOriginalCampaignId(undefined);
       setSelectedCampaignSystem("");
     }
   }, [editingNPC, open, campaigns]);
@@ -91,12 +95,23 @@ export function NPCForm({ open, onOpenChange, onSave, editingNPC }: NPCFormProps
       return;
     }
     
+    // Check if campaign changed when editing
+    if (editingNPC && originalCampaignId !== formData.campaignId) {
+      setShowCampaignChangeWarning(true);
+      return;
+    }
+    
+    submitForm();
+  };
+
+  const submitForm = () => {
     if (editingNPC) {
       onSave({ ...editingNPC, ...formData });
     } else {
       onSave(formData as Omit<NPC, 'id'>);
     }
     
+    setShowCampaignChangeWarning(false);
     onOpenChange(false);
   };
 
@@ -115,9 +130,7 @@ export function NPCForm({ open, onOpenChange, onSave, editingNPC }: NPCFormProps
         <DialogHeader>
           <DialogTitle>{editingNPC ? "Edit NPC" : "Create New NPC"}</DialogTitle>
           <DialogDescription>
-            {editingNPC 
-              ? "Update the details of your NPC. Note: NPCs cannot be moved between campaigns." 
-              : "Add a new NPC to your campaign."}
+            {editingNPC ? "Update the details of your NPC." : "Add a new NPC to your campaign."}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
@@ -134,43 +147,34 @@ export function NPCForm({ open, onOpenChange, onSave, editingNPC }: NPCFormProps
             </div>
             <div className="grid gap-2">
               <Label htmlFor="campaign">Campaign *</Label>
-              {editingNPC ? (
-                // Read-only campaign display when editing
-                <div className="flex items-center gap-2 p-3 border rounded-md bg-muted/50">
-                  <Badge variant="secondary" className="text-sm">
-                    {campaigns.find(c => c.id === formData.campaignId)?.name || 'Unknown Campaign'}
-                  </Badge>
-                  {selectedCampaignSystem && (
-                    <span className="text-sm text-muted-foreground">
-                      ({selectedCampaignSystem})
-                    </span>
-                  )}
+              <Select
+                value={formData.campaignId?.toString() || ""}
+                onValueChange={handleCampaignChange}
+                disabled={loadingCampaigns}
+              >
+                <SelectTrigger id="campaign">
+                  <SelectValue placeholder="Select a campaign" />
+                </SelectTrigger>
+                <SelectContent>
+                  {campaigns.map((campaign) => (
+                    <SelectItem key={campaign.id} value={campaign.id.toString()}>
+                      {campaign.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {selectedCampaignSystem && (
+                <p className="text-sm text-muted-foreground">
+                  Game System: {selectedCampaignSystem}
+                </p>
+              )}
+              {editingNPC && originalCampaignId !== formData.campaignId && formData.campaignId && (
+                <div className="flex items-start gap-2 p-3 bg-yellow-500/10 border border-yellow-500/50 rounded-md">
+                  <AlertTriangle className="size-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+                  <p className="text-sm text-yellow-700 dark:text-yellow-500">
+                    <strong>Warning:</strong> Moving this NPC to a different campaign will remove all their relationships.
+                  </p>
                 </div>
-              ) : (
-                // Editable campaign dropdown when creating
-                <>
-                  <Select
-                    value={formData.campaignId?.toString() || ""}
-                    onValueChange={handleCampaignChange}
-                    disabled={loadingCampaigns}
-                  >
-                    <SelectTrigger id="campaign">
-                      <SelectValue placeholder="Select a campaign" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {campaigns.map((campaign) => (
-                        <SelectItem key={campaign.id} value={campaign.id.toString()}>
-                          {campaign.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {selectedCampaignSystem && (
-                    <p className="text-sm text-muted-foreground">
-                      Game System: {selectedCampaignSystem}
-                    </p>
-                  )}
-                </>
               )}
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -236,6 +240,45 @@ export function NPCForm({ open, onOpenChange, onSave, editingNPC }: NPCFormProps
           </DialogFooter>
         </form>
       </DialogContent>
+
+      {/* Campaign Change Warning Dialog */}
+      <Dialog open={showCampaignChangeWarning} onOpenChange={setShowCampaignChangeWarning}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="size-6 text-yellow-600" />
+              Confirm Campaign Change
+            </DialogTitle>
+            <DialogDescription>
+              Moving this NPC to a different campaign will <strong>permanently delete all their relationships</strong>. This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm text-muted-foreground">
+              From: <strong>{campaigns.find(c => c.id === originalCampaignId)?.name}</strong>
+            </p>
+            <p className="text-sm text-muted-foreground">
+              To: <strong>{campaigns.find(c => c.id === formData.campaignId)?.name}</strong>
+            </p>
+          </div>
+          <DialogFooter>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => setShowCampaignChangeWarning(false)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="button" 
+              variant="destructive"
+              onClick={submitForm}
+            >
+              Confirm & Move NPC
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }
