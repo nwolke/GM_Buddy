@@ -34,6 +34,11 @@ useEffect(() => {
 
     console.log(`[useNPCData] Loading NPCs for authenticated user, isAuthenticated: ${isAuthenticated}, campaignId: ${selectedCampaignId}`);
 
+    // Calculate storage key once for both success and error paths
+    const storageKey = selectedCampaignId !== undefined && selectedCampaignId !== null
+      ? `ttrpg-npcs-campaign-${selectedCampaignId}`
+      : 'ttrpg-npcs';
+
     try {
       // Only pass filter if we have a valid campaign ID
       const filters = selectedCampaignId !== undefined && selectedCampaignId !== null
@@ -72,24 +77,27 @@ useEffect(() => {
     setRelationships(filteredRelationships);
     console.log('[useNPCData] Transformed relationships:', filteredRelationships);
 
+      // Only save to localStorage if we have data (prevent overwriting cache during loading)
+      if (apiNpcs.length > 0) {
+        localStorage.setItem(storageKey, JSON.stringify(apiNpcs));
+      }
+      
+      if (filteredRelationships.length > 0 || transformedRelationships.length > 0) {
+        localStorage.setItem('ttrpg-relationships', JSON.stringify(transformedRelationships));
+      }
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       console.error('[useNPCData] Failed to load NPCs:', errorMessage, err);
       setError(`Failed to load NPCs. Using local storage as fallback.`);
       
-      // Fallback to localStorage
+      // Fallback to localStorage with campaign-specific key
       console.log('[useNPCData] Falling back to localStorage...');
-      const storedNPCs = localStorage.getItem('ttrpg-npcs');
-      if (storedNPCs) {
-        let localNpcs = JSON.parse(storedNPCs);
-        
-        // Apply campaign filter to localStorage data if selectedCampaignId is set
-        if (selectedCampaignId !== undefined && selectedCampaignId !== null) {
-          localNpcs = localNpcs.filter((npc: NPC) => npc.campaignId === selectedCampaignId);
-          console.log(`[useNPCData] Applied campaign filter to localStorage, ${localNpcs.length} NPCs remaining`);
-        }
-        
-        console.log(`[useNPCData] Loaded ${localNpcs.length} NPCs from localStorage`);
+      
+      const storedNPCs = localStorage.getItem(storageKey);
+      const localNpcs = storedNPCs ? JSON.parse(storedNPCs) : [];
+      
+      if (localNpcs.length > 0) {
+        console.log(`[useNPCData] Loaded ${localNpcs.length} NPCs from localStorage with key: ${storageKey}`);
         setNPCs(localNpcs);
       }
       
