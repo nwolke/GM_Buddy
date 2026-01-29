@@ -123,7 +123,15 @@ const {
               {isAuthenticated && !campaignsLoading && campaigns.length > 0 && (
                 <Select
                   value={selectedCampaignId?.toString() ?? "all"}
-                  onValueChange={(value) => setSelectedCampaignId(value === "all" ? undefined : parseInt(value))}
+                  onValueChange={(value) => {
+                    if (value === "all") {
+                      setSelectedCampaignId(undefined);
+                      return;
+                    }
+
+                    const numericId = Number(value);
+                    setSelectedCampaignId(Number.isNaN(numericId) ? undefined : numericId);
+                  }}
                 >
                   <SelectTrigger className="w-[250px] bg-card/50 border-primary/20">
                     <Filter className="size-4 mr-2" />
