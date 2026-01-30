@@ -1,4 +1,4 @@
-﻿using GM_Buddy.Contracts.DbEntities;
+using GM_Buddy.Contracts.DbEntities;
 
 namespace GM_Buddy.Contracts.Interfaces;
 
