@@ -19,7 +19,7 @@ public class AuthLogic : IAuthLogic
         _newAccountDataSeeder = newAccountDataSeeder;
     }
 
-    public async Task<Account> GetOrCreateAccountByCognitoSubAsync(string cognitoSub, string email)
+    public async Task<Account> GetOrCreateAccountByCognitoSubAsync(string cognitoSub, string? email)
     {
         // Try to get existing account
         var account = await _accountRepository.GetByCognitoSubAsync(cognitoSub);
