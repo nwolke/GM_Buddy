@@ -2,7 +2,6 @@ using Dapper;
 using GM_Buddy.Contracts.DbEntities;
 using GM_Buddy.Contracts.Interfaces;
 using Npgsql;
-using System.Security.Principal;
 
 namespace GM_Buddy.Data;
 
