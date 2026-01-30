@@ -37,9 +37,14 @@ public class AuthLogic : IAuthLogic
             account = await _accountRepository.GetByEmailAsync(email);
             if (account != null)
             {
-                _logger.LogInformation("Account {id} is legacy and has no cognito sub. Updating.", account.account_id);
-                // Link existing account to Cognito
-                return await _accountRepository.UpdateCognitoSubForAccount(cognitoSub, account);
+                if (string.IsNullOrEmpty(account.cognito_sub))
+                {
+                    _logger.LogInformation("Account {id} is legacy and has no cognito sub. Updating.", account.account_id);
+                    // Link existing account to Cognito
+                    return await _accountRepository.UpdateCognitoSubForAccount(cognitoSub, account);
+                }
+
+                _logger.LogWarning("Account {id} with email {email} already has a cognito_sub assigned; skipping legacy link.", account.account_id, email);
             }
         }
 
