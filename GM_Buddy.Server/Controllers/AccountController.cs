@@ -12,13 +12,16 @@ public class AccountController : ControllerBase
 {
     private readonly ILogger<AccountController> _logger;
     private readonly IAccountRepository _accountRepository;
+    private readonly IAuthLogic _authLogic;
 
     public AccountController(
         ILogger<AccountController> logger,
-        IAccountRepository accountRepository)
+        IAccountRepository accountRepository,
+        IAuthLogic authLogic)
     {
         _logger = logger;
         _accountRepository = accountRepository;
+        _authLogic = authLogic;
     }
 
     /// <summary>
@@ -41,9 +44,7 @@ public class AccountController : ControllerBase
 
         try
         {
-            var account = await _accountRepository.GetOrCreateByCognitoSubAsync(
-                cognitoSub, 
-                request.Email);
+            var account = await _authLogic.GetOrCreateAccountByCognitoSubAsync(cognitoSub, request.Email);
 
             _logger.LogInformation("Account synced for {CognitoSub}, AccountId: {AccountId}", 
                 cognitoSub, account.account_id);

@@ -2,6 +2,7 @@ using Dapper;
 using GM_Buddy.Contracts.DbEntities;
 using GM_Buddy.Contracts.Interfaces;
 using Npgsql;
+using System.Security.Principal;
 
 namespace GM_Buddy.Data;
 
@@ -66,38 +67,17 @@ public class AccountRepository : IAccountRepository
         return (await GetByIdAsync(accountId))!;
     }
 
-    public async Task<Account> GetOrCreateByCognitoSubAsync(string cognitoSub, string? email = null)
+    public async Task<Account> UpdateCognitoSubForAccount(string cognitoSub, Account account)
     {
-        // Try to get existing account
-        var account = await GetByCognitoSubAsync(cognitoSub);
-        if (account != null)
-        {
-            // Update last login time
-            await UpdateLastLoginAsync(account.account_id);
-            return account;
-        }
-
-        // Check if account exists with same email but no cognito_sub (legacy account)
-        if (!string.IsNullOrEmpty(email))
-        {
-            account = await GetByEmailAsync(email);
-            if (account != null)
-            {
-                // Link existing account to Cognito
-                await using var connection = new NpgsqlConnection(_connectionString);
-                await connection.ExecuteAsync(
-                    @"UPDATE auth.account 
+        await using var connection = new NpgsqlConnection(_connectionString);
+        await connection.ExecuteAsync(
+            @"UPDATE auth.account 
                       SET cognito_sub = @cognitoSub, last_login_at = NOW()
                       WHERE id = @accountId",
-                    new { cognitoSub, accountId = account.account_id });
-                
-                account.cognito_sub = cognitoSub;
-                return account;
-            }
-        }
+            new { cognitoSub, accountId = account.account_id });
 
-        // Create new account
-        return await CreateAsync(cognitoSub, email);
+        account.cognito_sub = cognitoSub;
+        return account;
     }
 
     public async Task UpdateSubscriptionTierAsync(int accountId, string tier)

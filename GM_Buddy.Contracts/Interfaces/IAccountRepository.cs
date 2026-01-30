@@ -26,13 +26,13 @@ public interface IAccountRepository
     /// Create a new account for a Cognito user
     /// </summary>
     Task<Account> CreateAsync(string cognitoSub, string? email = null);
-    
+
     /// <summary>
     /// Get or create an account for a Cognito user (upsert pattern).
     /// Only requires cognitoSub - email is optional.
     /// </summary>
-    Task<Account> GetOrCreateByCognitoSubAsync(string cognitoSub, string? email = null);
-    
+    Task<Account> UpdateCognitoSubForAccount(string cognitoSub, Account account);
+
     /// <summary>
     /// Update the subscription tier for an account
     /// </summary>
