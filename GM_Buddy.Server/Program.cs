@@ -3,6 +3,7 @@ using GM_Buddy.Contracts;
 using GM_Buddy.Contracts.Interfaces;
 using GM_Buddy.Data;
 using GM_Buddy.Server.Helpers;
+using GM_Buddy.Server.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.IdentityModel.Tokens;
@@ -194,6 +195,9 @@ else
 
 // Response Compression - should be early in the pipeline
 app.UseResponseCompression();
+
+// Metrics logging middleware - logs timing and parameters for each request
+app.UseMiddleware<MetricsLoggingMiddleware>();
 
 // CORS must come BEFORE Authentication/Authorization and MapControllers
 app.UseCors("AllowSpecificOrigins");
