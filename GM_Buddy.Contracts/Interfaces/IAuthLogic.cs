@@ -4,5 +4,5 @@ namespace GM_Buddy.Contracts.Interfaces;
 
 public interface IAuthLogic
 {
-    Task<Account> GetOrCreateAccountByCognitoSubAsync(string cognitoSub, string email);
+    Task<Account> GetOrCreateAccountByCognitoSubAsync(string cognitoSub, string? email);
 }
