@@ -1,3 +1,4 @@
+using GM_Buddy.Contracts.Constants;
 using GM_Buddy.Contracts.DbEntities;
 using GM_Buddy.Contracts.Interfaces;
 using GM_Buddy.Server.Helpers;
@@ -65,9 +66,9 @@ public class RelationshipsController : ControllerBase
     {
         try
         {
-            if (!IsValidEntityType(relationship.source_entity_type) || !IsValidEntityType(relationship.target_entity_type))
+            if (!EntityTypes.IsValid(relationship.source_entity_type) || !EntityTypes.IsValid(relationship.target_entity_type))
             {
-                return BadRequest("Invalid entity type. Must be 'npc', 'pc', or 'organization'");
+                return BadRequest($"Invalid entity type. Must be one of: {string.Join(", ", EntityTypes.All)}");
             }
 
             bool exists = await _repository.RelationshipExistsAsync(
@@ -122,9 +123,9 @@ public class RelationshipsController : ControllerBase
     {
         try
         {
-            if (!IsValidEntityType(entityType))
+            if (!EntityTypes.IsValid(entityType))
             {
-                return BadRequest("Invalid entity type. Must be 'npc', 'pc', or 'organization'");
+                return BadRequest($"Invalid entity type. Must be one of: {string.Join(", ", EntityTypes.All)}");
             }
 
             IEnumerable<EntityRelationship> relationships =
@@ -150,9 +151,9 @@ public class RelationshipsController : ControllerBase
     {
         try
         {
-            if (!IsValidEntityType(entityType))
+            if (!EntityTypes.IsValid(entityType))
             {
-                return BadRequest("Invalid entity type. Must be 'npc', 'pc', or 'organization'");
+                return BadRequest($"Invalid entity type. Must be one of: {string.Join(", ", EntityTypes.All)}");
             }
 
             IEnumerable<EntityRelationship> relationships =
@@ -175,9 +176,9 @@ public class RelationshipsController : ControllerBase
     {
         try
         {
-            if (!IsValidEntityType(entityType))
+            if (!EntityTypes.IsValid(entityType))
             {
-                return BadRequest("Invalid entity type. Must be 'npc', 'pc', or 'organization'");
+                return BadRequest($"Invalid entity type. Must be one of: {string.Join(", ", EntityTypes.All)}");
             }
 
             IEnumerable<EntityRelationship> relationships =
@@ -201,9 +202,9 @@ public class RelationshipsController : ControllerBase
     {
         try
         {
-            if (!IsValidEntityType(entityType))
+            if (!EntityTypes.IsValid(entityType))
             {
-                return BadRequest("Invalid entity type. Must be 'npc', 'pc', or 'organization'");
+                return BadRequest($"Invalid entity type. Must be one of: {string.Join(", ", EntityTypes.All)}");
             }
 
             IEnumerable<EntityRelationship> relationships =
@@ -367,13 +368,5 @@ public class RelationshipsController : ControllerBase
     }
 
     #endregion
-
-    #region Helper Methods
-
-    private static bool IsValidEntityType(string entityType)
-    {
-        return entityType is "npc" or "pc" or "organization";
-    }
-
-    #endregion
 }
+

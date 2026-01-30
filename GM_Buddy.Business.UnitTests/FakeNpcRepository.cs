@@ -60,12 +60,17 @@ internal class FakeNpcRepository : INpcRepository
 
 internal class FakeGameSystemRepository : IGameSystemRepository
 {
-    private readonly List<Game_System> _gameSystems = new()
+    private readonly List<Game_System> _gameSystems;
+
+    public FakeGameSystemRepository(IEnumerable<Game_System>? gameSystems = null)
     {
-        new Game_System { game_system_id = 1, game_system_name = "Dungeons & Dragons (5e)" },
-        new Game_System { game_system_id = 2, game_system_name = "Pathfinder 2e" },
-        new Game_System { game_system_id = 3, game_system_name = "Generic" }
-    };
+        _gameSystems = gameSystems?.ToList() ?? new List<Game_System>
+        {
+            new Game_System { game_system_id = 1, game_system_name = "Dungeons & Dragons (5e)" },
+            new Game_System { game_system_id = 2, game_system_name = "Pathfinder 2e" },
+            new Game_System { game_system_id = 3, game_system_name = "Generic" }
+        };
+    }
 
     public Task<IEnumerable<Game_System>> GetAllAsync(CancellationToken ct = default)
     {
@@ -92,6 +97,8 @@ internal class FakeCampaignRepository : ICampaignRepository
         new Campaign { campaign_id = 3, account_id = 5, game_system_id = 1, name = "Test Campaign 3" }
     };
 
+    private int _nextId = 100;
+
     public Task<IEnumerable<Campaign>> GetByAccountIdAsync(int accountId, CancellationToken ct = default)
     {
         return Task.FromResult(_campaigns.Where(c => c.account_id == accountId).AsEnumerable());
@@ -104,7 +111,8 @@ internal class FakeCampaignRepository : ICampaignRepository
 
     public Task<int> CreateAsync(Campaign campaign, CancellationToken ct = default)
     {
-        campaign.campaign_id = _campaigns.Max(c => c.campaign_id) + 1;
+        campaign.campaign_id = _nextId++;
+        campaign.created_at = DateTime.UtcNow;
         _campaigns.Add(campaign);
         return Task.FromResult(campaign.campaign_id);
     }

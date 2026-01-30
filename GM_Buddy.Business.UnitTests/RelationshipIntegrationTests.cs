@@ -1,3 +1,4 @@
+using GM_Buddy.Contracts.Constants;
 using GM_Buddy.Contracts.DbEntities;
 
 namespace GM_Buddy.Business.UnitTests;
@@ -15,9 +16,9 @@ public class RelationshipIntegrationTests
         
         var relationship = new EntityRelationship
         {
-            source_entity_type = "npc",
+            source_entity_type = EntityTypes.Npc,
             source_entity_id = 1,
-            target_entity_type = "pc",
+            target_entity_type = EntityTypes.Pc,
             target_entity_id = 5,
             relationship_type_id = 1, // Friend
             strength = 8,
@@ -30,9 +31,9 @@ public class RelationshipIntegrationTests
 
         // Assert
         Assert.NotNull(retrieved);
-        Assert.Equal("npc", retrieved.source_entity_type);
+        Assert.Equal(EntityTypes.Npc, retrieved.source_entity_type);
         Assert.Equal(1, retrieved.source_entity_id);
-        Assert.Equal("pc", retrieved.target_entity_type);
+        Assert.Equal(EntityTypes.Pc, retrieved.target_entity_type);
         Assert.Equal(5, retrieved.target_entity_id);
         Assert.Equal(8, retrieved.strength);
     }
@@ -46,9 +47,9 @@ public class RelationshipIntegrationTests
         // Create NPC member
         var npcMember = new EntityRelationship
         {
-            source_entity_type = "npc",
+            source_entity_type = EntityTypes.Npc,
             source_entity_id = 1,
-            target_entity_type = "organization",
+            target_entity_type = EntityTypes.Organization,
             target_entity_id = 10,
             relationship_type_id = 7, // Member
             is_active = true
@@ -57,9 +58,9 @@ public class RelationshipIntegrationTests
         // Create PC member
         var pcMember = new EntityRelationship
         {
-            source_entity_type = "pc",
+            source_entity_type = EntityTypes.Pc,
             source_entity_id = 2,
-            target_entity_type = "organization",
+            target_entity_type = EntityTypes.Organization,
             target_entity_id = 10,
             relationship_type_id = 7, // Member
             is_active = true
@@ -69,13 +70,13 @@ public class RelationshipIntegrationTests
         await relationshipRepo.CreateRelationshipAsync(npcMember);
         await relationshipRepo.CreateRelationshipAsync(pcMember);
         
-        var members = await relationshipRepo.GetRelationshipsToEntityAsync("organization", 10);
+        var members = await relationshipRepo.GetRelationshipsToEntityAsync(EntityTypes.Organization, 10);
 
         // Assert
         var memberList = members.ToList();
         Assert.Equal(2, memberList.Count);
-        Assert.Contains(memberList, m => m.source_entity_type == "npc");
-        Assert.Contains(memberList, m => m.source_entity_type == "pc");
+        Assert.Contains(memberList, m => m.source_entity_type == EntityTypes.Npc);
+        Assert.Contains(memberList, m => m.source_entity_type == EntityTypes.Pc);
     }
 
     [Fact]
@@ -86,9 +87,9 @@ public class RelationshipIntegrationTests
         
         var rivalry = new EntityRelationship
         {
-            source_entity_type = "organization",
+            source_entity_type = EntityTypes.Organization,
             source_entity_id = 1,
-            target_entity_type = "organization",
+            target_entity_type = EntityTypes.Organization,
             target_entity_id = 2,
             relationship_type_id = 3, // Enemy
             strength = 10,
@@ -98,7 +99,7 @@ public class RelationshipIntegrationTests
 
         // Act
         await relationshipRepo.CreateRelationshipAsync(rivalry);
-        var enemies = await relationshipRepo.GetRelationshipsByTypeAsync("organization", 1, 3);
+        var enemies = await relationshipRepo.GetRelationshipsByTypeAsync(EntityTypes.Organization, 1, 3);
 
         // Assert
         var enemyList = enemies.ToList();
@@ -115,9 +116,9 @@ public class RelationshipIntegrationTests
         // Campaign 1 relationships
         await relationshipRepo.CreateRelationshipAsync(new EntityRelationship
         {
-            source_entity_type = "npc",
+            source_entity_type = EntityTypes.Npc,
             source_entity_id = 1,
-            target_entity_type = "pc",
+            target_entity_type = EntityTypes.Pc,
             target_entity_id = 2,
             relationship_type_id = 1,
             campaign_id = 1,
@@ -126,9 +127,9 @@ public class RelationshipIntegrationTests
 
         await relationshipRepo.CreateRelationshipAsync(new EntityRelationship
         {
-            source_entity_type = "npc",
+            source_entity_type = EntityTypes.Npc,
             source_entity_id = 3,
-            target_entity_type = "pc",
+            target_entity_type = EntityTypes.Pc,
             target_entity_id = 4,
             relationship_type_id = 1,
             campaign_id = 1,
@@ -138,9 +139,9 @@ public class RelationshipIntegrationTests
         // Campaign 2 relationship
         await relationshipRepo.CreateRelationshipAsync(new EntityRelationship
         {
-            source_entity_type = "npc",
+            source_entity_type = EntityTypes.Npc,
             source_entity_id = 5,
-            target_entity_type = "pc",
+            target_entity_type = EntityTypes.Pc,
             target_entity_id = 6,
             relationship_type_id = 1,
             campaign_id = 2,
@@ -164,9 +165,9 @@ public class RelationshipIntegrationTests
         
         var relationship = new EntityRelationship
         {
-            source_entity_type = "npc",
+            source_entity_type = EntityTypes.Npc,
             source_entity_id = 1,
-            target_entity_type = "pc",
+            target_entity_type = EntityTypes.Pc,
             target_entity_id = 2,
             relationship_type_id = 1,
             is_active = true
@@ -178,8 +179,8 @@ public class RelationshipIntegrationTests
         await relationshipRepo.DeactivateRelationshipAsync(id);
 
         // Assert - Still in database but not in active queries
-        var allRels = await relationshipRepo.GetRelationshipsForEntityAsync("npc", 1, includeInactive: true);
-        var activeRels = await relationshipRepo.GetRelationshipsForEntityAsync("npc", 1, includeInactive: false);
+        var allRels = await relationshipRepo.GetRelationshipsForEntityAsync(EntityTypes.Npc, 1, includeInactive: true);
+        var activeRels = await relationshipRepo.GetRelationshipsForEntityAsync(EntityTypes.Npc, 1, includeInactive: false);
 
         Assert.Single(allRels);
         Assert.Empty(activeRels);
@@ -193,9 +194,9 @@ public class RelationshipIntegrationTests
         
         var mentorRel = new EntityRelationship
         {
-            source_entity_type = "npc",
+            source_entity_type = EntityTypes.Npc,
             source_entity_id = 10, // Mentor NPC
-            target_entity_type = "pc",
+            target_entity_type = EntityTypes.Pc,
             target_entity_id = 5,  // Student PC
             relationship_type_id = 5, // Mentor
             is_active = true
@@ -204,8 +205,8 @@ public class RelationshipIntegrationTests
         // Act
         await relationshipRepo.CreateRelationshipAsync(mentorRel);
 
-        var fromMentor = await relationshipRepo.GetRelationshipsFromEntityAsync("npc", 10);
-        var toStudent = await relationshipRepo.GetRelationshipsToEntityAsync("pc", 5);
+        var fromMentor = await relationshipRepo.GetRelationshipsFromEntityAsync(EntityTypes.Npc, 10);
+        var toStudent = await relationshipRepo.GetRelationshipsToEntityAsync(EntityTypes.Pc, 5);
 
         // Assert
         Assert.Single(fromMentor);
@@ -222,9 +223,9 @@ public class RelationshipIntegrationTests
         // NPC1 is friends with PC1
         await relationshipRepo.CreateRelationshipAsync(new EntityRelationship
         {
-            source_entity_type = "npc",
+            source_entity_type = EntityTypes.Npc,
             source_entity_id = 1,
-            target_entity_type = "pc",
+            target_entity_type = EntityTypes.Pc,
             target_entity_id = 1,
             relationship_type_id = 1, // Friend
             is_active = true
@@ -233,9 +234,9 @@ public class RelationshipIntegrationTests
         // NPC1 is enemy of NPC2
         await relationshipRepo.CreateRelationshipAsync(new EntityRelationship
         {
-            source_entity_type = "npc",
+            source_entity_type = EntityTypes.Npc,
             source_entity_id = 1,
-            target_entity_type = "npc",
+            target_entity_type = EntityTypes.Npc,
             target_entity_id = 2,
             relationship_type_id = 3, // Enemy
             is_active = true
@@ -244,24 +245,24 @@ public class RelationshipIntegrationTests
         // NPC1 is member of Organization1
         await relationshipRepo.CreateRelationshipAsync(new EntityRelationship
         {
-            source_entity_type = "npc",
+            source_entity_type = EntityTypes.Npc,
             source_entity_id = 1,
-            target_entity_type = "organization",
+            target_entity_type = EntityTypes.Organization,
             target_entity_id = 1,
             relationship_type_id = 7, // Member
             is_active = true
         });
 
         // Act
-        var npc1Relationships = await relationshipRepo.GetRelationshipsForEntityAsync("npc", 1);
+        var npc1Relationships = await relationshipRepo.GetRelationshipsForEntityAsync(EntityTypes.Npc, 1);
 
         // Assert
         var relList = npc1Relationships.ToList();
         Assert.Equal(3, relList.Count);
         
         // Verify different target types
-        Assert.Contains(relList, r => r.target_entity_type == "pc");
-        Assert.Contains(relList, r => r.target_entity_type == "npc");
-        Assert.Contains(relList, r => r.target_entity_type == "organization");
+        Assert.Contains(relList, r => r.target_entity_type == EntityTypes.Pc);
+        Assert.Contains(relList, r => r.target_entity_type == EntityTypes.Npc);
+        Assert.Contains(relList, r => r.target_entity_type == EntityTypes.Organization);
     }
 }
