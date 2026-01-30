@@ -69,7 +69,7 @@ public class AuthLogicTests
     }
 
     [Fact]
-    public async Task GetOrCreateAccountByCognitoSubAsync_LegacyAccountWithEmail_LinksToCogitoAndDoesNotSeed()
+    public async Task GetOrCreateAccountByCognitoSubAsync_LegacyAccountWithEmail_LinksToCognitoAndDoesNotSeed()
     {
         // Arrange
         var legacyAccount = new Account
