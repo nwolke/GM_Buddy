@@ -41,13 +41,20 @@ public class MetricsLoggingMiddleware
         // Build parameters string
         var parametersBuilder = new StringBuilder();
         
-        // Add query string parameters
-        if (request.QueryString.HasValue)
+        // Add query string parameters (sanitize sensitive keys)
+        if (request.QueryString.HasValue && request.Query.Count > 0)
         {
-            parametersBuilder.Append($"QueryString: {request.QueryString.Value}");
+            var sanitizedParams = request.Query
+                .Where(q => !IsSensitiveParameter(q.Key))
+                .Select(q => $"{q.Key}={q.Value}");
+            
+            if (sanitizedParams.Any())
+            {
+                parametersBuilder.Append($"QueryString: ?{string.Join("&", sanitizedParams)}");
+            }
         }
 
-        // Add route values
+        // Add route values (filter out controller/action and handle nulls)
         if (request.RouteValues?.Count > 0)
         {
             if (parametersBuilder.Length > 0)
@@ -55,7 +62,7 @@ public class MetricsLoggingMiddleware
             
             var routeParams = string.Join(", ", request.RouteValues
                 .Where(rv => rv.Key != "controller" && rv.Key != "action")
-                .Select(rv => $"{rv.Key}={rv.Value}"));
+                .Select(rv => $"{rv.Key}={rv.Value ?? "null"}"));
             
             if (!string.IsNullOrEmpty(routeParams))
             {
@@ -72,5 +79,11 @@ public class MetricsLoggingMiddleware
             response.StatusCode,
             elapsedMilliseconds,
             parameters);
+    }
+
+    private static bool IsSensitiveParameter(string parameterName)
+    {
+        var sensitiveKeys = new[] { "token", "password", "secret", "key", "auth", "authorization", "apikey", "api_key" };
+        return sensitiveKeys.Any(sk => parameterName.Contains(sk, StringComparison.OrdinalIgnoreCase));
     }
 }
