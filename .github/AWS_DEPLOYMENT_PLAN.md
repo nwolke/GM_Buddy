@@ -242,12 +242,14 @@ Instead of installing Flyway CLI, you can use the official Docker image:
   run: |
     docker run --rm \
       -v $(pwd)/db/migration:/flyway/sql \
-      flyway/flyway:10-alpine \
+      flyway/flyway:10.21.0-alpine \
       -url=jdbc:postgresql://${{ secrets.DB_HOST }}:${{ secrets.DB_PORT }}/${{ secrets.DB_NAME }} \
       -user=${{ secrets.DB_USER }} \
       -password=${{ secrets.DB_PASSWORD }} \
       migrate
 ```
+
+**Note**: Use specific version tags (e.g., `10.21.0-alpine`) instead of generic tags (e.g., `10-alpine`) for production to ensure reproducible builds and avoid unexpected changes.
 
 **Flyway Configuration File** (optional):
 
@@ -1050,7 +1052,7 @@ jobs:
         run: |
           docker run --rm \
             -v $(pwd)/db/migration:/flyway/sql \
-            flyway/flyway:10-alpine \
+            flyway/flyway:10.21.0-alpine \
             -url=jdbc:postgresql://${{ secrets.DB_HOST }}:${{ secrets.DB_PORT }}/${{ secrets.DB_NAME }} \
             -user=${{ secrets.DB_USER }} \
             -password=${{ secrets.DB_PASSWORD }} \
@@ -1063,7 +1065,7 @@ jobs:
         run: |
           docker run --rm \
             -v $(pwd)/db/migration:/flyway/sql \
-            flyway/flyway:10-alpine \
+            flyway/flyway:10.21.0-alpine \
             -url=jdbc:postgresql://${{ secrets.DB_HOST }}:${{ secrets.DB_PORT }}/${{ secrets.DB_NAME }} \
             -user=${{ secrets.DB_USER }} \
             -password=${{ secrets.DB_PASSWORD }} \
