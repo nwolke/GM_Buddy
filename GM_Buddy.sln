@@ -27,6 +27,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GM_Buddy.Business.UnitTests
 EndProject
 Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "GM_Buddy.React", "GM_Buddy.React\GM_Buddy.React.esproj", "{454A090A-8E7D-46FB-952C-5481E59B9F02}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GM_Buddy.Business.ComponentTests", "GM_Buddy.Business.ComponentTests\GM_Buddy.Business.ComponentTests.csproj", "{2DCA26FE-C95D-4644-9DE1-845D79B8F3C1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -111,6 +113,18 @@ Global
 		{454A090A-8E7D-46FB-952C-5481E59B9F02}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{454A090A-8E7D-46FB-952C-5481E59B9F02}.Release|x64.ActiveCfg = Release|Any CPU
 		{454A090A-8E7D-46FB-952C-5481E59B9F02}.Release|x86.ActiveCfg = Release|Any CPU
+		{2DCA26FE-C95D-4644-9DE1-845D79B8F3C1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2DCA26FE-C95D-4644-9DE1-845D79B8F3C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2DCA26FE-C95D-4644-9DE1-845D79B8F3C1}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2DCA26FE-C95D-4644-9DE1-845D79B8F3C1}.Debug|x64.Build.0 = Debug|Any CPU
+		{2DCA26FE-C95D-4644-9DE1-845D79B8F3C1}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2DCA26FE-C95D-4644-9DE1-845D79B8F3C1}.Debug|x86.Build.0 = Debug|Any CPU
+		{2DCA26FE-C95D-4644-9DE1-845D79B8F3C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2DCA26FE-C95D-4644-9DE1-845D79B8F3C1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2DCA26FE-C95D-4644-9DE1-845D79B8F3C1}.Release|x64.ActiveCfg = Release|Any CPU
+		{2DCA26FE-C95D-4644-9DE1-845D79B8F3C1}.Release|x64.Build.0 = Release|Any CPU
+		{2DCA26FE-C95D-4644-9DE1-845D79B8F3C1}.Release|x86.ActiveCfg = Release|Any CPU
+		{2DCA26FE-C95D-4644-9DE1-845D79B8F3C1}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
