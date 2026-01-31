@@ -98,4 +98,21 @@ public class AccountRepository : IAccountRepository
               WHERE id = @accountId",
             new { accountId });
     }
+
+    public async Task DeleteAsync(int accountId)
+    {
+        await using var connection = new NpgsqlConnection(_connectionString);
+        
+        // The database CASCADE constraints will automatically delete:
+        // - user_roles (via account_id FK)
+        // - campaigns (via account_id FK) ? which CASCADE to npcs
+        // - npcs (via account_id FK)
+        // - pcs (via account_id FK)
+        // - organizations (via account_id FK)
+        // - entity_relationships are handled indirectly through entity deletions
+        
+        await connection.ExecuteAsync(
+            @"DELETE FROM auth.account WHERE id = @accountId",
+            new { accountId });
+    }
 }

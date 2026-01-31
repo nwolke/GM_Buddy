@@ -13,15 +13,18 @@ public class AccountController : ControllerBase
     private readonly ILogger<AccountController> _logger;
     private readonly IAccountRepository _accountRepository;
     private readonly IAuthLogic _authLogic;
+    private readonly IAccountLogic _accountLogic;
 
     public AccountController(
         ILogger<AccountController> logger,
         IAccountRepository accountRepository,
-        IAuthLogic authLogic)
+        IAuthLogic authLogic,
+        IAccountLogic accountLogic)
     {
         _logger = logger;
         _accountRepository = accountRepository;
         _authLogic = authLogic;
+        _accountLogic = accountLogic;
     }
 
     /// <summary>
@@ -96,6 +99,82 @@ public class AccountController : ControllerBase
             SubscriptionTier = account.subscription_tier,
             CreatedAt = account.created_at
         });
+    }
+
+    /// <summary>
+    /// Delete the current user's account and all associated data.
+    /// This will CASCADE delete all campaigns, NPCs, PCs, organizations, and relationships.
+    /// NOTE: The Cognito user will remain in AWS User Pool. The user can log back in to create a new account.
+    /// </summary>
+    [HttpDelete]
+    [Authorize]
+    public async Task<ActionResult> DeleteAccount()
+    {
+        var cognitoSubClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (cognitoSubClaim == null)
+        {
+            return Unauthorized("Invalid token: sub claim missing");
+        }
+
+        string cognitoSub = cognitoSubClaim.Value;
+
+        var account = await _accountRepository.GetByCognitoSubAsync(cognitoSub);
+        if (account == null)
+        {
+            return NotFound("Account not found");
+        }
+
+        try
+        {
+            await _accountLogic.DeleteAccountAsync(account.account_id);
+            
+            _logger.LogInformation("Account {AccountId} deleted successfully for user {CognitoSub}", 
+                account.account_id, cognitoSub);
+
+            return Ok(new { message = "Account successfully deleted" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting account {AccountId}", account.account_id);
+            return StatusCode(500, "Failed to delete account");
+        }
+    }
+
+    /// <summary>
+    /// Export all account data as JSON.
+    /// Includes campaigns, NPCs, PCs, organizations, and relationships.
+    /// </summary>
+    [HttpGet("export")]
+    [Authorize]
+    public async Task<ActionResult> ExportAccountData()
+    {
+        var cognitoSubClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (cognitoSubClaim == null)
+        {
+            return Unauthorized("Invalid token: sub claim missing");
+        }
+
+        string cognitoSub = cognitoSubClaim.Value;
+
+        var account = await _accountRepository.GetByCognitoSubAsync(cognitoSub);
+        if (account == null)
+        {
+            return NotFound("Account not found");
+        }
+
+        try
+        {
+            var exportData = await _accountLogic.ExportAccountDataAsync(account.account_id);
+            
+            _logger.LogInformation("Account data exported successfully for account {AccountId}", account.account_id);
+
+            return Ok(exportData);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error exporting account data for {AccountId}", account.account_id);
+            return StatusCode(500, "Failed to export account data");
+        }
     }
 }
 

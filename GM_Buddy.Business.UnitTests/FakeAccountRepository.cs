@@ -84,4 +84,14 @@ internal class FakeAccountRepository : IAccountRepository
         }
         return Task.CompletedTask;
     }
+
+    public Task DeleteAsync(int accountId)
+    {
+        var account = _accounts.FirstOrDefault(a => a.account_id == accountId);
+        if (account != null)
+        {
+            _accounts.Remove(account);
+        }
+        return Task.CompletedTask;
+    }
 }
