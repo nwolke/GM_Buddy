@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { Header } from "@/app/components/Header";
 import { Button } from "@/app/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/components/ui/card";
@@ -18,16 +19,16 @@ import { accountApi } from "@/services/api";
 import { LogOut, Trash2, Mail, ArrowLeft, Download } from "lucide-react";
 
 export function AccountPage() {
-const { user, logout } = useAuth();
-const navigate = useNavigate();
-const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-const [isDeleting, setIsDeleting] = useState(false);
-const [isExporting, setIsExporting] = useState(false);
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
-const handleLogout = () => {
-  logout();
-  navigate("/");
-};
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
 
   const handleExportData = async () => {
     setIsExporting(true);
@@ -54,11 +55,11 @@ const handleLogout = () => {
       // Cleanup
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-      
-      console.log('Data exported successfully');
+
+      toast.success('Data exported successfully');
     } catch (error) {
       console.error('Error exporting data:', error);
-      alert('Failed to export data. Please try again.');
+      toast.error('Failed to export data. Please try again.');
     } finally {
       setIsExporting(false);
     }
@@ -74,7 +75,7 @@ const handleLogout = () => {
       navigate("/");
     } catch (error) {
       console.error('Error deleting account:', error);
-      alert('Failed to delete account. Please try again.');
+      toast.error('Failed to delete account. Please try again.');
     } finally {
       setIsDeleting(false);
       setShowDeleteDialog(false);
