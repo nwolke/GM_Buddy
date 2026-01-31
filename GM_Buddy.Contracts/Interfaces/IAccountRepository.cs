@@ -43,4 +43,9 @@ public interface IAccountRepository
     /// Update last login timestamp
     /// </summary>
     Task UpdateLastLoginAsync(int accountId);
+
+    /// <summary>
+    /// Delete an account and all associated data (cascades via database constraints)
+    /// </summary>
+    Task DeleteAsync(int accountId);
 }
