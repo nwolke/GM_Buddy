@@ -19,14 +19,12 @@ interface HeaderProps {
 }
 
 export function Header({ showRefresh = false, onRefresh, loading = false, error = null }: HeaderProps) {
-const { isAuthenticated, user, loginWithCognito, logout } = useAuth();
-const navigate = useNavigate();
-const location = useLocation();
+  const { isAuthenticated, user, loginWithCognito, logout } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-const isOnNPCManager = location.pathname === '/npc-manager';
-const isOnCampaignManager = location.pathname === '/campaign-manager';
-
-console.log('[Header] Authenticated:', isAuthenticated, 'User:', user?.email);
+  const isOnNPCManager = location.pathname === '/npc-manager';
+  const isOnCampaignManager = location.pathname === '/campaign-manager';
 
   return (
     <div className="flex items-center justify-between mb-8">
@@ -94,10 +92,7 @@ console.log('[Header] Authenticated:', isAuthenticated, 'User:', user?.email);
             <Button 
               variant="ghost" 
               size="sm"
-              onClick={() => {
-                console.log('[Header] Account button clicked');
-                navigate('/account');
-              }}
+              onClick={() => navigate('/account')}
             >
               <Settings className="size-4 mr-2" />
               Account
@@ -108,7 +103,6 @@ console.log('[Header] Authenticated:', isAuthenticated, 'User:', user?.email);
                   variant="outline" 
                   size="sm" 
                   className="gap-2"
-                  onClick={() => console.log('[Header] Dropdown trigger clicked')}
                 >
                   <UserCircle className="size-4" />
                   <span className="hidden sm:inline">{user?.email}</span>
@@ -117,18 +111,12 @@ console.log('[Header] Authenticated:', isAuthenticated, 'User:', user?.email);
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => {
-                  console.log('[Header] Account menu item clicked');
-                  navigate('/account');
-                }}>
+                <DropdownMenuItem onClick={() => navigate('/account')}>
                   <Settings className="size-4 mr-2" />
                   Account Settings
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => {
-                  console.log('[Header] Logout clicked');
-                  logout();
-                }}>
+                <DropdownMenuItem onClick={() => logout()}>
                   <LogOut className="size-4 mr-2" />
                   Logout
                 </DropdownMenuItem>
