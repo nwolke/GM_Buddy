@@ -7,13 +7,13 @@ Scenario: Creating a new NPC with valid data
     Given I have a valid campaign with ID 1 for account 100
     When I create an NPC with the following details:
         | Field       | Value                |
-        | Name        | Gandalf              |
+        | Name        | Aldric               |
         | Description | A wise wizard        |
         | Race        | Human                |
         | Class       | Wizard               |
-        | Faction     | The White Council    |
+        | Faction     | The Mage Guild       |
     Then the NPC should be created successfully
-    And the NPC should have name "Gandalf"
+    And the NPC should have name "Aldric"
     And the NPC should have race "Human"
     And the NPC should have class "Wizard"
 
@@ -31,13 +31,13 @@ Scenario: Updating an existing NPC
     Given I have an existing NPC with ID 1 for account 100
     When I update the NPC with the following details:
         | Field       | Value                |
-        | Name        | Gandalf the White    |
-        | Description | The White Rider      |
-        | Race        | Maiar                |
+        | Name        | Aldric the Wise      |
+        | Description | The Sage Mentor      |
+        | Race        | Celestial            |
         | Class       | Wizard               |
     Then the NPC should be updated successfully
-    And the NPC should have name "Gandalf the White"
-    And the NPC should have race "Maiar"
+    And the NPC should have name "Aldric the Wise"
+    And the NPC should have race "Celestial"
 
 Scenario: Deleting an NPC
     Given I have an existing NPC with ID 1
@@ -47,17 +47,17 @@ Scenario: Deleting an NPC
 Scenario: Getting NPCs for a specific campaign
     Given I have a campaign with ID 1 for account 100
     And the campaign has the following NPCs:
-        | Name    | Race  | Class   |
-        | Frodo   | Hobbit| Burglar |
-        | Aragorn | Human | Ranger  |
-        | Legolas | Elf   | Archer  |
+        | Name    | Race     | Class   |
+        | Beren   | Halfling | Rogue   |
+        | Theron  | Human    | Ranger  |
+        | Elara   | Elf      | Archer  |
     When I retrieve all NPCs for campaign 1
     Then I should get 3 NPCs
-    And the NPC list should contain "Frodo"
-    And the NPC list should contain "Aragorn"
-    And the NPC list should contain "Legolas"
+    And the NPC list should contain "Beren"
+    And the NPC list should contain "Theron"
+    And the NPC list should contain "Elara"
 
 Scenario: Getting a specific NPC by ID
-    Given I have an existing NPC with ID 1 named "Gimli"
+    Given I have an existing NPC with ID 1 named "Thorin"
     When I retrieve the NPC with ID 1
-    Then I should get an NPC named "Gimli"
+    Then I should get an NPC named "Thorin"

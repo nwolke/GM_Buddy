@@ -107,7 +107,7 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1.AddRow(new string[] {
                             "Name",
-                            "Gandalf"});
+                            "Aldric"});
                 table1.AddRow(new string[] {
                             "Description",
                             "A wise wizard"});
@@ -119,7 +119,7 @@ this.ScenarioInitialize(scenarioInfo);
                             "Wizard"});
                 table1.AddRow(new string[] {
                             "Faction",
-                            "The White Council"});
+                            "The Mage Guild"});
 #line 8
     testRunner.When("I create an NPC with the following details:", ((string)(null)), table1, "When ");
 #line hidden
@@ -127,7 +127,7 @@ this.ScenarioInitialize(scenarioInfo);
     testRunner.Then("the NPC should be created successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 16
-    testRunner.And("the NPC should have name \"Gandalf\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    testRunner.And("the NPC should have name \"Aldric\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 17
     testRunner.And("the NPC should have race \"Human\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
@@ -227,13 +227,13 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table2.AddRow(new string[] {
                             "Name",
-                            "Gandalf the White"});
+                            "Aldric the Wise"});
                 table2.AddRow(new string[] {
                             "Description",
-                            "The White Rider"});
+                            "The Sage Mentor"});
                 table2.AddRow(new string[] {
                             "Race",
-                            "Maiar"});
+                            "Celestial"});
                 table2.AddRow(new string[] {
                             "Class",
                             "Wizard"});
@@ -244,10 +244,10 @@ this.ScenarioInitialize(scenarioInfo);
     testRunner.Then("the NPC should be updated successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 39
-    testRunner.And("the NPC should have name \"Gandalf the White\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    testRunner.And("the NPC should have name \"Aldric the Wise\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 40
-    testRunner.And("the NPC should have race \"Maiar\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    testRunner.And("the NPC should have race \"Celestial\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
@@ -310,15 +310,15 @@ this.ScenarioInitialize(scenarioInfo);
                             "Race",
                             "Class"});
                 table3.AddRow(new string[] {
-                            "Frodo",
-                            "Hobbit",
-                            "Burglar"});
+                            "Beren",
+                            "Halfling",
+                            "Rogue"});
                 table3.AddRow(new string[] {
-                            "Aragorn",
+                            "Theron",
                             "Human",
                             "Ranger"});
                 table3.AddRow(new string[] {
-                            "Legolas",
+                            "Elara",
                             "Elf",
                             "Archer"});
 #line 49
@@ -331,13 +331,13 @@ this.ScenarioInitialize(scenarioInfo);
     testRunner.Then("I should get 3 NPCs", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 56
-    testRunner.And("the NPC list should contain \"Frodo\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    testRunner.And("the NPC list should contain \"Beren\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 57
-    testRunner.And("the NPC list should contain \"Aragorn\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    testRunner.And("the NPC list should contain \"Theron\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 58
-    testRunner.And("the NPC list should contain \"Legolas\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    testRunner.And("the NPC list should contain \"Elara\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
@@ -362,13 +362,13 @@ this.ScenarioInitialize(scenarioInfo);
             {
                 this.ScenarioStart();
 #line 61
-    testRunner.Given("I have an existing NPC with ID 1 named \"Gimli\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+    testRunner.Given("I have an existing NPC with ID 1 named \"Thorin\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
 #line 62
     testRunner.When("I retrieve the NPC with ID 1", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 63
-    testRunner.Then("I should get an NPC named \"Gimli\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+    testRunner.Then("I should get an NPC named \"Thorin\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
             }
             this.ScenarioCleanup();
