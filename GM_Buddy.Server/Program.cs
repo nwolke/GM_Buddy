@@ -113,6 +113,7 @@ builder.Services.AddScoped<IGameSystemRepository, GameSystemRepository>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAuthHelper, AuthHelper>();
 builder.Services.AddScoped<IAuthLogic, AuthLogic>();
+builder.Services.AddScoped<IAccountLogic, AccountLogic>();
 builder.Services.AddScoped<INewAccountDataSeeder, NewAccountDataSeeder>();
 
 // Register AccountRepository for Cognito user management

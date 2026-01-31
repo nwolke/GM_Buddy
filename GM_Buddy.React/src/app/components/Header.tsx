@@ -1,5 +1,13 @@
-import { Scroll, RefreshCw, LogIn, LogOut, Users } from "lucide-react";
+import { Scroll, RefreshCw, LogIn, LogOut, Users, UserCircle, Settings } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/app/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 
@@ -81,11 +89,39 @@ export function Header({ showRefresh = false, onRefresh, loading = false, error 
         )}
         {isAuthenticated ? (
           <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">{user?.email}</span>
-            <Button variant="outline" size="sm" onClick={logout}>
-              <LogOut className="size-4 mr-2" />
-              Logout
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => navigate('/account')}
+            >
+              <Settings className="size-4 mr-2" />
+              Account
             </Button>
+            <DropdownMenu modal={false}>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="gap-2"
+                >
+                  <UserCircle className="size-4" />
+                  <span className="hidden sm:inline">{user?.email}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => navigate('/account')}>
+                  <Settings className="size-4 mr-2" />
+                  Account Settings
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => logout()}>
+                  <LogOut className="size-4 mr-2" />
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         ) : (
           <Button variant="default" size="sm" onClick={loginWithCognito}>
