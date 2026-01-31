@@ -105,7 +105,7 @@ public class AccountRepository : IAccountRepository
         
         // The database CASCADE constraints will automatically delete:
         // - user_roles (via account_id FK)
-        // - campaigns (via account_id FK) ? which CASCADE to npcs
+        // - campaigns (via account_id FK) → which CASCADE to npcs
         // - npcs (via account_id FK)
         // - pcs (via account_id FK)
         // - organizations (via account_id FK)
