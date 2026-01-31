@@ -3,6 +3,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { LandingPage } from "@/app/pages/LandingPage";
 import { NPCManagerPage } from "@/app/pages/NPCManagerPage";
 import { CampaignManagerPage } from "@/app/pages/CampaignManagerPage";
+import { AccountPage } from "@/app/pages/AccountPage";
 import { ProtectedRoute } from "@/app/components/ProtectedRoute";
 
 console.log('[App] GM Buddy React App loading - v7');
@@ -24,6 +25,14 @@ export default function App() {
           <Route 
             path="/campaign-manager" 
             element={<CampaignManagerPage />} 
+          />
+          <Route 
+            path="/account" 
+            element={
+              <ProtectedRoute>
+                <AccountPage />
+              </ProtectedRoute>
+            } 
           />
           <Route path="/callback" element={<LandingPage />} />
         </Routes>

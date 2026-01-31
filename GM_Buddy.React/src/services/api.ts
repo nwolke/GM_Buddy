@@ -297,6 +297,16 @@ export const accountApi = {
       return null;
     }
   },
+
+  // Export all account data
+  async exportData() {
+    return await apiClient.get('/Account/export');
+  },
+
+  // Delete account and all data
+  async deleteAccount(): Promise<void> {
+    await apiClient.delete('/Account');
+  },
 };
 
 // Game System API response type
