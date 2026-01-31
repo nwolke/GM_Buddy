@@ -98,5 +98,35 @@ In production, nginx handles the proxying.
 - **shadcn/ui** - Component library
 - **react-force-graph-2d** - Network visualization
 - **axios** - HTTP client
+- **Vitest** - Unit testing framework
+- **React Testing Library** - Component testing utilities
+
+## Testing
+
+This project includes a comprehensive test suite. For detailed information about testing, see [TESTING.md](./TESTING.md).
+
+### Quick Start
+
+```bash
+# Run tests in watch mode
+npm test
+
+# Run tests once
+npm test -- --run
+
+# Run tests with coverage
+npm test:coverage
+```
+
+### Test Coverage
+
+The test suite includes:
+- **Component tests** - NPCCard, CampaignCard, and more
+- **Hook tests** - useCampaignData, useNPCData
+- **Context tests** - AuthContext
+- **Utility tests** - Helper functions and type definitions
+- **45+ tests** across multiple test suites
+
+Test files are located alongside their source files with a `.test.ts` or `.test.tsx` extension.
 
   
