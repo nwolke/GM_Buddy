@@ -140,13 +140,13 @@ Scenario: Creating a new NPC with valid data
     Given I have a valid campaign with ID 1 for account 100
     When I create an NPC with the following details:
         | Field       | Value                |
-        | Name        | Gandalf              |
+        | Name        | Aldric               |
         | Description | A wise wizard        |
         | Race        | Human                |
         | Class       | Wizard               |
-        | Faction     | The White Council    |
+        | Faction     | The Mage Guild       |
     Then the NPC should be created successfully
-    And the NPC should have name "Gandalf"
+    And the NPC should have name "Aldric"
     And the NPC should have race "Human"
     And the NPC should have class "Wizard"
 ```
