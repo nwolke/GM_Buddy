@@ -159,10 +159,120 @@ migrations/
   002_add_inventory_table.sql
 ```
 
-**Option B**: Use a migration tool like Flyway or Liquibase
-- More robust version tracking
-- Automatic rollback support
-- Migration history table
+**Option B**: Use Flyway (Recommended)
+
+Flyway Community Edition is **free and open source** (Apache License 2.0) and provides robust database migration management. Since you have experience with Flyway, this is the recommended approach.
+
+**Benefits of Flyway**:
+- Version control for database schema changes
+- Automatic tracking of applied migrations in `flyway_schema_history` table
+- Built-in validation and checksums to prevent accidental changes
+- Support for both SQL and Java-based migrations
+- Rollback support (with undo migrations)
+- Works seamlessly with PostgreSQL and CI/CD pipelines
+- No vendor lock-in - uses plain SQL files
+
+**Directory Structure**:
+```
+db/
+  migration/
+    V1__Initial_schema.sql          # init.sql content
+    V2__Add_session_table.sql
+    V3__Add_inventory_table.sql
+    V4__Add_user_preferences.sql
+```
+
+**Naming Convention**:
+- `V{version}__{description}.sql` for versioned migrations
+- `U{version}__{description}.sql` for undo migrations (optional)
+- `R__repeatable_migration.sql` for repeatable migrations (views, procedures)
+
+**GitHub Actions Workflow with Flyway**:
+
+1. **Setup Flyway CLI**
+   ```yaml
+   - name: Download and setup Flyway
+     run: |
+       wget -qO- https://download.red-gate.com/maven/release/com/redgate/flyway/flyway-commandline/10.21.0/flyway-commandline-10.21.0-linux-x64.tar.gz | tar -xz
+       sudo ln -s $(pwd)/flyway-10.21.0/flyway /usr/local/bin/flyway
+       flyway -v
+   ```
+
+2. **Run Flyway Migration**
+   ```yaml
+   - name: Run Flyway migrations
+     env:
+       FLYWAY_URL: jdbc:postgresql://${{ secrets.DB_HOST }}:${{ secrets.DB_PORT }}/${{ secrets.DB_NAME }}
+       FLYWAY_USER: ${{ secrets.DB_USER }}
+       FLYWAY_PASSWORD: ${{ secrets.DB_PASSWORD }}
+       FLYWAY_LOCATIONS: filesystem:./db/migration
+     run: |
+       flyway migrate -outOfOrder=false -validateOnMigrate=true
+   ```
+
+3. **Validate Migrations** (optional, good for PRs)
+   ```yaml
+   - name: Validate Flyway migrations
+     env:
+       FLYWAY_URL: jdbc:postgresql://${{ secrets.DB_HOST }}:${{ secrets.DB_PORT }}/${{ secrets.DB_NAME }}
+       FLYWAY_USER: ${{ secrets.DB_USER }}
+       FLYWAY_PASSWORD: ${{ secrets.DB_PASSWORD }}
+       FLYWAY_LOCATIONS: filesystem:./db/migration
+     run: |
+       flyway validate
+   ```
+
+**Initial Migration Setup**:
+
+To start using Flyway with existing `init.sql`:
+
+1. Create `db/migration/V1__Initial_schema.sql` with content from `init.sql`
+2. Run baseline command if database already has tables:
+   ```bash
+   flyway baseline -baselineVersion=1 -baselineDescription="Initial schema"
+   ```
+3. This marks existing schema as version 1, and Flyway will apply V2+ migrations
+
+**Flyway Docker Alternative**:
+
+Instead of installing Flyway CLI, you can use the official Docker image:
+
+```yaml
+- name: Run Flyway migrations with Docker
+  run: |
+    docker run --rm \
+      -v $(pwd)/db/migration:/flyway/sql \
+      flyway/flyway:10-alpine \
+      -url=jdbc:postgresql://${{ secrets.DB_HOST }}:${{ secrets.DB_PORT }}/${{ secrets.DB_NAME }} \
+      -user=${{ secrets.DB_USER }} \
+      -password=${{ secrets.DB_PASSWORD }} \
+      migrate
+```
+
+**Flyway Configuration File** (optional):
+
+Create `flyway.conf` in repository root:
+```properties
+flyway.locations=filesystem:./db/migration
+flyway.validateOnMigrate=true
+flyway.outOfOrder=false
+flyway.cleanDisabled=true
+```
+
+Then simplify workflow:
+```yaml
+- name: Run Flyway migrations
+  env:
+    FLYWAY_URL: jdbc:postgresql://${{ secrets.DB_HOST }}:${{ secrets.DB_PORT }}/${{ secrets.DB_NAME }}
+    FLYWAY_USER: ${{ secrets.DB_USER }}
+    FLYWAY_PASSWORD: ${{ secrets.DB_PASSWORD }}
+  run: flyway migrate
+```
+
+**Option C**: Use Liquibase (alternative to Flyway)
+- Similar features to Flyway
+- XML, YAML, JSON, or SQL format support
+- Good for complex database refactoring
 
 ---
 
@@ -837,6 +947,158 @@ jobs:
             --query 'Invalidation.Id' \
             --output text)
           echo "CloudFront invalidation created: $INVALIDATION_ID"
+```
+
+### A.4 Database Migration Workflow with Flyway (Recommended)
+
+```yaml
+name: Database Migration with Flyway
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+      command:
+        description: 'Flyway command to run'
+        required: true
+        type: choice
+        default: 'migrate'
+        options:
+          - migrate
+          - validate
+          - info
+          - baseline
+  push:
+    branches:
+      - main
+    paths:
+      - 'db/migration/**'
+
+jobs:
+  flyway:
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || 'development' }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download and setup Flyway
+        run: |
+          wget -qO- https://download.red-gate.com/maven/release/com/redgate/flyway/flyway-commandline/10.21.0/flyway-commandline-10.21.0-linux-x64.tar.gz | tar -xz
+          sudo ln -s $(pwd)/flyway-10.21.0/flyway /usr/local/bin/flyway
+          flyway -v
+      
+      - name: Run Flyway migrations
+        env:
+          FLYWAY_URL: jdbc:postgresql://${{ secrets.DB_HOST }}:${{ secrets.DB_PORT }}/${{ secrets.DB_NAME }}
+          FLYWAY_USER: ${{ secrets.DB_USER }}
+          FLYWAY_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          FLYWAY_LOCATIONS: filesystem:./db/migration
+        run: |
+          COMMAND="${{ github.event.inputs.command || 'migrate' }}"
+          echo "Running Flyway $COMMAND..."
+          flyway $COMMAND -outOfOrder=false -validateOnMigrate=true
+          echo "Flyway $COMMAND completed successfully"
+      
+      - name: Show migration info
+        if: success()
+        env:
+          FLYWAY_URL: jdbc:postgresql://${{ secrets.DB_HOST }}:${{ secrets.DB_PORT }}/${{ secrets.DB_NAME }}
+          FLYWAY_USER: ${{ secrets.DB_USER }}
+          FLYWAY_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          FLYWAY_LOCATIONS: filesystem:./db/migration
+        run: |
+          echo "Current database migration status:"
+          flyway info
+```
+
+**Alternative: Flyway with Docker**
+
+```yaml
+name: Database Migration with Flyway (Docker)
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+
+jobs:
+  flyway-docker:
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Run Flyway migrations with Docker
+        run: |
+          docker run --rm \
+            -v $(pwd)/db/migration:/flyway/sql \
+            flyway/flyway:10-alpine \
+            -url=jdbc:postgresql://${{ secrets.DB_HOST }}:${{ secrets.DB_PORT }}/${{ secrets.DB_NAME }} \
+            -user=${{ secrets.DB_USER }} \
+            -password=${{ secrets.DB_PASSWORD }} \
+            -connectRetries=5 \
+            -validateOnMigrate=true \
+            migrate
+      
+      - name: Show migration info
+        if: success()
+        run: |
+          docker run --rm \
+            -v $(pwd)/db/migration:/flyway/sql \
+            flyway/flyway:10-alpine \
+            -url=jdbc:postgresql://${{ secrets.DB_HOST }}:${{ secrets.DB_PORT }}/${{ secrets.DB_NAME }} \
+            -user=${{ secrets.DB_USER }} \
+            -password=${{ secrets.DB_PASSWORD }} \
+            info
+```
+
+**Flyway Configuration File Example** (`flyway.conf`):
+
+```properties
+# Flyway configuration for GM Buddy
+flyway.locations=filesystem:./db/migration
+flyway.validateOnMigrate=true
+flyway.outOfOrder=false
+flyway.cleanDisabled=true
+flyway.baselineOnMigrate=false
+flyway.table=flyway_schema_history
+flyway.schemas=auth,public
+flyway.placeholders.app_name=GM Buddy
+```
+
+**Initial Migration File** (`db/migration/V1__Initial_schema.sql`):
+
+This would contain the current `init.sql` content as the baseline schema.
+
+**Example Migration Files**:
+
+```
+db/
+  migration/
+    V1__Initial_schema.sql              # Current init.sql content
+    V2__Add_session_table.sql
+    V3__Add_user_preferences.sql
+    V4__Add_campaign_sharing.sql
+    V5__Add_search_indexes.sql
+    R__Refresh_campaign_view.sql        # Repeatable migration
 ```
 
 ---

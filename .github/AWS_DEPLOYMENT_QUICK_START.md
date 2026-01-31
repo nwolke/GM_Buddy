@@ -47,16 +47,24 @@ Navigate to **Settings > Secrets and variables > Actions** in your repository an
 
 ## Workflow Files to Create
 
-Create these three workflow files in `.github/workflows/`:
+Create these workflow files in `.github/workflows/`:
 
-### 1. Database Migration
+### 1. Database Migration (with Flyway - Recommended)
 **File**: `.github/workflows/database-migration.yml`
 
-**Purpose**: Deploy init.sql and migration files to RDS
+**Purpose**: Deploy database schema and migrations to RDS using Flyway
 
-**Trigger**: Manual workflow dispatch
+**Trigger**: Manual workflow dispatch or push to `db/migration/**`
 
-**Example**: See Appendix A.1 in the deployment plan
+**Why Flyway**: 
+- Free and open source (Apache License 2.0)
+- Automatic version tracking and validation
+- Prevents accidental schema changes with checksums
+- Built-in rollback support
+
+**Example**: See Appendix A.4 in the deployment plan
+
+**Alternative**: Basic psql approach in Appendix A.1
 
 ### 2. Server Deployment
 **File**: `.github/workflows/deploy-server.yml`
@@ -82,7 +90,12 @@ Create these three workflow files in `.github/workflows/`:
    - Add all required secrets to repository
    - Verify values are correct
 
-2. **Run Database Migration**
+2. **Prepare Database Migrations (if using Flyway)**
+   - Create `db/migration/` directory
+   - Move `init.sql` content to `V1__Initial_schema.sql`
+   - Future migrations follow pattern: `V2__description.sql`
+
+3. **Run Database Migration**
    - Go to Actions tab in GitHub
    - Select "Database Migration" workflow
    - Click "Run workflow"
