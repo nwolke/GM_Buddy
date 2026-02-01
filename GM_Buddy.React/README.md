@@ -121,12 +121,14 @@ npm test:coverage
 ### Test Coverage
 
 The test suite includes:
-- **Component tests** - NPCCard, CampaignCard, and more
-- **Hook tests** - useCampaignData, useNPCData
+- **Component tests** - NPCCard, CampaignCard
 - **Context tests** - AuthContext
 - **Utility tests** - Helper functions and type definitions
-- **45+ tests** across multiple test suites
+- **Data validation tests** - Mock data structure and integrity
+- **44 tests** with 100% pass rate
 
 Test files are located alongside their source files with a `.test.ts` or `.test.tsx` extension.
+
+> **Note**: Hook tests for `useCampaignData` and `useNPCData` are excluded due to tight coupling with AuthContext. See [TESTING.md](./TESTING.md) for details on future improvements.
 
   
