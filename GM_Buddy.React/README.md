@@ -125,7 +125,7 @@ The test suite includes:
 - **Context tests** - AuthContext
 - **Utility tests** - Helper functions and type definitions
 - **Data validation tests** - Mock data structure and integrity
-- **44 tests** with 100% pass rate
+- **50 tests** with 100% pass rate
 
 Test files are located alongside their source files with a `.test.ts` or `.test.tsx` extension.
 

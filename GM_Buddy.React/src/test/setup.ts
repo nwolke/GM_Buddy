@@ -22,20 +22,29 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 })
 
-// Mock localStorage
-const localStorageMock = {
-  getItem: vi.fn(),
-  setItem: vi.fn(),
-  removeItem: vi.fn(),
-  clear: vi.fn(),
+// Mock localStorage / sessionStorage with in-memory implementation
+const createStorageMock = () => {
+  const store = new Map<string, string>()
+
+  return {
+    getItem: vi.fn((key: string): string | null => {
+      return store.has(key) ? store.get(key)! : null
+    }),
+    setItem: vi.fn((key: string, value: string): void => {
+      store.set(key, String(value))
+    }),
+    removeItem: vi.fn((key: string): void => {
+      store.delete(key)
+    }),
+    clear: vi.fn((): void => {
+      store.clear()
+    }),
+  }
 }
+
+const localStorageMock = createStorageMock()
 global.localStorage = localStorageMock as any
 
 // Mock sessionStorage
-const sessionStorageMock = {
-  getItem: vi.fn(),
-  setItem: vi.fn(),
-  removeItem: vi.fn(),
-  clear: vi.fn(),
-}
+const sessionStorageMock = createStorageMock()
 global.sessionStorage = sessionStorageMock as any
