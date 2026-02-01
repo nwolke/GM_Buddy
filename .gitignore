@@ -401,6 +401,7 @@ FodyWeavers.xsd
 
 # Environment files with secrets
 .env
+scripts/.env.deployment
 
 # Docker volume data directories (PostgreSQL data, pgAdmin config)
 /db-data

@@ -11,8 +11,12 @@ echo "☁️  Uploading to S3..."
 aws s3 sync dist/ s3://gm-buddy-frontend/ --delete
 
 echo "🔄 Invalidating CloudFront cache..."
-DIST_ID="E12QARTDZHFFZK"  # Replace with your distribution ID
-aws cloudfront create-invalidation --distribution-id "$DIST_ID" --paths '/*' 
+DIST_ID="${CLOUDFRONT_DIST_ID:?CLOUDFRONT_DIST_ID environment variable must be set}"
+aws cloudfront create-invalidation --distribution-id "$DIST_ID" --paths '/*'
 
 echo "✅ Deployment complete!"
-echo "🌐 Your site: https://d2zsk9max2no60.cloudfront.net"
+if [ -n "${CLOUDFRONT_URL:-}" ]; then
+  echo "🌐 Your site: $CLOUDFRONT_URL"
+else
+  echo "🌐 Deployment complete. Set CLOUDFRONT_URL to print the site URL."
+fi

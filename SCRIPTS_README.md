@@ -166,3 +166,38 @@ Feel free to modify these scripts or create new ones! Common additions:
 - Code generation scripts
 
 Just commit them to the repository so everyone can benefit!
+
+---
+
+## 🚀 Deployment Scripts
+
+### deploy-frontend.sh
+
+Deploys the React frontend to AWS S3 and invalidates the CloudFront cache.
+
+**Prerequisites:**
+1. AWS CLI installed and configured
+2. Environment variables configured
+
+**Setup:**
+```bash
+# 1. Copy the example file
+cp scripts/.env.deployment.example scripts/.env.deployment
+
+# 2. Edit with your actual CloudFront details
+# Replace E12QARTDZHFFZK with your distribution ID
+# Replace the URL with your CloudFront domain
+```
+
+**Usage:**
+```bash
+# Source the environment variables
+source scripts/.env.deployment
+
+# Run the deployment
+./scripts/deploy-frontend.sh
+```
+
+**Environment Variables:**
+- `CLOUDFRONT_DIST_ID` (required): Your CloudFront distribution ID
+- `CLOUDFRONT_URL` (optional): Your CloudFront URL to display after deployment
