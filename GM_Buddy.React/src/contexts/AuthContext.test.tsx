@@ -245,7 +245,7 @@ describe('AuthContext', () => {
         setTimeout(() => resolve({
           sub: 'cognito-sub',
           email: 'cognito@test.com',
-        }), 100)
+        }), 10)
       })
     )
     
@@ -266,7 +266,7 @@ describe('AuthContext', () => {
     // During callback processing, isLoggingIn should be true
     await waitFor(() => {
       expect(screen.getByTestId('is-logging-in')).toHaveTextContent('true')
-    }, { timeout: 50 })
+    })
 
     // After callback completes, isLoggingIn should be false
     await waitFor(() => {

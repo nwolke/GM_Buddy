@@ -102,6 +102,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Cognito Hosted UI login
   const loginWithCognito = () => {
     if (isCognitoMode) {
+      // Set loading state before redirect. This will be cleared when the page navigates away.
+      // When returning from Cognito callback, isLoggingIn is set again in initAuth.
       setIsLoggingIn(true);
       cognito.redirectToLogin();
     } else {
