@@ -164,6 +164,8 @@ builder.Services.AddCors(options =>
         policy.WithOrigins(
                 "https://localhost:49505",  // HTTPS Vite dev server
                 "http://localhost:49505",
+                "http://localhost:3000",    // Local dev (Vite or Docker React)
+                "https://localhost:3000",
                 "https://d2zsk9max2no60.cloudfront.net" // Production CloudFront distribution
               )
               .AllowAnyHeader()
