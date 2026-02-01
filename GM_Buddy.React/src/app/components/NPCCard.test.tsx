@@ -80,38 +80,32 @@ describe('NPCCard', () => {
     const user = userEvent.setup()
     render(<NPCCard {...defaultProps} />)
 
-    const editButton = screen.getByRole('button', { name: '' }).parentElement?.querySelector('[data-lucide="pencil"]')?.closest('button')
+    const editButton = screen.getByRole('button', { name: 'Edit NPC' })
     expect(editButton).toBeInTheDocument()
     
-    if (editButton) {
-      await user.click(editButton)
-      expect(mockOnEdit).toHaveBeenCalledWith(mockNPCs[0])
-    }
+    await user.click(editButton)
+    expect(mockOnEdit).toHaveBeenCalledWith(mockNPCs[0])
   })
 
   it('should call onDelete when delete button is clicked', async () => {
     const user = userEvent.setup()
     render(<NPCCard {...defaultProps} />)
 
-    const deleteButton = screen.getByRole('button', { name: '' }).parentElement?.querySelector('[data-lucide="trash-2"]')?.closest('button')
+    const deleteButton = screen.getByRole('button', { name: 'Delete NPC' })
     expect(deleteButton).toBeInTheDocument()
     
-    if (deleteButton) {
-      await user.click(deleteButton)
-      expect(mockOnDelete).toHaveBeenCalledWith(mockNPCs[0].id)
-    }
+    await user.click(deleteButton)
+    expect(mockOnDelete).toHaveBeenCalledWith(mockNPCs[0].id)
   })
 
   it('should call onManageRelationships when relationships button is clicked', async () => {
     const user = userEvent.setup()
     render(<NPCCard {...defaultProps} />)
 
-    const relationshipsButton = screen.getByRole('button', { name: '' }).parentElement?.querySelector('[data-lucide="users"]')?.closest('button')
+    const relationshipsButton = screen.getByRole('button', { name: 'Manage relationships' })
     expect(relationshipsButton).toBeInTheDocument()
     
-    if (relationshipsButton) {
-      await user.click(relationshipsButton)
-      expect(mockOnManageRelationships).toHaveBeenCalledWith(mockNPCs[0])
-    }
+    await user.click(relationshipsButton)
+    expect(mockOnManageRelationships).toHaveBeenCalledWith(mockNPCs[0])
   })
 })
