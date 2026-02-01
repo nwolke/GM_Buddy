@@ -9,6 +9,7 @@ A full-stack application for Game Masters to manage NPCs, campaigns, and game sy
 - **Database**: PostgreSQL
 - **Authentication**: JWT with RSA signing keys
 - **Container Orchestration**: Docker Compose
+- **D&D 5e Data**: [dnd5eapi.co](https://www.dnd5eapi.co) (SRD API integration)
 
 ---
 
@@ -198,6 +199,27 @@ Check if ports are in use:
 # Windows PowerShell
 Get-NetTCPConnection -LocalPort 5001,7279,49505,15432,15435 | Select-Object LocalPort, State, OwningProcess
 ```
+
+---
+
+## D&D 5e API Integration
+
+GM Buddy integrates with the [D&D 5th Edition SRD API](https://www.dnd5eapi.co) to provide access to official D&D 5e System Reference Document content.
+
+**Features:**
+- Access to spells, monsters, classes, races, equipment, and more
+- TypeScript type definitions for all API responses
+- Client-side service with error handling and logging
+- Example code and documentation in `/GM_Buddy.React/src/services/`
+
+**Documentation:**
+- See [DND_API_INTEGRATION.md](/GM_Buddy.React/src/services/DND_API_INTEGRATION.md) for usage guide
+- Example code: [dnd5eApiExamples.ts](/GM_Buddy.React/src/services/dnd5eApiExamples.ts)
+
+**Legal:**
+- Uses only SRD content licensed under OGL v1.0a
+- Safe for commercial use with proper attribution
+- No proprietary D&D content included
 
 ---
 
