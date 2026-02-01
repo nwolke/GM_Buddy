@@ -191,10 +191,31 @@ try {
 
 ## Performance Considerations
 
-1. **Caching**: Consider caching API responses in application state or local storage.
-2. **Lazy Loading**: Load detailed data only when needed (e.g., when user clicks on an item).
-3. **Pagination**: List endpoints return references; load full details only for visible items.
-4. **Batch Requests**: Use `Promise.all()` carefully to avoid overwhelming the API.
+1. **API Query Parameters**: The API supports filtering via query parameters (e.g., `level`, `challenge_rating`). The helper methods like `getSpellsByLevel()` and `getMonstersByChallengeRating()` use these parameters to reduce unnecessary requests.
+
+2. **Caching**: Consider caching API responses in application state or local storage to minimize repeated calls.
+
+3. **Lazy Loading**: The API list endpoints return only references (`index`, `name`, `url`). Load full details only when needed:
+   ```typescript
+   // Efficient: Only load list
+   const spells = await dnd5eApi.getSpells();
+   
+   // Load details only when user selects a spell
+   const selectedSpell = await dnd5eApi.getSpell(spells.results[0].index);
+   ```
+
+4. **Batch Requests**: Use `Promise.all()` carefully. While it parallelizes requests, too many simultaneous calls can overwhelm the API:
+   ```typescript
+   // Be cautious with large datasets
+   const monsters = await dnd5eApi.getMonsters(); // Returns 300+ references
+   
+   // Instead of fetching all at once, paginate or limit:
+   const first10 = await Promise.all(
+     monsters.results.slice(0, 10).map(ref => dnd5eApi.getMonster(ref.index))
+   );
+   ```
+
+5. **Reference Data**: When you only need names/indexes, use list endpoints directly without fetching full details.
 
 ## Future Enhancements
 

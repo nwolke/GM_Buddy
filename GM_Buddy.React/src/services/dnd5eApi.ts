@@ -355,18 +355,17 @@ class Dnd5eApiClient {
     return response.data;
   }
 
-  async getSpellsByLevel(level: number): Promise<APIReference[]> {
-    const allSpells = await this.getSpells();
+  async getSpellsByLevel(level: number): Promise<Spell[]> {
+    // Note: The API supports filtering by level directly via query param
+    const response = await this.client.get<SpellListResponse>('/spells', {
+      params: { level }
+    });
+    // The API returns only references, so we still need to fetch details
+    // For better performance, consider fetching details only when needed in your UI
     const spells = await Promise.all(
-      allSpells.results.map((ref) => this.getSpell(ref.index))
+      response.data.results.map((ref) => this.getSpell(ref.index))
     );
-    return spells
-      .filter((spell) => spell.level === level)
-      .map((spell) => ({
-        index: spell.index,
-        name: spell.name,
-        url: spell.url,
-      }));
+    return spells;
   }
 
   // Monsters
@@ -380,18 +379,17 @@ class Dnd5eApiClient {
     return response.data;
   }
 
-  async getMonstersByChallengeRating(cr: number): Promise<APIReference[]> {
-    const allMonsters = await this.getMonsters();
+  async getMonstersByChallengeRating(cr: number): Promise<Monster[]> {
+    // Note: The API supports filtering by challenge_rating directly via query param
+    const response = await this.client.get<MonsterListResponse>('/monsters', {
+      params: { challenge_rating: cr }
+    });
+    // The API returns only references, so we still need to fetch details
+    // For better performance, consider fetching details only when needed in your UI
     const monsters = await Promise.all(
-      allMonsters.results.map((ref) => this.getMonster(ref.index))
+      response.data.results.map((ref) => this.getMonster(ref.index))
     );
-    return monsters
-      .filter((monster) => monster.challenge_rating === cr)
-      .map((monster) => ({
-        index: monster.index,
-        name: monster.name,
-        url: monster.url,
-      }));
+    return monsters;
   }
 
   // Classes

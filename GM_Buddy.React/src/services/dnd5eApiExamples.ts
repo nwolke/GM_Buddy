@@ -52,7 +52,7 @@ export async function exampleGetCantrips(): Promise<void> {
   try {
     const cantrips = await dnd5eApi.getSpellsByLevel(0);
     console.log(`Total cantrips: ${cantrips.length}`);
-    console.log('Cantrips:', cantrips.map(c => c.name));
+    console.log('First 5 cantrips:', cantrips.slice(0, 5).map(c => c.name));
   } catch (error) {
     console.error('Error fetching cantrips:', error);
   }
