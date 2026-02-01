@@ -38,6 +38,7 @@ export function NPCCard({ npc, onEdit, onDelete, onManageRelationships, relation
               size="icon"
               onClick={() => onManageRelationships(npc)}
               title="Manage relationships"
+              aria-label="Manage relationships"
               className="hover:bg-primary/20 hover:text-primary"
             >
               <Users className="size-4" />
@@ -46,6 +47,7 @@ export function NPCCard({ npc, onEdit, onDelete, onManageRelationships, relation
               variant="ghost"
               size="icon"
               onClick={() => onEdit(npc)}
+              aria-label="Edit NPC"
               className="hover:bg-accent/20 hover:text-accent"
             >
               <Pencil className="size-4" />
@@ -54,6 +56,7 @@ export function NPCCard({ npc, onEdit, onDelete, onManageRelationships, relation
               variant="ghost"
               size="icon"
               onClick={() => onDelete(npc.id)}
+              aria-label="Delete NPC"
               className="hover:bg-destructive/20 hover:text-destructive"
             >
               <Trash2 className="size-4" />
