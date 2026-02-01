@@ -26,6 +26,7 @@ function TestComponent() {
     <div>
       <div data-testid="is-authenticated">{auth.isAuthenticated.toString()}</div>
       <div data-testid="loading">{auth.loading.toString()}</div>
+      <div data-testid="is-logging-in">{auth.isLoggingIn.toString()}</div>
       <div data-testid="user-email">{auth.user?.email || 'none'}</div>
       <div data-testid="cognito-mode">{auth.isCognitoMode.toString()}</div>
       <button onClick={auth.loginWithCognito}>Login with Cognito</button>
@@ -205,5 +206,73 @@ describe('AuthContext', () => {
     })
 
     expect(screen.getByTestId('cognito-mode')).toHaveTextContent('true')
+  })
+
+  it('should set isLoggingIn to true when loginWithCognito is called', async () => {
+    vi.mocked(cognito.isCognitoEnabled).mockReturnValue(true)
+
+    render(
+      <AuthProvider>
+        <TestComponent />
+      </AuthProvider>
+    )
+
+    await waitFor(() => {
+      expect(screen.getByTestId('loading')).toHaveTextContent('false')
+    })
+
+    // Initially isLoggingIn should be false
+    expect(screen.getByTestId('is-logging-in')).toHaveTextContent('false')
+
+    const loginButton = screen.getByText('Login with Cognito')
+    loginButton.click()
+
+    // After clicking login, isLoggingIn should be set to true
+    // In a real scenario, redirectToLogin would navigate away immediately
+    // but in tests we can verify the state was set
+    await waitFor(() => {
+      expect(screen.getByTestId('is-logging-in')).toHaveTextContent('true')
+    })
+    expect(cognito.redirectToLogin).toHaveBeenCalled()
+  })
+
+  it('should set isLoggingIn during Cognito callback', async () => {
+    vi.mocked(cognito.isCognitoEnabled).mockReturnValue(true)
+    
+    // Mock a slow callback to test the loading state
+    vi.mocked(cognito.handleCallback).mockImplementation(() => 
+      new Promise((resolve) => {
+        setTimeout(() => resolve({
+          sub: 'cognito-sub',
+          email: 'cognito@test.com',
+        }), 100)
+      })
+    )
+    
+    vi.mocked(accountApi.syncAccount).mockResolvedValue({
+      accountId: 123,
+      email: 'cognito@test.com',
+    })
+
+    // Simulate Cognito callback URL
+    window.history.replaceState({}, '', '/callback?code=test-code')
+
+    render(
+      <AuthProvider>
+        <TestComponent />
+      </AuthProvider>
+    )
+
+    // During callback processing, isLoggingIn should be true
+    await waitFor(() => {
+      expect(screen.getByTestId('is-logging-in')).toHaveTextContent('true')
+    }, { timeout: 50 })
+
+    // After callback completes, isLoggingIn should be false
+    await waitFor(() => {
+      expect(screen.getByTestId('is-logging-in')).toHaveTextContent('false')
+    })
+
+    expect(screen.getByTestId('is-authenticated')).toHaveTextContent('true')
   })
 })
