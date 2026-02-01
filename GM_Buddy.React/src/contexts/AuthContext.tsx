@@ -8,6 +8,7 @@ interface AuthContextType extends AuthState {
   loginWithCognito: () => void;
   logout: () => void;
   isCognitoMode: boolean;
+  isLoggingIn: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -22,6 +23,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user: null,
     loading: true,
   });
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   const isCognitoMode = cognito.isCognitoEnabled();
   
@@ -37,6 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Check if this is a Cognito callback
       if (window.location.pathname === '/callback' && isCognitoMode) {
         console.log('[AuthContext] Handling Cognito callback...');
+        setIsLoggingIn(true);
         const cognitoUser = await cognito.handleCallback();
         if (cognitoUser) {
           try {
@@ -49,13 +52,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             };
             localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
             setAuthState({ isAuthenticated: true, user, loading: false });
+            setIsLoggingIn(false);
             // Clear the URL params
             window.history.replaceState({}, '', '/');
             return;
           } catch (err) {
             console.error('[AuthContext] Failed to sync Cognito user:', err);
+            setIsLoggingIn(false);
           }
         }
+        setIsLoggingIn(false);
       }
 
       // Check for existing session
@@ -96,6 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Cognito Hosted UI login
   const loginWithCognito = () => {
     if (isCognitoMode) {
+      setIsLoggingIn(true);
       cognito.redirectToLogin();
     } else {
       console.warn('[AuthContext] Cognito is not configured. Use demo login instead.');
@@ -118,7 +125,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ ...authState, login, loginWithCognito, logout, isCognitoMode }}>
+    <AuthContext.Provider value={{ ...authState, login, loginWithCognito, logout, isCognitoMode, isLoggingIn }}>
       {children}
     </AuthContext.Provider>
   );

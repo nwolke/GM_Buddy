@@ -6,7 +6,7 @@ import { Header } from "@/app/components/Header";
 
 export function LandingPage() {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoggingIn } = useAuth();
 
   const handleNavigateToNPCManager = () => {
     if (isAuthenticated) {
@@ -22,6 +22,19 @@ export function LandingPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20">
+      {/* Loading Overlay */}
+      {isLoggingIn && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="bg-gradient-to-br from-primary to-accent p-6 rounded-2xl shadow-2xl shadow-primary/30 mx-auto mb-4 w-fit">
+              <Users className="size-16 text-primary-foreground animate-pulse" />
+            </div>
+            <h3 className="text-2xl font-bold mb-2">Signing you in...</h3>
+            <p className="text-muted-foreground">Please wait while we authenticate your account</p>
+          </div>
+        </div>
+      )}
+      
       {/* Decorative background pattern */}
       <div className="fixed inset-0 opacity-5 pointer-events-none">
         <div

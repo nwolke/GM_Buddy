@@ -19,7 +19,7 @@ interface HeaderProps {
 }
 
 export function Header({ showRefresh = false, onRefresh, loading = false, error = null }: HeaderProps) {
-  const { isAuthenticated, user, loginWithCognito, logout } = useAuth();
+  const { isAuthenticated, user, loginWithCognito, logout, isLoggingIn } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -124,9 +124,18 @@ export function Header({ showRefresh = false, onRefresh, loading = false, error 
             </DropdownMenu>
           </div>
         ) : (
-          <Button variant="default" size="sm" onClick={loginWithCognito}>
-            <LogIn className="size-4 mr-2" />
-            Sign In
+          <Button variant="default" size="sm" onClick={loginWithCognito} disabled={isLoggingIn}>
+            {isLoggingIn ? (
+              <>
+                <RefreshCw className="size-4 mr-2 animate-spin" />
+                Signing In...
+              </>
+            ) : (
+              <>
+                <LogIn className="size-4 mr-2" />
+                Sign In
+              </>
+            )}
           </Button>
         )}
       </div>
