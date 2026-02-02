@@ -21,9 +21,10 @@ Deployments are **manual-only** to prevent accidental deployments to production.
 
 ### Prerequisites
 
-1. ✅ All required GitHub secrets configured (see [GITHUB_SECRETS.md](./GITHUB_SECRETS.md))
-2. ✅ Code merged to `main` branch
-3. ✅ CI tests passing (build-and-test.yml)
+1. ✅ AWS IAM deployment user created with correct permissions (see [AWS_IAM_SETUP.md](./AWS_IAM_SETUP.md))
+2. ✅ All required GitHub secrets configured (see [GITHUB_SECRETS.md](./GITHUB_SECRETS.md))
+3. ✅ Code merged to `main` branch
+4. ✅ CI tests passing (build-and-test.yml)
 
 ---
 

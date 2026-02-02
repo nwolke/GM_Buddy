@@ -126,12 +126,13 @@ The frontend will be available at http://localhost:3000 with hot module replacem
 
 ### AWS Resources Required
 
-1. **ECR Repository**: For Docker images (`gm-buddy-server`)
-2. **Elastic Beanstalk**: For running the backend
-3. **S3 Bucket**: For hosting the frontend build
-4. **CloudFront Distribution**: For serving the frontend globally
-5. **Cognito User Pool**: For authentication
-6. **RDS PostgreSQL**: For the database (or use external PostgreSQL)
+1. **IAM Deployment User**: User with permissions for ECR, EB, S3, CloudFront (see [AWS_IAM_SETUP.md](./AWS_IAM_SETUP.md))
+2. **ECR Repository**: For Docker images (`gm-buddy-server`)
+3. **Elastic Beanstalk**: For running the backend
+4. **S3 Bucket**: For hosting the frontend build
+5. **CloudFront Distribution**: For serving the frontend globally
+6. **Cognito User Pool**: For authentication
+7. **RDS PostgreSQL**: For the database (or use external PostgreSQL)
 
 ### Manual Deployment
 
