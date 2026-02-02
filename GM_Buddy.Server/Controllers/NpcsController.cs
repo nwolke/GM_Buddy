@@ -9,7 +9,7 @@ using System.Security.Claims;
 namespace GM_Buddy.Server.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("[controller]")]
 [Authorize]
 public class NpcsController : ControllerBase
 {

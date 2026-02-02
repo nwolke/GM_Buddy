@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace GM_Buddy.Server.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("[controller]")]
 [Authorize]
 public class CampaignsController : ControllerBase
 {

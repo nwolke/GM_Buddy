@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace GM_Buddy.Server.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("[controller]")]
 public class OrganizationsController : ControllerBase
 {
     private readonly ILogger<OrganizationsController> _logger;

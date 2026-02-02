@@ -7,7 +7,7 @@ using System.Security.Claims;
 namespace GM_Buddy.Server.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("[controller]")]
 public class AccountController : ControllerBase
 {
     private readonly ILogger<AccountController> _logger;
