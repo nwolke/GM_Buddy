@@ -3,8 +3,10 @@ import { NPC } from '@/types/npc';
 import { Campaign } from '@/types/campaign';
 import { getIdToken } from './cognito';
 
-// API base URL - proxied through nginx in production, Vite in development
-const API_BASE_URL = '/api';
+// API base URL - use environment variable or fall back to relative path
+const API_BASE_URL = import.meta.env.VITE_API_URL
+    ? `${import.meta.env.VITE_API_URL}/api`  // Production: full URL to backend + /api prefix
+    : '/api';                                 // Development: proxy via Vite to /api
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,

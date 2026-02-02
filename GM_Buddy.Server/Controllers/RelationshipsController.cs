@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace GM_Buddy.Server.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/[controller]")]
 public class RelationshipsController : ControllerBase
 {
     private readonly ILogger<RelationshipsController> _logger;
