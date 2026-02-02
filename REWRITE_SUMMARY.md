@@ -66,6 +66,7 @@ This PR represents a **complete rewrite** of all configuration and deployment fi
 **Documentation:**
 - `CONFIGURATION.md` - Complete configuration guide (8,800+ words)
 - `GITHUB_SECRETS.md` - Required GitHub secrets documentation
+- `AWS_IAM_SETUP.md` - IAM user creation and policy guide
 - `QUICKSTART.md` - 5-minute setup guide
 - `MIGRATION.md` - Migration guide from old to new config
 - `MANUAL_DEPLOYMENT.md` - Step-by-step manual deployment guide

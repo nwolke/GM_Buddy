@@ -2,6 +2,14 @@
 
 This document lists all GitHub secrets required for the GM_Buddy CI/CD pipelines.
 
+## Prerequisites
+
+**Before adding secrets, create an AWS IAM user for deployments:**
+
+👉 **See [AWS_IAM_SETUP.md](./AWS_IAM_SETUP.md) for step-by-step instructions** on creating an IAM user with the correct permissions.
+
+---
+
 ## How to Add Secrets
 
 1. Go to your GitHub repository
@@ -13,15 +21,19 @@ This document lists all GitHub secrets required for the GM_Buddy CI/CD pipelines
 
 ## AWS Credentials (Required for all deployments)
 
+**These come from your AWS IAM deployment user** (see [AWS_IAM_SETUP.md](./AWS_IAM_SETUP.md))
+
 ### `AWS_ACCESS_KEY_ID`
 - **Description**: AWS access key ID for authentication
 - **Example**: `AKIAIOSFODNN7EXAMPLE`
 - **Used in**: Backend deployment, Frontend deployment
+- **How to get**: Create access key for your IAM deployment user
 
 ### `AWS_SECRET_ACCESS_KEY`
 - **Description**: AWS secret access key for authentication
 - **Example**: `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY`
 - **Used in**: Backend deployment, Frontend deployment
+- **How to get**: Created with access key (save immediately, cannot retrieve later)
 
 ### `AWS_REGION`
 - **Description**: AWS region where resources are deployed

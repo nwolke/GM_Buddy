@@ -129,9 +129,10 @@ The repository includes manual deployment pipelines via GitHub Actions:
 **Deployments are manual-only** for safety and control.
 
 **How to deploy:**
-1. Configure AWS resources (ECR, EB, S3, CloudFront, Cognito)
-2. Add required GitHub secrets (see [GITHUB_SECRETS.md](./GITHUB_SECRETS.md))
-3. Trigger deployment via GitHub Actions UI (see [MANUAL_DEPLOYMENT.md](./MANUAL_DEPLOYMENT.md))
+1. Create AWS IAM deployment user (see [AWS_IAM_SETUP.md](./AWS_IAM_SETUP.md))
+2. Configure AWS resources (ECR, EB, S3, CloudFront, Cognito)
+3. Add required GitHub secrets (see [GITHUB_SECRETS.md](./GITHUB_SECRETS.md))
+4. Trigger deployment via GitHub Actions UI (see [MANUAL_DEPLOYMENT.md](./MANUAL_DEPLOYMENT.md))
 
 ---
 
