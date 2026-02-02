@@ -11,16 +11,6 @@ on:
         options:
           - production
           - staging
-  push:
-    branches:
-      - main
-    paths:
-      - 'GM_Buddy.Server/**'
-      - 'GM_Buddy.Business/**'
-      - 'GM_Buddy.Data/**'
-      - 'GM_Buddy.Contracts/**'
-      - 'Dockerrun.aws.json'
-      - '.github/workflows/deploy-backend.yml'
 
 jobs:
   deploy:
