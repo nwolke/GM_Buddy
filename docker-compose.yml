@@ -1,0 +1,105 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  gm_buddy_postgres:
+    image: postgres:16-alpine
+    container_name: gm_buddy_postgres
+    restart: unless-stopped
+    ports:
+      - "15432:5432"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB:-gm_buddy}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-gm_buddy}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - gm_buddy_network
+
+  # pgAdmin (Optional Database Management Tool)
+  gm_buddy_pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: gm_buddy_pgadmin
+    restart: unless-stopped
+    ports:
+      - "15435:80"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL:-admin@example.com}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD:-admin}
+    depends_on:
+      gm_buddy_postgres:
+        condition: service_healthy
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+      - ./servers.json:/pgadmin4/servers.json:ro
+    networks:
+      - gm_buddy_network
+
+  # ASP.NET Core Backend Server
+  gm_buddy_server:
+    image: ${DOCKER_REGISTRY}gm-buddy-server:local
+    container_name: gm_buddy_server
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: GM_Buddy.Server/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
+      - ASPNETCORE_HTTP_PORTS=8080
+      - DbSettings__Host=gm_buddy_postgres
+      - DbSettings__Port=5432
+      - DbSettings__Database=${POSTGRES_DB:-gm_buddy}
+      - DbSettings__Username=${POSTGRES_USER:-postgres}
+      - DbSettings__Password=${POSTGRES_PASSWORD}
+      - Cognito__Region=${COGNITO_REGION}
+      - Cognito__UserPoolId=${COGNITO_USER_POOL_ID}
+      - Cognito__ClientId=${COGNITO_CLIENT_ID}
+      - Cognito__Domain=${COGNITO_DOMAIN}
+    depends_on:
+      gm_buddy_postgres:
+        condition: service_healthy
+    networks:
+      - gm_buddy_network
+
+  # React Frontend
+  gm_buddy_web:
+    image: ${DOCKER_REGISTRY}gm-buddy-react:local
+    container_name: gm_buddy_web
+    restart: unless-stopped
+    build:
+      context: ./GM_Buddy.React
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=${VITE_API_URL:-http://localhost:8080}
+        - VITE_USE_COGNITO=${VITE_USE_COGNITO:-false}
+        - VITE_COGNITO_DOMAIN=${VITE_COGNITO_DOMAIN}
+        - VITE_COGNITO_CLIENT_ID=${VITE_COGNITO_CLIENT_ID}
+        - VITE_COGNITO_REDIRECT_URI=${VITE_COGNITO_REDIRECT_URI:-http://localhost:3000/callback}
+        - VITE_COGNITO_LOGOUT_URI=${VITE_COGNITO_LOGOUT_URI:-http://localhost:3000}
+    ports:
+      - "3000:80"
+    depends_on:
+      - gm_buddy_server
+    networks:
+      - gm_buddy_network
+
+volumes:
+  postgres_data:
+    name: gm_buddy_postgres_data
+  pgadmin_data:
+    name: gm_buddy_pgadmin_data
+
+networks:
+  gm_buddy_network:
+    name: gm_buddy_network
+    driver: bridge
