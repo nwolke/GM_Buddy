@@ -5,217 +5,222 @@ A full-stack application for Game Masters to manage NPCs, campaigns, and game sy
 ## Tech Stack
 
 - **Backend**: .NET 9 (ASP.NET Core)
-- **Frontend**: React + Vite
+- **Frontend**: React + TypeScript + Vite
 - **Database**: PostgreSQL
-- **Authentication**: JWT with RSA signing keys
-- **Container Orchestration**: Docker Compose
+- **Authentication**: AWS Cognito
+- **Infrastructure**: Docker, AWS (S3, CloudFront, ECR, Elastic Beanstalk)
+- **CI/CD**: GitHub Actions
 
 ---
 
-## Getting Started
+## 🚀 Quick Start
+
+**Get up and running in 5 minutes!**
+
+```bash
+# Clone and setup
+git clone https://github.com/nwolke/GM_Buddy.git
+cd GM_Buddy
+cp .env.example .env
+
+# Edit .env and set POSTGRES_PASSWORD
+# Then start everything with Docker
+docker compose up --build
+```
+
+**Access the application:**
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8080
+
+👉 **See [QUICKSTART.md](./QUICKSTART.md) for detailed setup instructions**
+
+---
+
+## 📚 Documentation
+
+- **[QUICKSTART.md](./QUICKSTART.md)** - Get started in 5 minutes
+- **[CONFIGURATION.md](./CONFIGURATION.md)** - Complete configuration guide
+- **[GITHUB_SECRETS.md](./GITHUB_SECRETS.md)** - Required secrets for CI/CD
+- **[MIGRATION.md](./MIGRATION.md)** - Migrating from old configuration
+- **[DEV_SETUP.md](./DEV_SETUP.md)** - Detailed development setup
+
+---
+
+## 🏗️ Architecture
+
+### Local Development
+```
+Docker Compose
+├── PostgreSQL (port 15432)
+├── pgAdmin (port 15435)
+├── Backend API (port 8080)
+└── Frontend (port 3000)
+```
+
+### Production (AWS)
+```
+Users → CloudFront → S3 (Frontend)
+                  ↓
+              API Calls
+                  ↓
+        Elastic Beanstalk (Backend)
+                  ↓
+             RDS PostgreSQL
+                  ↓
+            AWS Cognito (Auth)
+```
+
+---
+
+## 🛠️ Development
 
 ### Prerequisites
 
-- [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
-- [Node.js 18+](https://nodejs.org/)
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
-- [Visual Studio 2022](https://visualstudio.microsoft.com/) or [VS Code](https://code.visualstudio.com/)
+- Docker and Docker Compose (required)
+- .NET 9 SDK (optional, for local development without Docker)
+- Node.js 20+ (optional, for local development without Docker)
 
-### Initial Setup
+### Running Locally
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/nwolke/GM_Buddy.git
-   cd GM_Buddy
-   ```
+**With Docker (Recommended):**
+```bash
+docker compose up --build
+```
 
-2. **Create local environment file**
-   ```bash
-   cp .env.example .env
-   ```
-   Then edit `.env` with your local values:
-   ```env
-   POSTGRES_PASSWORD=your_secure_password
-   PGADMIN_DEFAULT_EMAIL=your_email@example.com
-   PGADMIN_DEFAULT_PASSWORD=your_secure_password
-   PWD=/path/to/your/postgres
-   ```
+**Without Docker:**
+```bash
+# Terminal 1: Start PostgreSQL (needs to be running)
+docker compose up gm_buddy_postgres
 
-3. **Trust .NET dev certificates** (for HTTPS in local development)
-   ```bash
-   dotnet dev-certs https --trust
-   ```
+# Terminal 2: Start Backend
+cd GM_Buddy.Server
+dotnet run
 
-4. **Install client dependencies**
-   ```bash
-   cd gm_buddy.client
-   npm install
-   ```
+# Terminal 3: Start Frontend
+cd GM_Buddy.React
+npm install --legacy-peer-deps
+npm run dev
+```
+
+### Running Tests
+
+**Backend:**
+```bash
+dotnet test GM_Buddy.sln
+```
+
+**Frontend:**
+```bash
+cd GM_Buddy.React
+npm run test
+npm run test:coverage
+```
 
 ---
 
-## Running the Application
+## 🚢 Deployment
 
-### Option 1: Docker Compose (Full Stack)
+The repository includes automated CI/CD pipelines via GitHub Actions:
 
-Start all services (PostgreSQL, pgAdmin, Authorization, API, Client):
+- **`build-and-test.yml`** - Runs on every push/PR to validate code
+- **`deploy-backend.yml`** - Deploys backend to AWS (ECR → Elastic Beanstalk)
+- **`deploy-frontend.yml`** - Deploys frontend to AWS (S3 → CloudFront)
 
-```bash
-docker-compose up --build
-```
-
-**Access points:**
-- Client: http://localhost:49505
-- API Server: https://localhost:5001
-- Authorization Server: https://localhost:7279
-- pgAdmin: http://localhost:15435
-- PostgreSQL: localhost:15432
-
-### Option 2: Local Development (Recommended)
-
-Run services individually for easier debugging:
-
-1. **Start PostgreSQL** (via Docker):
-   ```bash
-   docker-compose up gm_buddy_postgres gm_buddy_pgadmin
-   ```
-
-2. **Start Authorization Server** (Visual Studio or CLI):
-   ```bash
-   cd GM_Buddy.Authorization
-   dotnet run --launch-profile https
-   ```
-   Runs on https://localhost:7279
-
-3. **Start API Server** (Visual Studio or CLI):
-   ```bash
-   cd GM_Buddy.Server
-   dotnet run --launch-profile https
-   ```
-   Runs on https://localhost:5001
-
-4. **Start Client Dev Server**:
-   ```bash
-   cd gm_buddy.client
-   npm run dev
-   ```
-   Runs on http://localhost:49505 (or https if certs available)
-
-See [DEV_SETUP.md](./DEV_SETUP.md) for detailed port configuration.
+**Setup deployment:**
+1. Configure AWS resources (ECR, EB, S3, CloudFront, Cognito)
+2. Add required GitHub secrets (see [GITHUB_SECRETS.md](./GITHUB_SECRETS.md))
+3. Push to `main` or manually trigger workflows
 
 ---
 
-## Database Management
+## 📁 Project Structure
 
-### Initialize Database
-
-The database schema and seed data are automatically applied when PostgreSQL starts via `init.sql`.
-
-To manually reset the database:
-```bash
-docker-compose down -v
-docker-compose up gm_buddy_postgres
+```
+GM_Buddy/
+├── GM_Buddy.Server/          # ASP.NET Core backend
+├── GM_Buddy.React/           # React + TypeScript frontend
+├── GM_Buddy.Business/        # Business logic layer
+├── GM_Buddy.Data/            # Data access layer
+├── GM_Buddy.Contracts/       # Shared contracts/DTOs
+├── .github/workflows/        # GitHub Actions CI/CD
+├── CONFIGURATION.md          # Configuration guide
+├── GITHUB_SECRETS.md         # Required secrets
+├── QUICKSTART.md             # Quick setup guide
+└── MIGRATION.md              # Migration guide
 ```
 
-### Access pgAdmin
+---
 
+## 🗄️ Database Management
+
+The database is automatically initialized with schema and seed data from `init.sql` when PostgreSQL starts.
+
+**Reset database:**
+```bash
+docker compose down -v
+docker compose up gm_buddy_postgres --build
+```
+
+**Access pgAdmin:**
 1. Navigate to http://localhost:15435
 2. Login with credentials from your `.env` file
 3. Server connection is pre-configured via `servers.json`
 
 ---
 
-## Project Structure
+## 🧪 Testing
 
+**Backend tests:**
+```bash
+dotnet test GM_Buddy.sln
 ```
-GM_Buddy/
-??? GM_Buddy.Server/              # Main API (NPC endpoints, game logic)
-??? GM_Buddy.Authorization/       # JWT authentication service
-??? GM_Buddy.Business/            # Business logic & factories
-??? GM_Buddy.Data/                # Data access layer (Dapper)
-??? GM_Buddy.Contracts/           # Shared DTOs, interfaces, models
-??? GM_Buddy.Business.UnitTests/  # Unit tests
-??? gm_buddy.client/              # React frontend (Vite)
-??? init.sql                      # Database schema & seed data
-??? docker-compose.yml            # Container orchestration
-??? .env.example                  # Environment template
+
+**Frontend tests:**
+```bash
+cd GM_Buddy.React
+npm run test           # Interactive mode
+npm run test:run       # Run once
+npm run test:coverage  # With coverage
 ```
 
 ---
 
-## Configuration
+## 🔧 Troubleshooting
 
-### Environment Variables
+See [CONFIGURATION.md](./CONFIGURATION.md) for detailed troubleshooting.
 
-| File | Purpose | Tracked in Git? |
-|------|---------|-----------------|
-| `.env.example` | Template with placeholders | ? Yes |
-| `.env` | Your actual secrets | ? No (gitignored) |
-| `gm_buddy.client/.env.development` | Vite API endpoints | ? Yes |
-| `gm_buddy.client/.env.local` | Local overrides | ? No |
-
-### CORS Configuration
-
-Both servers allow requests from:
-- `https://localhost:49505` (HTTPS Vite)
-- `http://localhost:49505` (HTTP Vite fallback)
-
-Adjust in `Program.cs` files if deploying to different origins.
-
----
-
-## Testing
-
-Run unit tests:
-```bash
-dotnet test
-```
-
-Run specific test project:
-```bash
-cd GM_Buddy.Business.UnitTests
-dotnet test
-```
-
----
-
-## Common Issues
-
-### CORS Errors
-- Ensure both servers are running
-- Verify Vite is on port 49505
-- Check `UseCors()` comes before `UseAuthentication()` in `Program.cs`
-
-### SSL Certificate Issues
-```bash
-dotnet dev-certs https --clean
-dotnet dev-certs https --trust
-```
+**Common issues:**
 
 ### Port Conflicts
-Check if ports are in use:
 ```bash
-# Windows PowerShell
-Get-NetTCPConnection -LocalPort 5001,7279,49505,15432,15435 | Select-Object LocalPort, State, OwningProcess
+# Check what's using the ports
+lsof -i :3000   # Frontend
+lsof -i :8080   # Backend
+lsof -i :15432  # PostgreSQL
 ```
 
----
+### Database Connection
+- Verify `POSTGRES_PASSWORD` is set in `.env`
+- Ensure PostgreSQL healthcheck passes: `docker compose ps`
 
-## Contributing
-
-1. Create a feature branch: `git checkout -b feature/your-feature`
-2. Make your changes and commit: `git commit -m "Add feature"`
-3. Push to your branch: `git push origin feature/your-feature`
-4. Open a Pull Request
-
----
-
-## License
-
-[Specify your license here]
+### Frontend Can't Connect to Backend
+- Check `VITE_API_URL` in `.env` files
+- Verify backend is running: `curl http://localhost:8080`
 
 ---
 
-## Support
+## 📝 License
 
-For issues or questions, please open an issue on [GitHub](https://github.com/nwolke/GM_Buddy/issues).
+[Add your license information here]
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please open an issue or submit a pull request.
+
+---
+
+## 📞 Support
+
+For questions or issues, please open a GitHub issue.
