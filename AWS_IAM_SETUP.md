@@ -2,6 +2,8 @@
 
 This guide explains how to create an AWS IAM user with the minimum required permissions to deploy GM_Buddy to AWS.
 
+**📄 Ready-to-use policy file**: [`gm-buddy-deploy-policy.json`](./gm-buddy-deploy-policy.json)
+
 ---
 
 ## Overview
@@ -59,25 +61,42 @@ aws iam create-access-key --user-name gm-buddy-deploy
 - Access Key ID → Use as `AWS_ACCESS_KEY_ID` GitHub secret
 - Secret Access Key → Use as `AWS_SECRET_ACCESS_KEY` GitHub secret
 
-### 3. Attach Policy (see below for policy JSON)
+### 3. Attach Policy
+
+The repository includes a ready-to-use IAM policy file: **`gm-buddy-deploy-policy.json`**
+
+**Before using it:**
+1. Open `gm-buddy-deploy-policy.json` in a text editor
+2. Replace `YOUR_FRONTEND_BUCKET_NAME` with your actual S3 bucket name (appears in 2 places)
+3. Optionally, replace `YOUR_ACCOUNT_ID` in the commands below with your AWS account ID
+
+**Create and attach the policy:**
 
 ```bash
-# Create the policy (see JSON below)
+# Create the policy from the file
 aws iam create-policy \
   --policy-name GMBuddyDeploymentPolicy \
   --policy-document file://gm-buddy-deploy-policy.json
 
-# Attach to user
+# Attach to user (replace YOUR_ACCOUNT_ID with your 12-digit AWS account ID)
 aws iam attach-user-policy \
   --user-name gm-buddy-deploy \
   --policy-arn arn:aws:iam::YOUR_ACCOUNT_ID:policy/GMBuddyDeploymentPolicy
 ```
 
+**Or use AWS Console:**
+1. IAM → Policies → Create policy
+2. JSON tab → Copy content from `gm-buddy-deploy-policy.json` (after editing)
+3. Review + Create → Name: `GMBuddyDeploymentPolicy`
+4. IAM → Users → gm-buddy-deploy → Add permissions → Attach policies → Select GMBuddyDeploymentPolicy
+
 ---
 
 ## Required IAM Policy (Least Privilege)
 
-Create a file `gm-buddy-deploy-policy.json` with the following content:
+The repository includes **`gm-buddy-deploy-policy.json`** with the complete IAM policy.
+
+**Policy content** (also available in `gm-buddy-deploy-policy.json`):
 
 ```json
 {
