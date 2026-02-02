@@ -424,3 +424,6 @@ appsettings.Development.json
 .elasticbeanstalk/*
 !.elasticbeanstalk/*.cfg.yml
 !.elasticbeanstalk/*.global.yml
+
+# scripts folder
+scripts/
