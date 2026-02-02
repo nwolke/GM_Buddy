@@ -1,0 +1,42 @@
+# ===========================================
+# GM_Buddy.Server - Production Dockerfile for AWS ECR
+# ===========================================
+# Optimized multi-stage build for production deployment
+
+# Build stage
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /src
+
+# Copy project files
+COPY ["GM_Buddy.Server/GM_Buddy.Server.csproj", "GM_Buddy.Server/"]
+COPY ["GM_Buddy.Business/GM_Buddy.Business.csproj", "GM_Buddy.Business/"]
+COPY ["GM_Buddy.Data/GM_Buddy.Data.csproj", "GM_Buddy.Data/"]
+COPY ["GM_Buddy.Contracts/GM_Buddy.Contracts.csproj", "GM_Buddy.Contracts/"]
+
+# Restore dependencies
+RUN dotnet restore "GM_Buddy.Server/GM_Buddy.Server.csproj"
+
+# Copy source code
+COPY . .
+
+# Build and publish in Release mode
+WORKDIR "/src/GM_Buddy.Server"
+RUN dotnet publish "GM_Buddy.Server.csproj" \
+    -c Release \
+    -o /app/publish \
+    /p:UseAppHost=false \
+    --no-restore
+
+# Runtime stage
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
+WORKDIR /app
+
+# Copy published application
+COPY --from=build /app/publish .
+
+# Configure ASP.NET Core to listen on port 8080 (Elastic Beanstalk requirement)
+ENV ASPNETCORE_HTTP_PORTS=8080
+EXPOSE 8080
+
+# Run the application
+ENTRYPOINT ["dotnet", "GM_Buddy.Server.dll"]
