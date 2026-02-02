@@ -60,14 +60,15 @@ This PR represents a **complete rewrite** of all configuration and deployment fi
 
 **GitHub Actions (CI/CD):**
 - `.github/workflows/build-and-test.yml` - CI pipeline for both frontend and backend
-- `.github/workflows/deploy-backend.yml` - Automated deployment to AWS (ECR + Elastic Beanstalk)
-- `.github/workflows/deploy-frontend.yml` - Automated deployment to AWS (S3 + CloudFront)
+- `.github/workflows/deploy-backend.yml` - **Manual** deployment to AWS (ECR + Elastic Beanstalk)
+- `.github/workflows/deploy-frontend.yml` - **Manual** deployment to AWS (S3 + CloudFront)
 
 **Documentation:**
 - `CONFIGURATION.md` - Complete configuration guide (8,800+ words)
 - `GITHUB_SECRETS.md` - Required GitHub secrets documentation
 - `QUICKSTART.md` - 5-minute setup guide
 - `MIGRATION.md` - Migration guide from old to new config
+- `MANUAL_DEPLOYMENT.md` - Step-by-step manual deployment guide
 
 **Updated:**
 - `README.md` - Complete rewrite with new structure
@@ -102,7 +103,7 @@ This PR represents a **complete rewrite** of all configuration and deployment fi
 - Clear separation of development and production secrets
 - Comprehensive `.gitignore` patterns
 
-### 🚀 Automated Deployments
+### 🚀 Manual Deployment Control
 
 **Before:**
 - Manual deployment process
@@ -111,9 +112,10 @@ This PR represents a **complete rewrite** of all configuration and deployment fi
 
 **After:**
 - Automated CI on every push/PR
-- Automated backend deployment (ECR → Elastic Beanstalk)
-- Automated frontend deployment (S3 → CloudFront)
-- Environment-based deployments (production/staging)
+- **Manual** backend deployment via GitHub Actions UI (ECR → Elastic Beanstalk)
+- **Manual** frontend deployment via GitHub Actions UI (S3 → CloudFront)
+- Environment selection (production/staging) per deployment
+- Full control - no accidental deployments
 
 ### 📚 Comprehensive Documentation
 
@@ -123,11 +125,12 @@ This PR represents a **complete rewrite** of all configuration and deployment fi
 - No deployment guide
 
 **After:**
-- 5 detailed documentation files
+- 6 detailed documentation files
 - Quick start guide (5 minutes)
 - Complete configuration reference
 - Migration guide for existing users
 - GitHub secrets documentation
+- **Manual deployment guide** with GitHub Actions UI walkthrough
 
 ### 🏗️ Production-Ready Architecture
 

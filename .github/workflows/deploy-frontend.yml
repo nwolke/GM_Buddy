@@ -11,12 +11,6 @@ on:
         options:
           - production
           - staging
-  push:
-    branches:
-      - main
-    paths:
-      - 'GM_Buddy.React/**'
-      - '.github/workflows/deploy-frontend.yml'
 
 jobs:
   deploy:

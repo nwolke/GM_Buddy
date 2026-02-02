@@ -120,16 +120,18 @@ npm run test:coverage
 
 ## 🚢 Deployment
 
-The repository includes automated CI/CD pipelines via GitHub Actions:
+The repository includes manual deployment pipelines via GitHub Actions:
 
 - **`build-and-test.yml`** - Runs on every push/PR to validate code
-- **`deploy-backend.yml`** - Deploys backend to AWS (ECR → Elastic Beanstalk)
-- **`deploy-frontend.yml`** - Deploys frontend to AWS (S3 → CloudFront)
+- **`deploy-backend.yml`** - Manual deployment: Backend to AWS (ECR → Elastic Beanstalk)
+- **`deploy-frontend.yml`** - Manual deployment: Frontend to AWS (S3 → CloudFront)
 
-**Setup deployment:**
+**Deployments are manual-only** for safety and control.
+
+**How to deploy:**
 1. Configure AWS resources (ECR, EB, S3, CloudFront, Cognito)
 2. Add required GitHub secrets (see [GITHUB_SECRETS.md](./GITHUB_SECRETS.md))
-3. Push to `main` or manually trigger workflows
+3. Trigger deployment via GitHub Actions UI (see [MANUAL_DEPLOYMENT.md](./MANUAL_DEPLOYMENT.md))
 
 ---
 

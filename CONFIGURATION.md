@@ -190,9 +190,8 @@ The repository includes three GitHub Actions workflows:
 
 ### 2. Deploy Backend (`deploy-backend.yml`)
 
-**Triggers**:
-- Manual workflow dispatch
-- Push to `main` (when backend files change)
+**Triggers**: 
+- **Manual only** - via workflow_dispatch in GitHub Actions UI
 
 **Purpose**: Builds and deploys the backend to AWS
 
@@ -202,13 +201,14 @@ The repository includes three GitHub Actions workflows:
 3. Update Dockerrun.aws.json
 4. Deploy to Elastic Beanstalk
 
+**How to Deploy**: See [MANUAL_DEPLOYMENT.md](./MANUAL_DEPLOYMENT.md)
+
 **Required Secrets**: See [GITHUB_SECRETS.md](./GITHUB_SECRETS.md)
 
 ### 3. Deploy Frontend (`deploy-frontend.yml`)
 
-**Triggers**:
-- Manual workflow dispatch
-- Push to `main` (when frontend files change)
+**Triggers**: 
+- **Manual only** - via workflow_dispatch in GitHub Actions UI
 
 **Purpose**: Builds and deploys the frontend to AWS
 
@@ -216,6 +216,8 @@ The repository includes three GitHub Actions workflows:
 1. Build React application with production env vars
 2. Upload to S3
 3. Invalidate CloudFront cache
+
+**How to Deploy**: See [MANUAL_DEPLOYMENT.md](./MANUAL_DEPLOYMENT.md)
 
 **Required Secrets**: See [GITHUB_SECRETS.md](./GITHUB_SECRETS.md)
 
