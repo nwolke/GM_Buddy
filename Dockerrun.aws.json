@@ -1,7 +1,7 @@
 {
   "AWSEBDockerrunVersion": "1",
   "Image": {
-    "Name": "107912522122.dkr.ecr.us-west-2.amazonaws.com/gm-buddy-server:latest",
+    "Name": "__AWS_ECR_IMAGE_URI__",
     "Update": "true"
   },
   "Ports": [
@@ -10,5 +10,5 @@
       "HostPort": 8080
     }
   ],
-  "Logging": "/var/log/nginx"
+  "Logging": "/var/log/app"
 }
