@@ -331,125 +331,185 @@ INSERT INTO public.entity_relationship (
     relationship_type_id, description, strength, is_active, campaign_id
 )
 VALUES
-  -- Bob The Coolguy (NPC 1) is Friends with Elara Moonwhisper (NPC 2)
+  -- Marcus Blackwood (NPC) is Friends with Lyanna Swift (NPC) in Shadows Over Millhaven
   (
-    'npc', (SELECT npc_id FROM public.npc WHERE name = 'Bob The Coolguy' LIMIT 1),
-    'npc', (SELECT npc_id FROM public.npc WHERE name = 'Elara Moonwhisper' LIMIT 1),
+    'npc', (SELECT npc_id FROM public.npc WHERE name = 'Marcus Blackwood' LIMIT 1),
+    'npc', (SELECT npc_id FROM public.npc WHERE name = 'Lyanna Swift' LIMIT 1),
     (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Friend' LIMIT 1),
-    'Old friends from their adventuring days',
+    'The magistrate trusts the merchant for advice on regional affairs',
     7,
     true,
-    (SELECT campaign_id FROM public.campaign WHERE name = 'The Lost Mines of Phandelver' LIMIT 1)
+    (SELECT campaign_id FROM public.campaign WHERE name = 'Shadows Over Millhaven' LIMIT 1)
   ),
-  -- Gundren Rockseeker (NPC 3) is a Member of Rockseeker Brothers Mining Company (Org 4)
+  -- Marcus Blackwood (NPC) is Ally with Lyanna Swift (NPC) in Shadows Over Millhaven
   (
-    'npc', (SELECT npc_id FROM public.npc WHERE name = 'Gundren Rockseeker' LIMIT 1),
-    'organization', (SELECT organization_id FROM public.organization WHERE name = 'Rockseeker Brothers Mining Company' LIMIT 1),
-    (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Member' LIMIT 1),
-    'Founder and lead prospector',
-    10,
-    true,
-    (SELECT campaign_id FROM public.campaign WHERE name = 'The Lost Mines of Phandelver' LIMIT 1)
-  ),
-  -- Sildar Hallwinter (NPC 4) is a Member of The Lords' Alliance (Org 1)
-  (
-    'npc', (SELECT npc_id FROM public.npc WHERE name = 'Sildar Hallwinter' LIMIT 1),
-    'organization', (SELECT organization_id FROM public.organization WHERE name = 'The Lords'' Alliance' LIMIT 1),
-    (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Member' LIMIT 1),
-    'Veteran agent of the Alliance',
+    'npc', (SELECT npc_id FROM public.npc WHERE name = 'Marcus Blackwood' LIMIT 1),
+    'npc', (SELECT npc_id FROM public.npc WHERE name = 'Lyanna Swift' LIMIT 1),
+    (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Ally' LIMIT 1),
+    'Working together to solve the mysteries plaguing Millhaven',
     8,
     true,
-    (SELECT campaign_id FROM public.campaign WHERE name = 'The Lost Mines of Phandelver' LIMIT 1)
+    (SELECT campaign_id FROM public.campaign WHERE name = 'Shadows Over Millhaven' LIMIT 1)
   ),
-  -- The Black Spider (NPC 5) is Enemy of Gundren Rockseeker (NPC 3)
+  -- Thorgar Stonefist (NPC) is Enemy of Red Scar (NPC) in The Northern Frontier
   (
-    'npc', (SELECT npc_id FROM public.npc WHERE name = 'The Black Spider' LIMIT 1),
-    'npc', (SELECT npc_id FROM public.npc WHERE name = 'Gundren Rockseeker' LIMIT 1),
+    'npc', (SELECT npc_id FROM public.npc WHERE name = 'Thorgar Stonefist' LIMIT 1),
+    'npc', (SELECT npc_id FROM public.npc WHERE name = 'Red Scar' LIMIT 1),
     (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Enemy' LIMIT 1),
-    'Seeks to steal the location of Wave Echo Cave',
+    'The guide refuses to pay tribute to the bandit chief',
     9,
     true,
-    (SELECT campaign_id FROM public.campaign WHERE name = 'The Lost Mines of Phandelver' LIMIT 1)
+    (SELECT campaign_id FROM public.campaign WHERE name = 'The Northern Frontier' LIMIT 1)
   ),
-  -- Thorin Ironforge (PC 1) is Ally of Gundren Rockseeker (NPC 3)
+  -- Kael Windrunner (NPC) is Ally of Thorgar Stonefist (NPC) in The Northern Frontier
   (
-    'pc', (SELECT pc_id FROM public.pc WHERE name = 'Thorin Ironforge' LIMIT 1),
-    'npc', (SELECT npc_id FROM public.npc WHERE name = 'Gundren Rockseeker' LIMIT 1),
+    'npc', (SELECT npc_id FROM public.npc WHERE name = 'Kael Windrunner' LIMIT 1),
+    'npc', (SELECT npc_id FROM public.npc WHERE name = 'Thorgar Stonefist' LIMIT 1),
     (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Ally' LIMIT 1),
-    'Fellow dwarf helping to reclaim the mines',
+    'Tracker and guide work together to map the frontier',
     8,
     true,
-    (SELECT campaign_id FROM public.campaign WHERE name = 'The Lost Mines of Phandelver' LIMIT 1)
+    (SELECT campaign_id FROM public.campaign WHERE name = 'The Northern Frontier' LIMIT 1)
   ),
-  -- Lyra Shadowstep (PC 2) has Elara Moonwhisper (NPC 2) as Mentor
+  -- Kael Windrunner (NPC) is Enemy of Red Scar (NPC) in The Northern Frontier
   (
-    'npc', (SELECT npc_id FROM public.npc WHERE name = 'Elara Moonwhisper' LIMIT 1),
-    'pc', (SELECT pc_id FROM public.pc WHERE name = 'Lyra Shadowstep' LIMIT 1),
-    (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Mentor' LIMIT 1),
-    'Taught Lyra the basics of arcane magic',
+    'npc', (SELECT npc_id FROM public.npc WHERE name = 'Kael Windrunner' LIMIT 1),
+    'npc', (SELECT npc_id FROM public.npc WHERE name = 'Red Scar' LIMIT 1),
+    (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Enemy' LIMIT 1),
+    'The tracker actively hunts the bandit and his crew',
     7,
     true,
-    (SELECT campaign_id FROM public.campaign WHERE name = 'The Lost Mines of Phandelver' LIMIT 1)
+    (SELECT campaign_id FROM public.campaign WHERE name = 'The Northern Frontier' LIMIT 1)
   ),
-  -- Aldric the Brave (PC 3) is Member of The Lords' Alliance (Org 1)
+  -- Thorin Ironforge (PC) is Member of The Lords' Alliance (Org)
+  (
+    'pc', (SELECT pc_id FROM public.pc WHERE name = 'Thorin Ironforge' LIMIT 1),
+    'organization', (SELECT organization_id FROM public.organization WHERE name = 'The Lords'' Alliance' LIMIT 1),
+    (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Member' LIMIT 1),
+    'Dwarven cleric serving as a liaison for the Alliance',
+    7,
+    true,
+    NULL
+  ),
+  -- Lyra Shadowstep (PC) is Member of The Harpers (Org)
+  (
+    'pc', (SELECT pc_id FROM public.pc WHERE name = 'Lyra Shadowstep' LIMIT 1),
+    'organization', (SELECT organization_id FROM public.organization WHERE name = 'The Harpers' LIMIT 1),
+    (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Member' LIMIT 1),
+    'Half-elf rogue working as a secret Harper agent',
+    8,
+    true,
+    NULL
+  ),
+  -- Aldric the Brave (PC) is Member of The Lords' Alliance (Org)
   (
     'pc', (SELECT pc_id FROM public.pc WHERE name = 'Aldric the Brave' LIMIT 1),
     'organization', (SELECT organization_id FROM public.organization WHERE name = 'The Lords'' Alliance' LIMIT 1),
     (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Member' LIMIT 1),
-    'Recently inducted paladin serving the Alliance',
+    'Paladin recently inducted into the Alliance',
     6,
     true,
-    (SELECT campaign_id FROM public.campaign WHERE name = 'The Lost Mines of Phandelver' LIMIT 1)
+    NULL
   ),
-  -- Zephyr Windwhisper (PC 4) is Member of The Harpers (Org 2)
+  -- Zephyr Windwhisper (PC) is Member of The Harpers (Org)
   (
     'pc', (SELECT pc_id FROM public.pc WHERE name = 'Zephyr Windwhisper' LIMIT 1),
     'organization', (SELECT organization_id FROM public.organization WHERE name = 'The Harpers' LIMIT 1),
     (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Member' LIMIT 1),
-    'Secret Harper agent gathering intelligence',
+    'Elven ranger gathering intelligence for the Harpers',
     7,
     true,
-    (SELECT campaign_id FROM public.campaign WHERE name = 'The Lost Mines of Phandelver' LIMIT 1)
+    NULL
   ),
-  -- Bob The Coolguy (NPC 1) is Rival of The Black Spider (NPC 5)
+  -- Thorin Ironforge (PC) is Ally of Marcus Blackwood (NPC) in Shadows Over Millhaven
   (
-    'npc', (SELECT npc_id FROM public.npc WHERE name = 'Bob The Coolguy' LIMIT 1),
-    'npc', (SELECT npc_id FROM public.npc WHERE name = 'The Black Spider' LIMIT 1),
-    (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Rival' LIMIT 1),
-    'Competing for the same treasure',
-    6,
+    'pc', (SELECT pc_id FROM public.pc WHERE name = 'Thorin Ironforge' LIMIT 1),
+    'npc', (SELECT npc_id FROM public.npc WHERE name = 'Marcus Blackwood' LIMIT 1),
+    (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Ally' LIMIT 1),
+    'The cleric assists the magistrate in investigating the mysteries',
+    7,
     true,
-    (SELECT campaign_id FROM public.campaign WHERE name = 'The Lost Mines of Phandelver' LIMIT 1)
+    (SELECT campaign_id FROM public.campaign WHERE name = 'Shadows Over Millhaven' LIMIT 1)
   ),
-  -- The Zhentarim (Org 3) is Enemy of The Lords' Alliance (Org 1)
+  -- Lyanna Swift (NPC) is Mentor of Lyra Shadowstep (PC) in Shadows Over Millhaven
+  (
+    'npc', (SELECT npc_id FROM public.npc WHERE name = 'Lyanna Swift' LIMIT 1),
+    'pc', (SELECT pc_id FROM public.pc WHERE name = 'Lyra Shadowstep' LIMIT 1),
+    (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Mentor' LIMIT 1),
+    'The merchant taught Lyra about rare herbs and alchemy',
+    8,
+    true,
+    (SELECT campaign_id FROM public.campaign WHERE name = 'Shadows Over Millhaven' LIMIT 1)
+  ),
+  -- Thorgar Stonefist (NPC) is Mentor of Zephyr Windwhisper (PC) in The Northern Frontier
+  (
+    'npc', (SELECT npc_id FROM public.npc WHERE name = 'Thorgar Stonefist' LIMIT 1),
+    'pc', (SELECT pc_id FROM public.pc WHERE name = 'Zephyr Windwhisper' LIMIT 1),
+    (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Mentor' LIMIT 1),
+    'The guide taught the ranger the secrets of the northern mountains',
+    7,
+    true,
+    (SELECT campaign_id FROM public.campaign WHERE name = 'The Northern Frontier' LIMIT 1)
+  ),
+  -- Aldric the Brave (PC) is Ally of Kael Windrunner (NPC) in The Northern Frontier
+  (
+    'pc', (SELECT pc_id FROM public.pc WHERE name = 'Aldric the Brave' LIMIT 1),
+    'npc', (SELECT npc_id FROM public.npc WHERE name = 'Kael Windrunner' LIMIT 1),
+    (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Ally' LIMIT 1),
+    'Paladin and tracker united in protecting travelers from bandits',
+    8,
+    true,
+    (SELECT campaign_id FROM public.campaign WHERE name = 'The Northern Frontier' LIMIT 1)
+  ),
+  -- The Zhentarim (Org) is Enemy of The Lords' Alliance (Org)
   (
     'organization', (SELECT organization_id FROM public.organization WHERE name = 'The Zhentarim' LIMIT 1),
     'organization', (SELECT organization_id FROM public.organization WHERE name = 'The Lords'' Alliance' LIMIT 1),
     (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Enemy' LIMIT 1),
-    'Long-standing conflict over regional control',
+    'Long-standing conflict over regional influence and trade routes',
     8,
     true,
-    (SELECT campaign_id FROM public.campaign WHERE name = 'The Lost Mines of Phandelver' LIMIT 1)
+    NULL
   ),
-  -- Thorin Ironforge (PC 1) and Lyra Shadowstep (PC 2) are Friends
+  -- The Harpers (Org) is Ally of The Lords' Alliance (Org)
+  (
+    'organization', (SELECT organization_id FROM public.organization WHERE name = 'The Harpers' LIMIT 1),
+    'organization', (SELECT organization_id FROM public.organization WHERE name = 'The Lords'' Alliance' LIMIT 1),
+    (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Ally' LIMIT 1),
+    'United in promoting stability and opposing tyranny',
+    7,
+    true,
+    NULL
+  ),
+  -- Thorin Ironforge (PC) and Lyra Shadowstep (PC) are Friends
   (
     'pc', (SELECT pc_id FROM public.pc WHERE name = 'Thorin Ironforge' LIMIT 1),
     'pc', (SELECT pc_id FROM public.pc WHERE name = 'Lyra Shadowstep' LIMIT 1),
     (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Friend' LIMIT 1),
-    'Adventuring companions who trust each other',
+    'Adventuring companions who trust each other completely',
     9,
     true,
-    (SELECT campaign_id FROM public.campaign WHERE name = 'The Lost Mines of Phandelver' LIMIT 1)
+    NULL
   ),
-  -- Aldric the Brave (PC 3) and Zephyr Windwhisper (PC 4) are Allies
+  -- Aldric the Brave (PC) and Zephyr Windwhisper (PC) are Allies
   (
     'pc', (SELECT pc_id FROM public.pc WHERE name = 'Aldric the Brave' LIMIT 1),
     'pc', (SELECT pc_id FROM public.pc WHERE name = 'Zephyr Windwhisper' LIMIT 1),
     (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Ally' LIMIT 1),
-    'United in their quest to protect the innocent',
+    'United in their quest to protect the innocent and fight evil',
     8,
     true,
-    (SELECT campaign_id FROM public.campaign WHERE name = 'The Lost Mines of Phandelver' LIMIT 1)
+    NULL
+  ),
+  -- Thorin Ironforge (PC) is Member of Rockseeker Brothers Mining Company (Org)
+  (
+    'pc', (SELECT pc_id FROM public.pc WHERE name = 'Thorin Ironforge' LIMIT 1),
+    'organization', (SELECT organization_id FROM public.organization WHERE name = 'Rockseeker Brothers Mining Company' LIMIT 1),
+    (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Member' LIMIT 1),
+    'Fellow dwarf invested in the mining company ventures',
+    6,
+    true,
+    NULL
   )
 ON CONFLICT DO NOTHING;
 
