@@ -515,31 +515,3 @@ VALUES
     NULL
   )
 ON CONFLICT DO NOTHING;
-
--- Also create NPCs for the demo_user account (for React demo login)
-INSERT INTO public.npc (account_id, game_system_id, name, description, stats)
-VALUES
-  (
-    (SELECT id FROM auth.account WHERE username = 'demo_user' LIMIT 1),
-    (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
-    'Demo Merchant',
-    'A friendly merchant for testing the demo.',
-    jsonb_build_object(
-      'lineage', 'Human',
-      'occupation', 'Merchant',
-      'gender', 'Male'
-    )
-  ),
-  (
-    (SELECT id FROM auth.account WHERE username = 'demo_user' LIMIT 1),
-    (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
-    'Demo Guard',
-    'A town guard for testing the demo.',
-    jsonb_build_object(
-      'lineage', 'Human',
-      'occupation', 'Guard',
-      'gender', 'Female'
-    )
-  )
-ON CONFLICT DO NOTHING;
-
