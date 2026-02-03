@@ -3,7 +3,7 @@ import { Campaign } from "@/types/campaign";
 import { CampaignCard } from "@/app/components/CampaignCard";
 import { CampaignForm } from "@/app/components/CampaignForm";
 import { Button } from "@/app/components/ui/button";
-import { Plus, RefreshCw, LogIn, Scroll } from "lucide-react";
+import { Plus, RefreshCw, LogIn, BookOpen } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCampaignData } from "@/hooks/useCampaignData";
 import { Header } from "@/app/components/Header";
@@ -67,18 +67,11 @@ export function CampaignManagerPage() {
         />
 
         <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="bg-gradient-to-br from-primary/20 to-accent/20 w-12 h-12 rounded-lg flex items-center justify-center">
-              <Scroll className="size-6 text-primary" />
-            </div>
-            <div>
-              <h2 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                Campaign Manager
-              </h2>
-              <p className="text-muted-foreground">
-                Manage your tabletop campaigns
-              </p>
-            </div>
+          <div>
+            <h2 className="text-3xl font-bold">Campaigns</h2>
+            <p className="text-muted-foreground mt-2">
+              Manage your tabletop campaigns
+            </p>
           </div>
           {isAuthenticated && (
             <Button 
@@ -124,7 +117,7 @@ export function CampaignManagerPage() {
           <div className="text-center py-20">
             <div className="bg-gradient-to-br from-card to-secondary/30 border border-primary/30 rounded-2xl p-12 max-w-md mx-auto shadow-xl">
               <div className="bg-gradient-to-br from-primary/20 to-accent/20 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Scroll className="size-12 text-primary" />
+                <BookOpen className="size-12 text-primary" />
               </div>
               <h3 className="text-2xl font-bold mb-3 text-primary">No Campaigns Yet</h3>
               <p className="text-muted-foreground mb-6 leading-relaxed">
