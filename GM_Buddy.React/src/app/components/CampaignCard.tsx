@@ -6,7 +6,7 @@ import { Pencil, Trash2, BookOpen } from "lucide-react";
 interface CampaignCardProps {
   campaign: Campaign;
   onEdit: (campaign: Campaign) => void;
-  onDelete: (id: string) => void;
+  onDelete: (id: number) => void;
 }
 
 export function CampaignCard({ campaign, onEdit, onDelete }: CampaignCardProps) {
