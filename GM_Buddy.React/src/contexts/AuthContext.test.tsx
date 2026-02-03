@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, renderHook } from '@testing-library/react'
 import { AuthProvider, useAuth } from '@/contexts/AuthContext'
 import { accountApi } from '@/services/api'
 import * as cognito from '@/services/cognito'
@@ -64,8 +64,9 @@ describe('AuthContext', () => {
     const originalError = console.error
     console.error = vi.fn()
 
+    // renderHook will throw if the hook throws during render
     expect(() => {
-      render(<TestComponent />)
+      renderHook(() => useAuth())
     }).toThrow('useAuth must be used within an AuthProvider')
 
     console.error = originalError
@@ -120,6 +121,8 @@ describe('AuthContext', () => {
     vi.mocked(accountApi.syncAccount).mockResolvedValue({
       accountId: 123,
       email: 'cognito@test.com',
+      subscriptionTier: 'free',
+      createdAt: new Date().toISOString(),
     })
 
     // Simulate Cognito callback URL
