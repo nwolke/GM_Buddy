@@ -303,23 +303,23 @@ INSERT INTO public.organization (account_id, name, description)
 VALUES
   (
     (SELECT id FROM auth.account WHERE username = 'gm_admin' LIMIT 1),
-    'The Lords'' Alliance',
-    'A coalition of rulers from cities across Faerun, united against common threats.'
+    'The Regional Alliance',
+    'A coalition of regional leaders united to maintain peace and prosperity.'
   ),
   (
     (SELECT id FROM auth.account WHERE username = 'gm_admin' LIMIT 1),
-    'The Harpers',
-    'A secretive organization working to promote good, preserve history, and maintain balance.'
+    'The Archivists',
+    'A secretive organization dedicated to preserving knowledge and maintaining balance.'
   ),
   (
     (SELECT id FROM auth.account WHERE username = 'gm_admin' LIMIT 1),
-    'The Zhentarim',
+    'The Shadow Syndicate',
     'A shadowy network of mercenaries and traders seeking power and profit.'
   ),
   (
     (SELECT id FROM auth.account WHERE username = 'gm_admin' LIMIT 1),
-    'Rockseeker Brothers Mining Company',
-    'A dwarven mining operation searching for lost mines and treasure.'
+    'Stonepeak Mining Consortium',
+    'A mining operation searching for valuable mineral deposits and lost treasures.'
   )
 ON CONFLICT DO NOTHING;
 
@@ -381,42 +381,43 @@ VALUES
     true,
     (SELECT campaign_id FROM public.campaign WHERE name = 'The Northern Frontier' LIMIT 1)
   ),
-  -- Thorin Ironforge (PC) is Member of The Lords' Alliance (Org)
+  -- Thorin Ironforge (PC) is Member of The Regional Alliance (Org)
+  -- Note: PC-to-Organization memberships use NULL campaign_id as they are campaign-agnostic
   (
     'pc', (SELECT pc_id FROM public.pc WHERE name = 'Thorin Ironforge' LIMIT 1),
-    'organization', (SELECT organization_id FROM public.organization WHERE name = 'The Lords'' Alliance' LIMIT 1),
+    'organization', (SELECT organization_id FROM public.organization WHERE name = 'The Regional Alliance' LIMIT 1),
     (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Member' LIMIT 1),
     'Dwarven cleric serving as a liaison for the Alliance',
     7,
     true,
     NULL
   ),
-  -- Lyra Shadowstep (PC) is Member of The Harpers (Org)
+  -- Lyra Shadowstep (PC) is Member of The Archivists (Org)
   (
     'pc', (SELECT pc_id FROM public.pc WHERE name = 'Lyra Shadowstep' LIMIT 1),
-    'organization', (SELECT organization_id FROM public.organization WHERE name = 'The Harpers' LIMIT 1),
+    'organization', (SELECT organization_id FROM public.organization WHERE name = 'The Archivists' LIMIT 1),
     (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Member' LIMIT 1),
-    'Half-elf rogue working as a secret Harper agent',
+    'Half-elf rogue working as a secret agent and researcher',
     8,
     true,
     NULL
   ),
-  -- Aldric the Brave (PC) is Member of The Lords' Alliance (Org)
+  -- Aldric the Brave (PC) is Member of The Regional Alliance (Org)
   (
     'pc', (SELECT pc_id FROM public.pc WHERE name = 'Aldric the Brave' LIMIT 1),
-    'organization', (SELECT organization_id FROM public.organization WHERE name = 'The Lords'' Alliance' LIMIT 1),
+    'organization', (SELECT organization_id FROM public.organization WHERE name = 'The Regional Alliance' LIMIT 1),
     (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Member' LIMIT 1),
     'Paladin recently inducted into the Alliance',
     6,
     true,
     NULL
   ),
-  -- Zephyr Windwhisper (PC) is Member of The Harpers (Org)
+  -- Zephyr Windwhisper (PC) is Member of The Archivists (Org)
   (
     'pc', (SELECT pc_id FROM public.pc WHERE name = 'Zephyr Windwhisper' LIMIT 1),
-    'organization', (SELECT organization_id FROM public.organization WHERE name = 'The Harpers' LIMIT 1),
+    'organization', (SELECT organization_id FROM public.organization WHERE name = 'The Archivists' LIMIT 1),
     (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Member' LIMIT 1),
-    'Elven ranger gathering intelligence for the Harpers',
+    'Elven ranger gathering intelligence and preserving lore',
     7,
     true,
     NULL
@@ -461,20 +462,21 @@ VALUES
     true,
     (SELECT campaign_id FROM public.campaign WHERE name = 'The Northern Frontier' LIMIT 1)
   ),
-  -- The Zhentarim (Org) is Enemy of The Lords' Alliance (Org)
+  -- The Shadow Syndicate (Org) is Enemy of The Regional Alliance (Org)
+  -- Note: Organization-to-Organization relationships use NULL campaign_id as they exist across all campaigns
   (
-    'organization', (SELECT organization_id FROM public.organization WHERE name = 'The Zhentarim' LIMIT 1),
-    'organization', (SELECT organization_id FROM public.organization WHERE name = 'The Lords'' Alliance' LIMIT 1),
+    'organization', (SELECT organization_id FROM public.organization WHERE name = 'The Shadow Syndicate' LIMIT 1),
+    'organization', (SELECT organization_id FROM public.organization WHERE name = 'The Regional Alliance' LIMIT 1),
     (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Enemy' LIMIT 1),
     'Long-standing conflict over regional influence and trade routes',
     8,
     true,
     NULL
   ),
-  -- The Harpers (Org) is Ally of The Lords' Alliance (Org)
+  -- The Archivists (Org) is Ally of The Regional Alliance (Org)
   (
-    'organization', (SELECT organization_id FROM public.organization WHERE name = 'The Harpers' LIMIT 1),
-    'organization', (SELECT organization_id FROM public.organization WHERE name = 'The Lords'' Alliance' LIMIT 1),
+    'organization', (SELECT organization_id FROM public.organization WHERE name = 'The Archivists' LIMIT 1),
+    'organization', (SELECT organization_id FROM public.organization WHERE name = 'The Regional Alliance' LIMIT 1),
     (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Ally' LIMIT 1),
     'United in promoting stability and opposing tyranny',
     7,
@@ -482,6 +484,7 @@ VALUES
     NULL
   ),
   -- Thorin Ironforge (PC) and Lyra Shadowstep (PC) are Friends
+  -- Note: PC-to-PC friendships use NULL campaign_id as they persist across campaigns
   (
     'pc', (SELECT pc_id FROM public.pc WHERE name = 'Thorin Ironforge' LIMIT 1),
     'pc', (SELECT pc_id FROM public.pc WHERE name = 'Lyra Shadowstep' LIMIT 1),
@@ -501,12 +504,12 @@ VALUES
     true,
     NULL
   ),
-  -- Thorin Ironforge (PC) is Member of Rockseeker Brothers Mining Company (Org)
+  -- Thorin Ironforge (PC) is Member of Stonepeak Mining Consortium (Org)
   (
     'pc', (SELECT pc_id FROM public.pc WHERE name = 'Thorin Ironforge' LIMIT 1),
-    'organization', (SELECT organization_id FROM public.organization WHERE name = 'Rockseeker Brothers Mining Company' LIMIT 1),
+    'organization', (SELECT organization_id FROM public.organization WHERE name = 'Stonepeak Mining Consortium' LIMIT 1),
     (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Member' LIMIT 1),
-    'Fellow dwarf invested in the mining company ventures',
+    'Fellow dwarf invested in the mining consortium ventures',
     6,
     true,
     NULL
