@@ -25,9 +25,11 @@ public class AuthLogic : IAuthLogic
         var account = await _accountRepository.GetByCognitoSubAsync(cognitoSub);
         if (account != null)
         {
-            _logger.LogInformation("Account {id} found, updating last login", account.account_id);
-            // Update last login time
-            await _accountRepository.UpdateLastLoginAsync(account.account_id);
+            _logger.LogInformation("Account {id} found for cognito sub {cognitoSub}", account.account_id, cognitoSub);
+            // Note: Skipping last_login_at update to improve performance
+            // The update was causing timeout issues on sign-in
+            // TODO: Consider async fire-and-forget pattern or background job for this
+            // await _accountRepository.UpdateLastLoginAsync(account.account_id);
             return account;
         }
 

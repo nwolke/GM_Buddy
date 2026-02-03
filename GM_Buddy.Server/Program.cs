@@ -59,6 +59,9 @@ builder.Services.AddAuthentication(options =>
         NameClaimType = "cognito:username",
         RoleClaimType = "cognito:groups"
     };
+    
+    // Optimize backchannel (JWKS fetching) timeout - fail fast if Cognito is slow/unreachable
+    options.BackchannelTimeout = TimeSpan.FromSeconds(10);
 });
 builder.Services.AddAuthorization();
 builder.Services.AddControllers();

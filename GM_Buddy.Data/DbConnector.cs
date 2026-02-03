@@ -14,7 +14,7 @@ public class DbConnector : IDbConnector
     public DbConnector(IOptions<DbSettings> dbSettings)
     {
         _dbSettings = dbSettings.Value;
-        _connectionString = $"Server={_dbSettings.Host};Port={_dbSettings.Port};Database={_dbSettings.Database};Username={_dbSettings.Username};Password={_dbSettings.Password};Timeout=300;CommandTimeout=300";
+        _connectionString = $"Server={_dbSettings.Host};Port={_dbSettings.Port};Database={_dbSettings.Database};Username={_dbSettings.Username};Password={_dbSettings.Password};Timeout=10;CommandTimeout=30;Pooling=true;MinPoolSize=0;MaxPoolSize=100;ConnectionIdleLifetime=300";
     }
 
     public string ConnectionString => _connectionString;
