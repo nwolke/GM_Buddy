@@ -3,7 +3,7 @@ import { Campaign } from "@/types/campaign";
 import { CampaignCard } from "@/app/components/CampaignCard";
 import { CampaignForm } from "@/app/components/CampaignForm";
 import { Button } from "@/app/components/ui/button";
-import { Plus, RefreshCw, LogIn } from "lucide-react";
+import { Plus, RefreshCw, LogIn, BookOpen } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCampaignData } from "@/hooks/useCampaignData";
 import { Header } from "@/app/components/Header";
@@ -117,7 +117,7 @@ export function CampaignManagerPage() {
           <div className="text-center py-20">
             <div className="bg-gradient-to-br from-card to-secondary/30 border border-primary/30 rounded-2xl p-12 max-w-md mx-auto shadow-xl">
               <div className="bg-gradient-to-br from-primary/20 to-accent/20 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Plus className="size-12 text-primary" />
+                <BookOpen className="size-12 text-primary" />
               </div>
               <h3 className="text-2xl font-bold mb-3 text-primary">No Campaigns Yet</h3>
               <p className="text-muted-foreground mb-6 leading-relaxed">
