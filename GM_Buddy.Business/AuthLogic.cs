@@ -26,10 +26,21 @@ public class AuthLogic : IAuthLogic
         if (account != null)
         {
             _logger.LogInformation("Account {id} found for cognito sub {cognitoSub}", account.account_id, cognitoSub);
-            // Note: Skipping last_login_at update to improve performance
-            // The update was causing timeout issues on sign-in
-            // TODO: Consider async fire-and-forget pattern or background job for this
-            // await _accountRepository.UpdateLastLoginAsync(account.account_id);
+            
+            // Update last login asynchronously without waiting (fire-and-forget)
+            // This prevents the login flow from waiting for the UPDATE to complete
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await _accountRepository.UpdateLastLoginAsync(account.account_id);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to update last login for account {AccountId}", account.account_id);
+                }
+            });
+            
             return account;
         }
 

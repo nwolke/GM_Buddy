@@ -40,8 +40,18 @@ public class AuthLogicTests
         Assert.NotNull(result);
         Assert.Equal(1, result.account_id);
         Assert.Equal("cognito-sub-123", result.cognito_sub);
-        Assert.True(result.last_login_at > originalLastLogin, "Last login should be updated");
+        
+        // Note: last_login_at update is now async/fire-and-forget for performance
+        // The returned account will have the old last_login_at value for immediate response speed
         Assert.False(seeder.WasCalled, "Seeder should not be called for existing account");
+        
+        // Give the background task time to complete
+        await Task.Delay(500);
+        
+        // Verify the update happened in the repository
+        var updatedAccount = await accountRepo.GetByIdAsync(1);
+        Assert.NotNull(updatedAccount);
+        Assert.True(updatedAccount.last_login_at > originalLastLogin, "Last login should be updated in background");
     }
 
     [Fact]
