@@ -87,11 +87,6 @@ public class ReferenceDataController : ControllerBase
             // Ensure the race is tied to the authenticated user
             race.account_id = accountId;
 
-            if (race.account_id == null)
-            {
-                return BadRequest("Custom races must have an account_id");
-            }
-
             int raceId = await _repository.CreateRaceAsync(race, ct);
             _logger.LogInformation("Created custom race {RaceId} for account {AccountId}", raceId, accountId);
 
@@ -152,7 +147,7 @@ public class ReferenceDataController : ControllerBase
     /// Delete a custom race (only user's own custom races)
     /// </summary>
     [HttpDelete("races/{raceId}")]
-    public async Task<ActionResult> DeleteRace(int raceId, [FromQuery] int? accountId = null, CancellationToken ct = default)
+    public async Task<ActionResult> DeleteRace(int raceId, CancellationToken ct = default)
     {
         try
         {
@@ -238,11 +233,6 @@ public class ReferenceDataController : ControllerBase
             // Ensure the class is tied to the authenticated user
             referenceClass.account_id = accountId;
 
-            if (referenceClass.account_id == null)
-            {
-                return BadRequest("Custom classes must have an account_id");
-            }
-
             int classId = await _repository.CreateClassAsync(referenceClass, ct);
             _logger.LogInformation("Created custom class {ClassId} for account {AccountId}", classId, accountId);
 
@@ -303,7 +293,7 @@ public class ReferenceDataController : ControllerBase
     /// Delete a custom class (only user's own custom classes)
     /// </summary>
     [HttpDelete("classes/{classId}")]
-    public async Task<ActionResult> DeleteClass(int classId, [FromQuery] int? accountId = null, CancellationToken ct = default)
+    public async Task<ActionResult> DeleteClass(int classId, CancellationToken ct = default)
     {
         try
         {
