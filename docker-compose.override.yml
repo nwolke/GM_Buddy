@@ -1,15 +1,23 @@
-services:
-  gm_buddy_server:
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_HTTP_PORTS=8080
-    ports:
-      - "5000:8080"
-    volumes:
-      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+# ===========================================
+# Docker Compose Override for Local Development
+# ===========================================
+# This file allows developers to customize their local setup
+# without affecting the main docker-compose.yml
+# Copy this file to docker-compose.override.yml (gitignored)
 
-  gm_buddy_web:
-    environment:
-      - NODE_ENV=development
-    ports:
-      - "3000:80"
+version: '3.8'
+
+services:
+  # Uncomment to add volume mounts for hot reload during development
+  
+  # gm_buddy_server:
+  #   volumes:
+  #     - ./GM_Buddy.Server:/src/GM_Buddy.Server:ro
+  #     - ./GM_Buddy.Business:/src/GM_Buddy.Business:ro
+  #     - ./GM_Buddy.Data:/src/GM_Buddy.Data:ro
+  #     - ./GM_Buddy.Contracts:/src/GM_Buddy.Contracts:ro
+  
+  # gm_buddy_web:
+  #   volumes:
+  #     - ./GM_Buddy.React/src:/app/src:ro
+  #     - ./GM_Buddy.React/public:/app/public:ro
