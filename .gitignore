@@ -146,6 +146,9 @@ coverage*.json
 coverage*.xml
 coverage*.info
 
+# Coverage output directory
+coverage/
+
 # Visual Studio code coverage results
 *.coverage
 *.coveragexml
