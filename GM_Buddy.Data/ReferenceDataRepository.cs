@@ -68,7 +68,7 @@ public class ReferenceDataRepository : IReferenceDataRepository
                 updated_at = NOW()
             WHERE lineage_id = @lineage_id 
               AND account_id = @account_id 
-              AND (campaign_id = @campaign_id OR (campaign_id IS NULL AND @campaign_id IS NULL))";
+              AND campaign_id = @campaign_id";
         
         var cmd = new CommandDefinition(sql, lineage, cancellationToken: ct);
         int rowsAffected = await dbConnection.ExecuteAsync(cmd);
@@ -82,7 +82,7 @@ public class ReferenceDataRepository : IReferenceDataRepository
             DELETE FROM reference_lineage 
             WHERE lineage_id = @LineageId 
               AND account_id = @AccountId 
-              AND (campaign_id = @CampaignId OR (campaign_id IS NULL AND @CampaignId IS NULL))";
+              AND campaign_id = @CampaignId";
         
         var cmd = new CommandDefinition(sql, new { LineageId = lineageId, AccountId = accountId, CampaignId = campaignId }, cancellationToken: ct);
         int rowsAffected = await dbConnection.ExecuteAsync(cmd);
@@ -143,7 +143,7 @@ public class ReferenceDataRepository : IReferenceDataRepository
                 updated_at = NOW()
             WHERE occupation_id = @occupation_id 
               AND account_id = @account_id 
-              AND (campaign_id = @campaign_id OR (campaign_id IS NULL AND @campaign_id IS NULL))";
+              AND campaign_id = @campaign_id";
         
         var cmd = new CommandDefinition(sql, occupation, cancellationToken: ct);
         int rowsAffected = await dbConnection.ExecuteAsync(cmd);
@@ -157,7 +157,7 @@ public class ReferenceDataRepository : IReferenceDataRepository
             DELETE FROM reference_occupation 
             WHERE occupation_id = @OccupationId 
               AND account_id = @AccountId 
-              AND (campaign_id = @CampaignId OR (campaign_id IS NULL AND @CampaignId IS NULL))";
+              AND campaign_id = @CampaignId";
         
         var cmd = new CommandDefinition(sql, new { OccupationId = occupationId, AccountId = accountId, CampaignId = campaignId }, cancellationToken: ct);
         int rowsAffected = await dbConnection.ExecuteAsync(cmd);
