@@ -28,75 +28,77 @@ public class ReferenceDataController : ControllerBase
         _authHelper = authHelper;
     }
 
-    // Race endpoints
+    // Lineage endpoints
 
     /// <summary>
-    /// Get all races for a game system (SRD + optional user custom races)
+    /// Get all lineages for a game system (SRD + optional user/campaign custom lineages)
     /// </summary>
-    [HttpGet("{gameSystemId}/races")]
-    public async Task<ActionResult<IEnumerable<ReferenceRace>>> GetRaces(
+    [HttpGet("{gameSystemId}/lineages")]
+    public async Task<ActionResult<IEnumerable<ReferenceLineage>>> GetLineages(
         int gameSystemId,
         [FromQuery] int? accountId = null,
+        [FromQuery] int? campaignId = null,
         CancellationToken ct = default)
     {
         try
         {
-            var races = await _repository.GetRacesAsync(gameSystemId, accountId, ct);
-            _logger.LogInformation("Retrieved {Count} races for game system {GameSystemId}", races.Count(), gameSystemId);
-            return Ok(races);
+            var lineages = await _repository.GetLineagesAsync(gameSystemId, accountId, campaignId, ct);
+            _logger.LogInformation("Retrieved {Count} lineages for game system {GameSystemId}", lineages.Count(), gameSystemId);
+            return Ok(lineages);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving races for game system {GameSystemId}", gameSystemId);
+            _logger.LogError(ex, "Error retrieving lineages for game system {GameSystemId}", gameSystemId);
             return StatusCode(500, "Internal server error");
         }
     }
 
     /// <summary>
-    /// Get a specific race by ID
+    /// Get a specific lineage by ID
     /// </summary>
-    [HttpGet("races/{raceId}")]
-    public async Task<ActionResult<ReferenceRace>> GetRace(int raceId, CancellationToken ct = default)
+    [HttpGet("lineages/{lineageId}")]
+    public async Task<ActionResult<ReferenceLineage>> GetLineage(int lineageId, CancellationToken ct = default)
     {
         try
         {
-            var race = await _repository.GetRaceByIdAsync(raceId, ct);
-            if (race == null)
+            var lineage = await _repository.GetLineageByIdAsync(lineageId, ct);
+            if (lineage == null)
             {
-                return NotFound($"Race with ID {raceId} not found");
+                return NotFound($"Lineage with ID {lineageId} not found");
             }
-            return Ok(race);
+            return Ok(lineage);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving race {RaceId}", raceId);
+            _logger.LogError(ex, "Error retrieving lineage {LineageId}", lineageId);
             return StatusCode(500, "Internal server error");
         }
     }
 
     /// <summary>
-    /// Create a custom race (must have account_id)
+    /// Create a custom lineage (must have account_id and campaign_id)
     /// </summary>
-    [HttpPost("races")]
-    public async Task<ActionResult<ReferenceRace>> CreateRace([FromBody] ReferenceRace race, CancellationToken ct = default)
+    [HttpPost("lineages")]
+    public async Task<ActionResult<ReferenceLineage>> CreateLineage([FromBody] ReferenceLineage lineage, CancellationToken ct = default)
     {
         try
         {
             int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
             
-            // Ensure the race is tied to the authenticated user
-            race.account_id = accountId;
+            // Ensure the lineage is tied to the authenticated user
+            lineage.account_id = accountId;
 
-            int raceId = await _repository.CreateRaceAsync(race, ct);
-            _logger.LogInformation("Created custom race {RaceId} for account {AccountId}", raceId, accountId);
+            int lineageId = await _repository.CreateLineageAsync(lineage, ct);
+            _logger.LogInformation("Created custom lineage {LineageId} for account {AccountId}, campaign {CampaignId}", 
+                lineageId, accountId, lineage.campaign_id);
 
-            var createdRace = await _repository.GetRaceByIdAsync(raceId, ct);
-            if (createdRace == null)
+            var createdLineage = await _repository.GetLineageByIdAsync(lineageId, ct);
+            if (createdLineage == null)
             {
-                return StatusCode(500, "Race was created but could not be retrieved");
+                return StatusCode(500, "Lineage was created but could not be retrieved");
             }
 
-            return CreatedAtAction(nameof(GetRace), new { raceId }, createdRace);
+            return CreatedAtAction(nameof(GetLineage), new { lineageId }, createdLineage);
         }
         catch (UnauthorizedAccessException ex)
         {
@@ -104,32 +106,32 @@ public class ReferenceDataController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error creating race");
+            _logger.LogError(ex, "Error creating lineage");
             return StatusCode(500, "Internal server error");
         }
     }
 
     /// <summary>
-    /// Update a custom race (only user's own custom races)
+    /// Update a custom lineage (only user's own custom lineages)
     /// </summary>
-    [HttpPut("races/{raceId}")]
-    public async Task<ActionResult> UpdateRace(int raceId, [FromBody] ReferenceRace race, CancellationToken ct = default)
+    [HttpPut("lineages/{lineageId}")]
+    public async Task<ActionResult> UpdateLineage(int lineageId, [FromBody] ReferenceLineage lineage, CancellationToken ct = default)
     {
         try
         {
             int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
             
-            // Ensure the race ID matches and belongs to the authenticated user
-            race.race_id = raceId;
-            race.account_id = accountId;
+            // Ensure the lineage ID matches and belongs to the authenticated user
+            lineage.lineage_id = lineageId;
+            lineage.account_id = accountId;
 
-            bool success = await _repository.UpdateRaceAsync(race, ct);
+            bool success = await _repository.UpdateLineageAsync(lineage, ct);
             if (!success)
             {
-                return NotFound($"Race with ID {raceId} not found or not owned by your account");
+                return NotFound($"Lineage with ID {lineageId} not found or not owned by your account");
             }
 
-            _logger.LogInformation("Updated custom race {RaceId}", raceId);
+            _logger.LogInformation("Updated custom lineage {LineageId}", lineageId);
             return NoContent();
         }
         catch (UnauthorizedAccessException ex)
@@ -138,29 +140,32 @@ public class ReferenceDataController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error updating race {RaceId}", raceId);
+            _logger.LogError(ex, "Error updating lineage {LineageId}", lineageId);
             return StatusCode(500, "Internal server error");
         }
     }
 
     /// <summary>
-    /// Delete a custom race (only user's own custom races)
+    /// Delete a custom lineage (only user's own custom lineages)
     /// </summary>
-    [HttpDelete("races/{raceId}")]
-    public async Task<ActionResult> DeleteRace(int raceId, CancellationToken ct = default)
+    [HttpDelete("lineages/{lineageId}")]
+    public async Task<ActionResult> DeleteLineage(
+        int lineageId, 
+        [FromQuery] int? campaignId = null, 
+        CancellationToken ct = default)
     {
         try
         {
             int authenticatedAccountId = await _authHelper.GetAuthenticatedAccountIdAsync();
             
             // Use the authenticated account ID for deletion
-            bool success = await _repository.DeleteRaceAsync(raceId, authenticatedAccountId, ct);
+            bool success = await _repository.DeleteLineageAsync(lineageId, authenticatedAccountId, campaignId, ct);
             if (!success)
             {
-                return NotFound($"Race with ID {raceId} not found or not owned by your account");
+                return NotFound($"Lineage with ID {lineageId} not found or not owned by your account");
             }
 
-            _logger.LogInformation("Deleted custom race {RaceId}", raceId);
+            _logger.LogInformation("Deleted custom lineage {LineageId}", lineageId);
             return NoContent();
         }
         catch (UnauthorizedAccessException ex)
@@ -169,80 +174,82 @@ public class ReferenceDataController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error deleting race {RaceId}", raceId);
+            _logger.LogError(ex, "Error deleting lineage {LineageId}", lineageId);
             return StatusCode(500, "Internal server error");
         }
     }
 
-    // Class endpoints
+    // Occupation endpoints
 
     /// <summary>
-    /// Get all classes for a game system (SRD + optional user custom classes)
+    /// Get all occupations for a game system (SRD + optional user/campaign custom occupations)
     /// </summary>
-    [HttpGet("{gameSystemId}/classes")]
-    public async Task<ActionResult<IEnumerable<ReferenceClass>>> GetClasses(
+    [HttpGet("{gameSystemId}/occupations")]
+    public async Task<ActionResult<IEnumerable<ReferenceOccupation>>> GetOccupations(
         int gameSystemId,
         [FromQuery] int? accountId = null,
+        [FromQuery] int? campaignId = null,
         CancellationToken ct = default)
     {
         try
         {
-            var classes = await _repository.GetClassesAsync(gameSystemId, accountId, ct);
-            _logger.LogInformation("Retrieved {Count} classes for game system {GameSystemId}", classes.Count(), gameSystemId);
-            return Ok(classes);
+            var occupations = await _repository.GetOccupationsAsync(gameSystemId, accountId, campaignId, ct);
+            _logger.LogInformation("Retrieved {Count} occupations for game system {GameSystemId}", occupations.Count(), gameSystemId);
+            return Ok(occupations);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving classes for game system {GameSystemId}", gameSystemId);
+            _logger.LogError(ex, "Error retrieving occupations for game system {GameSystemId}", gameSystemId);
             return StatusCode(500, "Internal server error");
         }
     }
 
     /// <summary>
-    /// Get a specific class by ID
+    /// Get a specific occupation by ID
     /// </summary>
-    [HttpGet("classes/{classId}")]
-    public async Task<ActionResult<ReferenceClass>> GetClass(int classId, CancellationToken ct = default)
+    [HttpGet("occupations/{occupationId}")]
+    public async Task<ActionResult<ReferenceOccupation>> GetOccupation(int occupationId, CancellationToken ct = default)
     {
         try
         {
-            var referenceClass = await _repository.GetClassByIdAsync(classId, ct);
-            if (referenceClass == null)
+            var occupation = await _repository.GetOccupationByIdAsync(occupationId, ct);
+            if (occupation == null)
             {
-                return NotFound($"Class with ID {classId} not found");
+                return NotFound($"Occupation with ID {occupationId} not found");
             }
-            return Ok(referenceClass);
+            return Ok(occupation);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving class {ClassId}", classId);
+            _logger.LogError(ex, "Error retrieving occupation {OccupationId}", occupationId);
             return StatusCode(500, "Internal server error");
         }
     }
 
     /// <summary>
-    /// Create a custom class (must have account_id)
+    /// Create a custom occupation (must have account_id and campaign_id)
     /// </summary>
-    [HttpPost("classes")]
-    public async Task<ActionResult<ReferenceClass>> CreateClass([FromBody] ReferenceClass referenceClass, CancellationToken ct = default)
+    [HttpPost("occupations")]
+    public async Task<ActionResult<ReferenceOccupation>> CreateOccupation([FromBody] ReferenceOccupation occupation, CancellationToken ct = default)
     {
         try
         {
             int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
             
-            // Ensure the class is tied to the authenticated user
-            referenceClass.account_id = accountId;
+            // Ensure the occupation is tied to the authenticated user
+            occupation.account_id = accountId;
 
-            int classId = await _repository.CreateClassAsync(referenceClass, ct);
-            _logger.LogInformation("Created custom class {ClassId} for account {AccountId}", classId, accountId);
+            int occupationId = await _repository.CreateOccupationAsync(occupation, ct);
+            _logger.LogInformation("Created custom occupation {OccupationId} for account {AccountId}, campaign {CampaignId}", 
+                occupationId, accountId, occupation.campaign_id);
 
-            var createdClass = await _repository.GetClassByIdAsync(classId, ct);
-            if (createdClass == null)
+            var createdOccupation = await _repository.GetOccupationByIdAsync(occupationId, ct);
+            if (createdOccupation == null)
             {
-                return StatusCode(500, "Class was created but could not be retrieved");
+                return StatusCode(500, "Occupation was created but could not be retrieved");
             }
 
-            return CreatedAtAction(nameof(GetClass), new { classId }, createdClass);
+            return CreatedAtAction(nameof(GetOccupation), new { occupationId }, createdOccupation);
         }
         catch (UnauthorizedAccessException ex)
         {
@@ -250,32 +257,32 @@ public class ReferenceDataController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error creating class");
+            _logger.LogError(ex, "Error creating occupation");
             return StatusCode(500, "Internal server error");
         }
     }
 
     /// <summary>
-    /// Update a custom class (only user's own custom classes)
+    /// Update a custom occupation (only user's own custom occupations)
     /// </summary>
-    [HttpPut("classes/{classId}")]
-    public async Task<ActionResult> UpdateClass(int classId, [FromBody] ReferenceClass referenceClass, CancellationToken ct = default)
+    [HttpPut("occupations/{occupationId}")]
+    public async Task<ActionResult> UpdateOccupation(int occupationId, [FromBody] ReferenceOccupation occupation, CancellationToken ct = default)
     {
         try
         {
             int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
             
-            // Ensure the class ID matches and belongs to the authenticated user
-            referenceClass.class_id = classId;
-            referenceClass.account_id = accountId;
+            // Ensure the occupation ID matches and belongs to the authenticated user
+            occupation.occupation_id = occupationId;
+            occupation.account_id = accountId;
 
-            bool success = await _repository.UpdateClassAsync(referenceClass, ct);
+            bool success = await _repository.UpdateOccupationAsync(occupation, ct);
             if (!success)
             {
-                return NotFound($"Class with ID {classId} not found or not owned by your account");
+                return NotFound($"Occupation with ID {occupationId} not found or not owned by your account");
             }
 
-            _logger.LogInformation("Updated custom class {ClassId}", classId);
+            _logger.LogInformation("Updated custom occupation {OccupationId}", occupationId);
             return NoContent();
         }
         catch (UnauthorizedAccessException ex)
@@ -284,29 +291,32 @@ public class ReferenceDataController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error updating class {ClassId}", classId);
+            _logger.LogError(ex, "Error updating occupation {OccupationId}", occupationId);
             return StatusCode(500, "Internal server error");
         }
     }
 
     /// <summary>
-    /// Delete a custom class (only user's own custom classes)
+    /// Delete a custom occupation (only user's own custom occupations)
     /// </summary>
-    [HttpDelete("classes/{classId}")]
-    public async Task<ActionResult> DeleteClass(int classId, CancellationToken ct = default)
+    [HttpDelete("occupations/{occupationId}")]
+    public async Task<ActionResult> DeleteOccupation(
+        int occupationId, 
+        [FromQuery] int? campaignId = null, 
+        CancellationToken ct = default)
     {
         try
         {
             int authenticatedAccountId = await _authHelper.GetAuthenticatedAccountIdAsync();
             
             // Use the authenticated account ID for deletion
-            bool success = await _repository.DeleteClassAsync(classId, authenticatedAccountId, ct);
+            bool success = await _repository.DeleteOccupationAsync(occupationId, authenticatedAccountId, campaignId, ct);
             if (!success)
             {
-                return NotFound($"Class with ID {classId} not found or not owned by your account");
+                return NotFound($"Occupation with ID {occupationId} not found or not owned by your account");
             }
 
-            _logger.LogInformation("Deleted custom class {ClassId}", classId);
+            _logger.LogInformation("Deleted custom occupation {OccupationId}", occupationId);
             return NoContent();
         }
         catch (UnauthorizedAccessException ex)
@@ -315,7 +325,7 @@ public class ReferenceDataController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error deleting class {ClassId}", classId);
+            _logger.LogError(ex, "Error deleting occupation {OccupationId}", occupationId);
             return StatusCode(500, "Internal server error");
         }
     }

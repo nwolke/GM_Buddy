@@ -4,17 +4,17 @@ namespace GM_Buddy.Contracts.Interfaces;
 
 public interface IReferenceDataRepository
 {
-    // Race methods
-    Task<IEnumerable<ReferenceRace>> GetRacesAsync(int gameSystemId, int? accountId = null, CancellationToken ct = default);
-    Task<ReferenceRace?> GetRaceByIdAsync(int raceId, CancellationToken ct = default);
-    Task<int> CreateRaceAsync(ReferenceRace race, CancellationToken ct = default);
-    Task<bool> UpdateRaceAsync(ReferenceRace race, CancellationToken ct = default);
-    Task<bool> DeleteRaceAsync(int raceId, int accountId, CancellationToken ct = default);
+    // Lineage methods
+    Task<IEnumerable<ReferenceLineage>> GetLineagesAsync(int gameSystemId, int? accountId = null, int? campaignId = null, CancellationToken ct = default);
+    Task<ReferenceLineage?> GetLineageByIdAsync(int lineageId, CancellationToken ct = default);
+    Task<int> CreateLineageAsync(ReferenceLineage lineage, CancellationToken ct = default);
+    Task<bool> UpdateLineageAsync(ReferenceLineage lineage, CancellationToken ct = default);
+    Task<bool> DeleteLineageAsync(int lineageId, int accountId, int? campaignId = null, CancellationToken ct = default);
     
-    // Class methods
-    Task<IEnumerable<ReferenceClass>> GetClassesAsync(int gameSystemId, int? accountId = null, CancellationToken ct = default);
-    Task<ReferenceClass?> GetClassByIdAsync(int classId, CancellationToken ct = default);
-    Task<int> CreateClassAsync(ReferenceClass referenceClass, CancellationToken ct = default);
-    Task<bool> UpdateClassAsync(ReferenceClass referenceClass, CancellationToken ct = default);
-    Task<bool> DeleteClassAsync(int classId, int accountId, CancellationToken ct = default);
+    // Occupation methods
+    Task<IEnumerable<ReferenceOccupation>> GetOccupationsAsync(int gameSystemId, int? accountId = null, int? campaignId = null, CancellationToken ct = default);
+    Task<ReferenceOccupation?> GetOccupationByIdAsync(int occupationId, CancellationToken ct = default);
+    Task<int> CreateOccupationAsync(ReferenceOccupation occupation, CancellationToken ct = default);
+    Task<bool> UpdateOccupationAsync(ReferenceOccupation occupation, CancellationToken ct = default);
+    Task<bool> DeleteOccupationAsync(int occupationId, int accountId, int? campaignId = null, CancellationToken ct = default);
 }
