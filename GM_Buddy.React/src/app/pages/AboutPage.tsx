@@ -94,7 +94,7 @@ export function AboutPage() {
               <div className="space-y-3">
                 <h3 className="font-semibold text-sm">System Reference Document</h3>
                 <p className="text-sm text-muted-foreground">
-                  This application uses content from the Dungeons & Dragons 5th Edition System Reference Document (SRD).
+                  This application uses content from the Dungeons &amp; Dragons 5th Edition System Reference Document (SRD).
                 </p>
                 <p className="text-sm text-muted-foreground">
                   D&D SRD content and associated images will be properly attributed here.
