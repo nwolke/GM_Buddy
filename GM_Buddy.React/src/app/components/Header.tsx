@@ -1,4 +1,4 @@
-import { Scroll, RefreshCw, LogIn, LogOut, Users, UserCircle, Settings } from "lucide-react";
+import { Scroll, RefreshCw, LogIn, LogOut, Users, UserCircle, Settings, Info } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import {
   DropdownMenu,
@@ -88,41 +88,35 @@ export function Header({ showRefresh = false, onRefresh, loading = false, error 
           </Button>
         )}
         {isAuthenticated ? (
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="ghost" 
-              size="sm"
-              onClick={() => navigate('/account')}
-            >
-              <Settings className="size-4 mr-2" />
-              Account
-            </Button>
-            <DropdownMenu modal={false}>
-              <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="gap-2"
-                >
-                  <UserCircle className="size-4" />
-                  <span className="hidden sm:inline">{user?.email}</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => navigate('/account')}>
-                  <Settings className="size-4 mr-2" />
-                  Account Settings
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => logout()}>
-                  <LogOut className="size-4 mr-2" />
-                  Logout
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          <DropdownMenu modal={false}>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="gap-2"
+              >
+                <UserCircle className="size-4" />
+                <span className="hidden sm:inline">{user?.email}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => navigate('/account')}>
+                <Settings className="size-4 mr-2" />
+                Account Settings
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/about')}>
+                <Info className="size-4 mr-2" />
+                About
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => logout()}>
+                <LogOut className="size-4 mr-2" />
+                Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         ) : (
           <Button variant="default" size="sm" onClick={loginWithCognito}>
             <LogIn className="size-4 mr-2" />
