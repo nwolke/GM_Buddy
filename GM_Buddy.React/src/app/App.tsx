@@ -4,6 +4,7 @@ import { LandingPage } from "@/app/pages/LandingPage";
 import { NPCManagerPage } from "@/app/pages/NPCManagerPage";
 import { CampaignManagerPage } from "@/app/pages/CampaignManagerPage";
 import { AccountPage } from "@/app/pages/AccountPage";
+import { AboutPage } from "@/app/pages/AboutPage";
 import { ProtectedRoute } from "@/app/components/ProtectedRoute";
 
 console.log('[App] GM Buddy React App loading - v7');
@@ -34,6 +35,7 @@ export default function App() {
               </ProtectedRoute>
             } 
           />
+          <Route path="/about" element={<AboutPage />} />
           <Route path="/callback" element={<LandingPage />} />
         </Routes>
       </AuthProvider>
