@@ -23,87 +23,87 @@ public class CachedReferenceDataProvider : IReferenceDataProvider
         _logger = logger;
     }
 
-    public async Task<IEnumerable<string>> GetRaceNamesAsync(int gameSystemId, int? accountId = null, CancellationToken ct = default)
+    public async Task<IEnumerable<string>> GetLineageNamesAsync(int gameSystemId, int? accountId = null, int? campaignId = null, CancellationToken ct = default)
     {
-        // Get SRD races from cache
-        var cacheKey = $"srd_races_{gameSystemId}";
-        var srdRaces = await _cache.GetOrCreateAsync(cacheKey, async entry =>
+        // Get SRD lineages from cache
+        var cacheKey = $"srd_lineages_{gameSystemId}";
+        var srdLineages = await _cache.GetOrCreateAsync(cacheKey, async entry =>
         {
-            _logger.LogInformation("Cache miss for {CacheKey}. Loading SRD races from database.", cacheKey);
+            _logger.LogInformation("Cache miss for {CacheKey}. Loading SRD lineages from database.", cacheKey);
             entry.SetAbsoluteExpiration(CacheExpiration);
             entry.SetPriority(CacheItemPriority.NeverRemove);
             
-            var races = await _repository.GetRacesAsync(gameSystemId, accountId: null, ct);
-            return races.Select(r => r.name).ToList();
+            var lineages = await _repository.GetLineagesAsync(gameSystemId, accountId: null, campaignId: null, ct);
+            return lineages.Select(l => l.name).ToList();
         });
 
-        if (srdRaces == null)
+        if (srdLineages == null)
         {
-            _logger.LogWarning("SRD races cache entry was null for game system {GameSystemId}", gameSystemId);
-            srdRaces = new List<string>();
+            _logger.LogWarning("SRD lineages cache entry was null for game system {GameSystemId}", gameSystemId);
+            srdLineages = new List<string>();
         }
         else
         {
-            _logger.LogDebug("Cache hit for {CacheKey}. Returning {Count} SRD races.", cacheKey, srdRaces.Count());
+            _logger.LogDebug("Cache hit for {CacheKey}. Returning {Count} SRD lineages.", cacheKey, srdLineages.Count());
         }
 
         // If no account ID, return only SRD data
         if (accountId == null)
         {
-            return srdRaces;
+            return srdLineages;
         }
 
-        // Get user custom races (always fresh from DB)
-        _logger.LogDebug("Fetching custom races for account {AccountId}", accountId);
-        var userRaces = await _repository.GetRacesAsync(gameSystemId, accountId, ct);
-        var userRaceNames = userRaces.Where(r => r.account_id != null).Select(r => r.name);
+        // Get user/campaign custom lineages (always fresh from DB)
+        _logger.LogDebug("Fetching custom lineages for account {AccountId}, campaign {CampaignId}", accountId, campaignId);
+        var userLineages = await _repository.GetLineagesAsync(gameSystemId, accountId, campaignId, ct);
+        var userLineageNames = userLineages.Where(l => l.account_id != null).Select(l => l.name);
 
-        // Combine SRD and user custom races
-        var combinedRaces = srdRaces.Concat(userRaceNames).Distinct().OrderBy(n => n);
-        _logger.LogDebug("Returning {Count} total races (SRD + custom) for account {AccountId}", combinedRaces.Count(), accountId);
+        // Combine SRD and user custom lineages
+        var combinedLineages = srdLineages.Concat(userLineageNames).Distinct().OrderBy(n => n);
+        _logger.LogDebug("Returning {Count} total lineages (SRD + custom) for account {AccountId}", combinedLineages.Count(), accountId);
         
-        return combinedRaces;
+        return combinedLineages;
     }
 
-    public async Task<IEnumerable<string>> GetClassNamesAsync(int gameSystemId, int? accountId = null, CancellationToken ct = default)
+    public async Task<IEnumerable<string>> GetOccupationNamesAsync(int gameSystemId, int? accountId = null, int? campaignId = null, CancellationToken ct = default)
     {
-        // Get SRD classes from cache
-        var cacheKey = $"srd_classes_{gameSystemId}";
-        var srdClasses = await _cache.GetOrCreateAsync(cacheKey, async entry =>
+        // Get SRD occupations from cache
+        var cacheKey = $"srd_occupations_{gameSystemId}";
+        var srdOccupations = await _cache.GetOrCreateAsync(cacheKey, async entry =>
         {
-            _logger.LogInformation("Cache miss for {CacheKey}. Loading SRD classes from database.", cacheKey);
+            _logger.LogInformation("Cache miss for {CacheKey}. Loading SRD occupations from database.", cacheKey);
             entry.SetAbsoluteExpiration(CacheExpiration);
             entry.SetPriority(CacheItemPriority.NeverRemove);
             
-            var classes = await _repository.GetClassesAsync(gameSystemId, accountId: null, ct);
-            return classes.Select(c => c.name).ToList();
+            var occupations = await _repository.GetOccupationsAsync(gameSystemId, accountId: null, campaignId: null, ct);
+            return occupations.Select(o => o.name).ToList();
         });
 
-        if (srdClasses == null)
+        if (srdOccupations == null)
         {
-            _logger.LogWarning("SRD classes cache entry was null for game system {GameSystemId}", gameSystemId);
-            srdClasses = new List<string>();
+            _logger.LogWarning("SRD occupations cache entry was null for game system {GameSystemId}", gameSystemId);
+            srdOccupations = new List<string>();
         }
         else
         {
-            _logger.LogDebug("Cache hit for {CacheKey}. Returning {Count} SRD classes.", cacheKey, srdClasses.Count());
+            _logger.LogDebug("Cache hit for {CacheKey}. Returning {Count} SRD occupations.", cacheKey, srdOccupations.Count());
         }
 
         // If no account ID, return only SRD data
         if (accountId == null)
         {
-            return srdClasses;
+            return srdOccupations;
         }
 
-        // Get user custom classes (always fresh from DB)
-        _logger.LogDebug("Fetching custom classes for account {AccountId}", accountId);
-        var userClasses = await _repository.GetClassesAsync(gameSystemId, accountId, ct);
-        var userClassNames = userClasses.Where(c => c.account_id != null).Select(c => c.name);
+        // Get user/campaign custom occupations (always fresh from DB)
+        _logger.LogDebug("Fetching custom occupations for account {AccountId}, campaign {CampaignId}", accountId, campaignId);
+        var userOccupations = await _repository.GetOccupationsAsync(gameSystemId, accountId, campaignId, ct);
+        var userOccupationNames = userOccupations.Where(o => o.account_id != null).Select(o => o.name);
 
-        // Combine SRD and user custom classes
-        var combinedClasses = srdClasses.Concat(userClassNames).Distinct().OrderBy(n => n);
-        _logger.LogDebug("Returning {Count} total classes (SRD + custom) for account {AccountId}", combinedClasses.Count(), accountId);
+        // Combine SRD and user custom occupations
+        var combinedOccupations = srdOccupations.Concat(userOccupationNames).Distinct().OrderBy(n => n);
+        _logger.LogDebug("Returning {Count} total occupations (SRD + custom) for account {AccountId}", combinedOccupations.Count(), accountId);
         
-        return combinedClasses;
+        return combinedOccupations;
     }
 }
