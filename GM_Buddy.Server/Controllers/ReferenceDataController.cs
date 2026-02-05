@@ -53,6 +53,7 @@ public class ReferenceDataController : ControllerBase
                 catch (UnauthorizedAccessException)
                 {
                     // User not authenticated, only return SRD content
+                    _logger.LogInformation("Unauthenticated request for campaign {CampaignId}, returning SRD content only", campaignId);
                     accountId = null;
                     campaignId = null;
                 }
@@ -297,6 +298,7 @@ public class ReferenceDataController : ControllerBase
                 catch (UnauthorizedAccessException)
                 {
                     // User not authenticated, only return SRD content
+                    _logger.LogInformation("Unauthenticated request for campaign {CampaignId}, returning SRD content only", campaignId);
                     accountId = null;
                     campaignId = null;
                 }
