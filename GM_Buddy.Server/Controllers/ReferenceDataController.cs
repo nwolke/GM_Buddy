@@ -13,18 +13,18 @@ public class ReferenceDataController : ControllerBase
 {
     private readonly ILogger<ReferenceDataController> _logger;
     private readonly IReferenceDataRepository _repository;
-    private readonly IReferenceDataProvider _provider;
+    private readonly ICampaignRepository _campaignRepository;
     private readonly IAuthHelper _authHelper;
 
     public ReferenceDataController(
         ILogger<ReferenceDataController> logger,
         IReferenceDataRepository repository,
-        IReferenceDataProvider provider,
+        ICampaignRepository campaignRepository,
         IAuthHelper authHelper)
     {
         _logger = logger;
         _repository = repository;
-        _provider = provider;
+        _campaignRepository = campaignRepository;
         _authHelper = authHelper;
     }
 
@@ -36,12 +36,28 @@ public class ReferenceDataController : ControllerBase
     [HttpGet("{gameSystemId}/lineages")]
     public async Task<ActionResult<IEnumerable<ReferenceLineage>>> GetLineages(
         int gameSystemId,
-        [FromQuery] int? accountId = null,
         [FromQuery] int? campaignId = null,
         CancellationToken ct = default)
     {
         try
         {
+            int? accountId = null;
+            
+            // If campaign is specified, get authenticated account ID
+            if (campaignId.HasValue)
+            {
+                try
+                {
+                    accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    // User not authenticated, only return SRD content
+                    accountId = null;
+                    campaignId = null;
+                }
+            }
+            
             var lineages = await _repository.GetLineagesAsync(gameSystemId, accountId, campaignId, ct);
             _logger.LogInformation("Retrieved {Count} lineages for game system {GameSystemId}", lineages.Count(), gameSystemId);
             return Ok(lineages);
@@ -66,7 +82,24 @@ public class ReferenceDataController : ControllerBase
             {
                 return NotFound($"Lineage with ID {lineageId} not found");
             }
+            
+            // Authorization check: Only allow access to SRD or user's own custom lineages
+            if (lineage.account_id != null)
+            {
+                int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
+                if (lineage.account_id != accountId)
+                {
+                    _logger.LogWarning("User {AccountId} attempted to access lineage {LineageId} owned by {OwnerId}", 
+                        accountId, lineageId, lineage.account_id);
+                    return Forbid();
+                }
+            }
+            
             return Ok(lineage);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(ex.Message);
         }
         catch (Exception ex)
         {
@@ -83,10 +116,58 @@ public class ReferenceDataController : ControllerBase
     {
         try
         {
+            // Validate input
+            if (lineage == null)
+            {
+                return BadRequest("Lineage payload is required.");
+            }
+
+            if (string.IsNullOrWhiteSpace(lineage.name))
+            {
+                return BadRequest("Lineage name is required.");
+            }
+
+            if (lineage.game_system_id <= 0)
+            {
+                return BadRequest("A valid game system id is required.");
+            }
+
+            if (!lineage.campaign_id.HasValue || lineage.campaign_id.Value <= 0)
+            {
+                return BadRequest("A valid campaign_id is required for custom lineages.");
+            }
+
             int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
             
             // Ensure the lineage is tied to the authenticated user
             lineage.account_id = accountId;
+
+            // Validate that the campaign exists and belongs to the user
+            var campaign = await _campaignRepository.GetByIdAsync(lineage.campaign_id.Value, ct);
+            if (campaign == null)
+            {
+                _logger.LogWarning("Attempt to create lineage for non-existent campaign {CampaignId} by account {AccountId}",
+                    lineage.campaign_id, accountId);
+                return BadRequest("The specified campaign does not exist.");
+            }
+
+            if (campaign.account_id != accountId)
+            {
+                _logger.LogWarning("Account {AccountId} attempted to create lineage for campaign {CampaignId} owned by {OwnerId}",
+                    accountId, lineage.campaign_id, campaign.account_id);
+                return Forbid();
+            }
+
+            // Validate that the lineage's game_system_id matches the campaign's game system
+            if (campaign.game_system_id != lineage.game_system_id)
+            {
+                _logger.LogWarning(
+                    "Game system mismatch when creating lineage for campaign {CampaignId}: campaign game_system_id {CampaignGameSystemId}, lineage game_system_id {LineageGameSystemId}",
+                    lineage.campaign_id,
+                    campaign.game_system_id,
+                    lineage.game_system_id);
+                return BadRequest("The lineage's game system does not match the campaign's game system.");
+            }
 
             int lineageId = await _repository.CreateLineageAsync(lineage, ct);
             _logger.LogInformation("Created custom lineage {LineageId} for account {AccountId}, campaign {CampaignId}", 
@@ -119,6 +200,18 @@ public class ReferenceDataController : ControllerBase
     {
         try
         {
+            // Validate ID match
+            if (lineage.lineage_id != 0 && lineage.lineage_id != lineageId)
+            {
+                return BadRequest("Lineage ID in route must match lineage ID in body.");
+            }
+
+            // Validate required fields
+            if (!lineage.campaign_id.HasValue)
+            {
+                return BadRequest("campaign_id is required to update a custom lineage.");
+            }
+
             int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
             
             // Ensure the lineage ID matches and belongs to the authenticated user
@@ -187,12 +280,28 @@ public class ReferenceDataController : ControllerBase
     [HttpGet("{gameSystemId}/occupations")]
     public async Task<ActionResult<IEnumerable<ReferenceOccupation>>> GetOccupations(
         int gameSystemId,
-        [FromQuery] int? accountId = null,
         [FromQuery] int? campaignId = null,
         CancellationToken ct = default)
     {
         try
         {
+            int? accountId = null;
+            
+            // If campaign is specified, get authenticated account ID
+            if (campaignId.HasValue)
+            {
+                try
+                {
+                    accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    // User not authenticated, only return SRD content
+                    accountId = null;
+                    campaignId = null;
+                }
+            }
+            
             var occupations = await _repository.GetOccupationsAsync(gameSystemId, accountId, campaignId, ct);
             _logger.LogInformation("Retrieved {Count} occupations for game system {GameSystemId}", occupations.Count(), gameSystemId);
             return Ok(occupations);
@@ -217,7 +326,24 @@ public class ReferenceDataController : ControllerBase
             {
                 return NotFound($"Occupation with ID {occupationId} not found");
             }
+            
+            // Authorization check: Only allow access to SRD or user's own custom occupations
+            if (occupation.account_id != null)
+            {
+                int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
+                if (occupation.account_id != accountId)
+                {
+                    _logger.LogWarning("User {AccountId} attempted to access occupation {OccupationId} owned by {OwnerId}", 
+                        accountId, occupationId, occupation.account_id);
+                    return Forbid();
+                }
+            }
+            
             return Ok(occupation);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(ex.Message);
         }
         catch (Exception ex)
         {
@@ -234,10 +360,58 @@ public class ReferenceDataController : ControllerBase
     {
         try
         {
+            // Validate input
+            if (occupation == null)
+            {
+                return BadRequest("Occupation payload is required.");
+            }
+
+            if (string.IsNullOrWhiteSpace(occupation.name))
+            {
+                return BadRequest("Occupation name is required.");
+            }
+
+            if (occupation.game_system_id <= 0)
+            {
+                return BadRequest("A valid game system id is required.");
+            }
+
+            if (!occupation.campaign_id.HasValue || occupation.campaign_id.Value <= 0)
+            {
+                return BadRequest("A valid campaign_id is required for custom occupations.");
+            }
+
             int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
             
             // Ensure the occupation is tied to the authenticated user
             occupation.account_id = accountId;
+
+            // Validate that the campaign exists and belongs to the user
+            var campaign = await _campaignRepository.GetByIdAsync(occupation.campaign_id.Value, ct);
+            if (campaign == null)
+            {
+                _logger.LogWarning("Attempt to create occupation for non-existent campaign {CampaignId} by account {AccountId}",
+                    occupation.campaign_id, accountId);
+                return BadRequest("The specified campaign does not exist.");
+            }
+
+            if (campaign.account_id != accountId)
+            {
+                _logger.LogWarning("Account {AccountId} attempted to create occupation for campaign {CampaignId} owned by {OwnerId}",
+                    accountId, occupation.campaign_id, campaign.account_id);
+                return Forbid();
+            }
+
+            // Validate that the occupation's game_system_id matches the campaign's game system
+            if (campaign.game_system_id != occupation.game_system_id)
+            {
+                _logger.LogWarning(
+                    "Game system mismatch when creating occupation for campaign {CampaignId}: campaign game_system_id {CampaignGameSystemId}, occupation game_system_id {OccupationGameSystemId}",
+                    occupation.campaign_id,
+                    campaign.game_system_id,
+                    occupation.game_system_id);
+                return BadRequest("The occupation's game system does not match the campaign's game system.");
+            }
 
             int occupationId = await _repository.CreateOccupationAsync(occupation, ct);
             _logger.LogInformation("Created custom occupation {OccupationId} for account {AccountId}, campaign {CampaignId}", 
@@ -270,6 +444,18 @@ public class ReferenceDataController : ControllerBase
     {
         try
         {
+            // Validate ID match
+            if (occupation.occupation_id != 0 && occupation.occupation_id != occupationId)
+            {
+                return BadRequest("Occupation ID in route must match occupation ID in body.");
+            }
+
+            // Validate required fields
+            if (!occupation.campaign_id.HasValue)
+            {
+                return BadRequest("campaign_id is required to update a custom occupation.");
+            }
+
             int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
             
             // Ensure the occupation ID matches and belongs to the authenticated user

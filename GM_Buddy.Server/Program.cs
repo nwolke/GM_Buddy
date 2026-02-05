@@ -1,5 +1,4 @@
 using GM_Buddy.Business;
-using GM_Buddy.Business.Providers;
 using GM_Buddy.Contracts;
 using GM_Buddy.Contracts.Interfaces;
 using GM_Buddy.Data;
@@ -112,7 +111,6 @@ builder.Services.AddScoped<IPcRepository, PcRepository>();
 builder.Services.AddScoped<IOrganizationRepository, OrganizationRepository>();
 builder.Services.AddScoped<IGameSystemRepository, GameSystemRepository>();
 builder.Services.AddScoped<IReferenceDataRepository, ReferenceDataRepository>();
-builder.Services.AddScoped<IReferenceDataProvider, CachedReferenceDataProvider>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAuthHelper, AuthHelper>();
 builder.Services.AddScoped<IAuthLogic, AuthLogic>();
