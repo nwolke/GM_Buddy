@@ -532,7 +532,9 @@ CREATE TABLE IF NOT EXISTS public.reference_lineage (
     FOREIGN KEY (game_system_id) REFERENCES public.game_system(game_system_id) ON DELETE CASCADE,
     FOREIGN KEY (account_id) REFERENCES auth.account(id) ON DELETE CASCADE,
     FOREIGN KEY (campaign_id) REFERENCES public.campaign(campaign_id) ON DELETE CASCADE,
-    UNIQUE (game_system_id, account_id, campaign_id, name)
+    UNIQUE (game_system_id, account_id, campaign_id, name),
+    -- Enforce that entries are either SRD (both NULL) or campaign-specific (both NOT NULL)
+    CHECK ((account_id IS NULL AND campaign_id IS NULL) OR (account_id IS NOT NULL AND campaign_id IS NOT NULL))
 );
 
 -- Indexes for reference_lineage
@@ -554,7 +556,9 @@ CREATE TABLE IF NOT EXISTS public.reference_occupation (
     FOREIGN KEY (game_system_id) REFERENCES public.game_system(game_system_id) ON DELETE CASCADE,
     FOREIGN KEY (account_id) REFERENCES auth.account(id) ON DELETE CASCADE,
     FOREIGN KEY (campaign_id) REFERENCES public.campaign(campaign_id) ON DELETE CASCADE,
-    UNIQUE (game_system_id, account_id, campaign_id, name)
+    UNIQUE (game_system_id, account_id, campaign_id, name),
+    -- Enforce that entries are either SRD (both NULL) or campaign-specific (both NOT NULL)
+    CHECK ((account_id IS NULL AND campaign_id IS NULL) OR (account_id IS NOT NULL AND campaign_id IS NOT NULL))
 );
 
 -- Indexes for reference_occupation

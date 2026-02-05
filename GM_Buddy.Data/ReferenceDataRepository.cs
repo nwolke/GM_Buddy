@@ -25,7 +25,8 @@ public class ReferenceDataRepository : IReferenceDataRepository
               AND is_active = true 
               AND (
                   (account_id IS NULL AND campaign_id IS NULL) 
-                  OR (account_id = @AccountId AND (campaign_id IS NULL OR campaign_id = @CampaignId))
+                  OR (@AccountId IS NOT NULL AND @CampaignId IS NOT NULL 
+                      AND account_id = @AccountId AND campaign_id = @CampaignId)
               )
             ORDER BY account_id NULLS FIRST, campaign_id NULLS FIRST, name";
         
@@ -100,7 +101,8 @@ public class ReferenceDataRepository : IReferenceDataRepository
               AND is_active = true 
               AND (
                   (account_id IS NULL AND campaign_id IS NULL) 
-                  OR (account_id = @AccountId AND (campaign_id IS NULL OR campaign_id = @CampaignId))
+                  OR (@AccountId IS NOT NULL AND @CampaignId IS NOT NULL 
+                      AND account_id = @AccountId AND campaign_id = @CampaignId)
               )
             ORDER BY account_id NULLS FIRST, campaign_id NULLS FIRST, name";
         
