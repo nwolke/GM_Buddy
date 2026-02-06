@@ -1,7 +1,7 @@
-import axios from 'axios';
+import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { NPC } from '@/types/npc';
 import { Campaign } from '@/types/campaign';
-import { getIdToken } from './cognito';
+import { getIdToken, refreshTokens, clearTokens } from './cognito';
 
 // API base URL - use environment variable or fall back to relative path
 const API_BASE_URL = import.meta.env.VITE_API_URL
@@ -19,10 +19,13 @@ const apiClient = axios.create({
 // Add request interceptor for authentication and debugging
 apiClient.interceptors.request.use(
   async (config) => {
-    // Add JWT token to requests if available
-    const token = await getIdToken();
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    // Skip adding token for retry requests (they already have the updated token)
+    if (!(config as any)._retry) {
+      // Add JWT token to requests if available
+      const token = await getIdToken();
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
     
     console.log(`API Request: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`, config.params || '');
@@ -34,13 +37,46 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Add response interceptor for debugging
+// Add response interceptor for debugging and 401 handling
 apiClient.interceptors.response.use(
   (response) => {
     console.log(`API Response: ${response.status}`, response.data);
     return response;
   },
-  (error) => {
+  async (error: AxiosError) => {
+    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+    
+    // Handle 401 Unauthorized - token expired
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+      console.log('[API Interceptor] 401 Unauthorized - attempting token refresh...');
+      
+      // Mark this request as retried to prevent infinite loops
+      originalRequest._retry = true;
+      
+      try {
+        // Attempt to refresh the token
+        const newTokens = await refreshTokens();
+        
+        if (newTokens) {
+          // Update the authorization header with the new token
+          originalRequest.headers.Authorization = `Bearer ${newTokens.idToken}`;
+          
+          // Retry the original request
+          console.log('[API Interceptor] Token refreshed, retrying request...');
+          return apiClient(originalRequest);
+        } else {
+          // Refresh failed - clear tokens and treat as logged out
+          console.error('[API Interceptor] Token refresh failed, clearing tokens');
+          clearTokens();
+          // Optionally, you could trigger a redirect to login here
+          // For now, we'll just reject the request
+        }
+      } catch (refreshError) {
+        console.error('[API Interceptor] Error during token refresh:', refreshError);
+        clearTokens();
+      }
+    }
+    
     console.error('API Error:', error.response?.status, error.response?.data || error.message);
     return Promise.reject(error);
   }
