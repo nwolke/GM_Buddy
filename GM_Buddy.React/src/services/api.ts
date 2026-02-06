@@ -9,6 +9,9 @@ const AUTH_STORAGE_KEY = 'gm_buddy_auth';
 /**
  * Helper function to perform full logout when token refresh fails
  * Clears both Cognito tokens and auth state to keep UI and storage consistent
+ * 
+ * Emits a custom 'auth-logout' event that AuthContext listens for to update
+ * its internal state and trigger any necessary UI updates (e.g., redirect to login).
  */
 function performFullLogout(): void {
   clearTokens();

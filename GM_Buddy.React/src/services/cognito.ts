@@ -302,18 +302,18 @@ export async function refreshTokens(): Promise<CognitoTokens | null> {
     currentTokens = JSON.parse(stored) as CognitoTokens;
   } catch {
     console.error('Failed to parse stored tokens');
-    localStorage.removeItem(TOKEN_STORAGE_KEY);
+    clearTokens();
     return null;
   }
 
   if (!currentTokens.refreshToken) {
     console.error('No refresh token available');
-    localStorage.removeItem(TOKEN_STORAGE_KEY);
+    clearTokens();
     return null;
   }
 
-  // Check if current tokens are still valid
-  const isCurrentTokenValid = currentTokens.expiresAt && currentTokens.expiresAt > Date.now();
+  // Check if current tokens are still valid (not expired)
+  const tokensNotExpired = currentTokens.expiresAt && currentTokens.expiresAt > Date.now();
 
   const tokenUrl = `https://${domain}/oauth2/token`;
   const body = new URLSearchParams({
@@ -338,9 +338,9 @@ export async function refreshTokens(): Promise<CognitoTokens | null> {
       
       // Only clear tokens if they're already expired or invalid
       // If they're still valid, preserve them for the caller to decide
-      if (!isCurrentTokenValid) {
+      if (!tokensNotExpired) {
         console.log('[Cognito] Current tokens expired, clearing storage');
-        localStorage.removeItem(TOKEN_STORAGE_KEY);
+        clearTokens();
       } else {
         console.log('[Cognito] Current tokens still valid, preserving storage');
       }
@@ -361,13 +361,13 @@ export async function refreshTokens(): Promise<CognitoTokens | null> {
     saveTokens(newTokens);
     return newTokens;
   } catch (err) {
-    console.error('Token refresh error:', err);
+    console.error('❌ Token refresh error:', err);
     
     // Only clear tokens if they're already expired
     // Network errors or other transient failures shouldn't log the user out
-    if (!isCurrentTokenValid) {
+    if (!tokensNotExpired) {
       console.log('[Cognito] Current tokens expired, clearing storage');
-      localStorage.removeItem(TOKEN_STORAGE_KEY);
+      clearTokens();
     } else {
       console.log('[Cognito] Current tokens still valid, preserving storage despite error');
     }
