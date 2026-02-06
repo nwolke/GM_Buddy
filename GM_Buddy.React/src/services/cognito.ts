@@ -13,13 +13,18 @@
  */
 
 // Cognito configuration from environment variables
-const config = {
-  domain: import.meta.env.VITE_COGNITO_DOMAIN || '',
-  clientId: import.meta.env.VITE_COGNITO_CLIENT_ID || '',
-  redirectUri: import.meta.env.VITE_COGNITO_REDIRECT_URI || `${window.location.origin}/callback`,
-  logoutUri: import.meta.env.VITE_COGNITO_LOGOUT_URI || window.location.origin,
-  useCognito: import.meta.env.VITE_USE_COGNITO === 'true',
-};
+// Using a function to allow for dynamic retrieval (useful for testing)
+function getConfig() {
+  return {
+    domain: import.meta.env.VITE_COGNITO_DOMAIN || '',
+    clientId: import.meta.env.VITE_COGNITO_CLIENT_ID || '',
+    redirectUri: import.meta.env.VITE_COGNITO_REDIRECT_URI || `${window.location.origin}/callback`,
+    logoutUri: import.meta.env.VITE_COGNITO_LOGOUT_URI || window.location.origin,
+    useCognito: import.meta.env.VITE_USE_COGNITO === 'true',
+  };
+}
+
+const config = getConfig();
 
 // Debug logging
 if (config.useCognito) {
@@ -262,8 +267,13 @@ function saveTokens(tokens: CognitoTokens): void {
  * Returns new tokens or null if refresh fails
  */
 export async function refreshTokens(): Promise<CognitoTokens | null> {
-  if (!isCognitoEnabled()) {
-    console.warn('Cognito is not configured. Cannot refresh tokens.');
+  // Get config dynamically to support testing
+  const currentConfig = getConfig();
+  const domain = currentConfig.domain;
+  const clientId = currentConfig.clientId;
+  
+  if (!domain || !clientId) {
+    console.warn('Cognito domain or client ID not configured. Cannot refresh tokens.');
     return null;
   }
 
@@ -288,10 +298,10 @@ export async function refreshTokens(): Promise<CognitoTokens | null> {
     return null;
   }
 
-  const tokenUrl = `https://${config.domain}/oauth2/token`;
+  const tokenUrl = `https://${domain}/oauth2/token`;
   const body = new URLSearchParams({
     grant_type: 'refresh_token',
-    client_id: config.clientId,
+    client_id: clientId,
     refresh_token: currentTokens.refreshToken,
   });
 
