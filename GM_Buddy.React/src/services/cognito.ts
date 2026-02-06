@@ -13,29 +13,36 @@
  */
 
 // Cognito configuration from environment variables
-const config = {
-  domain: import.meta.env.VITE_COGNITO_DOMAIN || '',
-  clientId: import.meta.env.VITE_COGNITO_CLIENT_ID || '',
-  redirectUri: import.meta.env.VITE_COGNITO_REDIRECT_URI || `${window.location.origin}/callback`,
-  logoutUri: import.meta.env.VITE_COGNITO_LOGOUT_URI || window.location.origin,
-  useCognito: import.meta.env.VITE_USE_COGNITO === 'true',
-};
+// Using a function to allow for dynamic retrieval (useful for testing)
+function getConfig() {
+  return {
+    domain: import.meta.env.VITE_COGNITO_DOMAIN || '',
+    clientId: import.meta.env.VITE_COGNITO_CLIENT_ID || '',
+    redirectUri: import.meta.env.VITE_COGNITO_REDIRECT_URI || `${window.location.origin}/callback`,
+    logoutUri: import.meta.env.VITE_COGNITO_LOGOUT_URI || window.location.origin,
+    useCognito: import.meta.env.VITE_USE_COGNITO === 'true',
+  };
+}
 
-// Debug logging
-if (config.useCognito) {
-  console.log('? [Cognito Config] Cognito is ENABLED', {
-    domain: config.domain,
-    clientId: config.clientId ? `${config.clientId.substring(0, 10)}...` : 'NOT SET',
+// Debug logging at module load
+const initialConfig = getConfig();
+if (initialConfig.useCognito) {
+  console.log('✅ [Cognito Config] Cognito is ENABLED', {
+    domain: initialConfig.domain,
+    clientId: initialConfig.clientId ? `${initialConfig.clientId.substring(0, 10)}...` : 'NOT SET',
   });
 } else {
-  console.error('? [Cognito Config] Cognito is DISABLED');
+  console.error('⚠️  [Cognito Config] Cognito is DISABLED');
   console.error('   VITE_USE_COGNITO =', import.meta.env.VITE_USE_COGNITO);
   console.error('   Expected: "true" (as a string, no quotes in .env file)');
-  console.error('   ??  You need to RESTART the Vite dev server!');
+  console.error('   ⚡️  You need to RESTART the Vite dev server!');
   console.error('   1. Press Ctrl+C to stop npm run dev');
   console.error('   2. Run: npm run dev');
   console.error('   3. Refresh the browser');
 }
+
+// Token expiry threshold for proactive refresh (5 minutes in milliseconds)
+const TOKEN_REFRESH_THRESHOLD_MS = 5 * 60 * 1000;
 
 // Token storage keys
 const TOKEN_STORAGE_KEY = 'gm_buddy_tokens';
@@ -58,7 +65,8 @@ interface CognitoUser {
  * Check if Cognito is configured and enabled
  */
 export function isCognitoEnabled(): boolean {
-  return config.useCognito && !!config.domain && !!config.clientId;
+  const currentConfig = getConfig();
+  return currentConfig.useCognito && !!currentConfig.domain && !!currentConfig.clientId;
 }
 
 /**
@@ -107,6 +115,8 @@ export async function redirectToLogin(): Promise<void> {
     return;
   }
 
+  const currentConfig = getConfig();
+
   // Generate PKCE code verifier and challenge
   const codeVerifier = generateRandomString(128);
   const codeChallenge = await sha256(codeVerifier);
@@ -114,11 +124,11 @@ export async function redirectToLogin(): Promise<void> {
   // Store code verifier for token exchange
   localStorage.setItem(PKCE_STORAGE_KEY, codeVerifier);
 
-  const loginUrl = new URL(`https://${config.domain}/login`);
-  loginUrl.searchParams.set('client_id', config.clientId);
+  const loginUrl = new URL(`https://${currentConfig.domain}/login`);
+  loginUrl.searchParams.set('client_id', currentConfig.clientId);
   loginUrl.searchParams.set('response_type', 'code');
   loginUrl.searchParams.set('scope', 'openid email profile');
-  loginUrl.searchParams.set('redirect_uri', config.redirectUri);
+  loginUrl.searchParams.set('redirect_uri', currentConfig.redirectUri);
   loginUrl.searchParams.set('code_challenge', codeChallenge);
   loginUrl.searchParams.set('code_challenge_method', 'S256');
 
@@ -137,9 +147,10 @@ export function redirectToLogout(): void {
 
   clearTokens();
 
-  const logoutUrl = new URL(`https://${config.domain}/logout`);
-  logoutUrl.searchParams.set('client_id', config.clientId);
-  logoutUrl.searchParams.set('logout_uri', config.logoutUri);
+  const currentConfig = getConfig();
+  const logoutUrl = new URL(`https://${currentConfig.domain}/logout`);
+  logoutUrl.searchParams.set('client_id', currentConfig.clientId);
+  logoutUrl.searchParams.set('logout_uri', currentConfig.logoutUri);
 
   window.location.href = logoutUrl.toString();
 }
@@ -180,7 +191,8 @@ export async function handleCallback(): Promise<CognitoUser | null> {
  * Exchange authorization code for tokens using PKCE
  */
 async function exchangeCodeForTokens(code: string): Promise<CognitoTokens | null> {
-  const tokenUrl = `https://${config.domain}/oauth2/token`;
+  const currentConfig = getConfig();
+  const tokenUrl = `https://${currentConfig.domain}/oauth2/token`;
 
   // Retrieve the code verifier from storage
   const codeVerifier = localStorage.getItem(PKCE_STORAGE_KEY);
@@ -191,9 +203,9 @@ async function exchangeCodeForTokens(code: string): Promise<CognitoTokens | null
 
   const body = new URLSearchParams({
     grant_type: 'authorization_code',
-    client_id: config.clientId,
+    client_id: currentConfig.clientId,
     code: code,
-    redirect_uri: config.redirectUri,
+    redirect_uri: currentConfig.redirectUri,
     code_verifier: codeVerifier,  // PKCE code verifier
   });
 
@@ -258,9 +270,117 @@ function saveTokens(tokens: CognitoTokens): void {
 }
 
 /**
- * Load tokens from localStorage
+ * Refresh tokens using the refresh token
+ * Returns new tokens or null if refresh fails
+ * 
+ * Note: This function will only clear stored tokens if:
+ * 1. The refresh token is missing or invalid, OR
+ * 2. The current tokens are already expired
+ * 
+ * If the current tokens are still valid and refresh fails (e.g., network error),
+ * the stored tokens are preserved to avoid unexpected logout.
  */
-export function loadTokens(): CognitoTokens | null {
+export async function refreshTokens(): Promise<CognitoTokens | null> {
+  // Get config dynamically to support testing
+  const currentConfig = getConfig();
+  const domain = currentConfig.domain;
+  const clientId = currentConfig.clientId;
+  
+  if (!domain || !clientId) {
+    console.warn('Cognito domain or client ID not configured. Cannot refresh tokens.');
+    return null;
+  }
+
+  const stored = localStorage.getItem(TOKEN_STORAGE_KEY);
+  if (!stored) {
+    console.log('No tokens to refresh');
+    return null;
+  }
+
+  let currentTokens: CognitoTokens;
+  try {
+    currentTokens = JSON.parse(stored) as CognitoTokens;
+  } catch {
+    console.error('Failed to parse stored tokens');
+    clearTokens();
+    return null;
+  }
+
+  if (!currentTokens.refreshToken) {
+    console.error('No refresh token available');
+    clearTokens();
+    return null;
+  }
+
+  // Check if current tokens are still valid (not expired)
+  const tokensNotExpired = currentTokens.expiresAt && currentTokens.expiresAt > Date.now();
+
+  const tokenUrl = `https://${domain}/oauth2/token`;
+  const body = new URLSearchParams({
+    grant_type: 'refresh_token',
+    client_id: clientId,
+    refresh_token: currentTokens.refreshToken,
+  });
+
+  try {
+    console.log('[Cognito] Refreshing tokens...');
+    const response = await fetch(tokenUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: body.toString(),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ Token refresh failed:', response.status, errorText);
+      
+      // Only clear tokens if they're already expired or invalid
+      // If they're still valid, preserve them for the caller to decide
+      if (!tokensNotExpired) {
+        console.log('[Cognito] Current tokens expired, clearing storage');
+        clearTokens();
+      } else {
+        console.log('[Cognito] Current tokens still valid, preserving storage');
+      }
+      
+      return null;
+    }
+
+    const data = await response.json();
+    console.log('✅ Token refresh successful');
+
+    const newTokens: CognitoTokens = {
+      accessToken: data.access_token,
+      idToken: data.id_token,
+      refreshToken: data.refresh_token || currentTokens.refreshToken, // Use new refresh token if provided, else keep existing
+      expiresAt: Date.now() + (data.expires_in * 1000),
+    };
+
+    saveTokens(newTokens);
+    return newTokens;
+  } catch (err) {
+    console.error('❌ Token refresh error:', err);
+    
+    // Only clear tokens if they're already expired
+    // Network errors or other transient failures shouldn't log the user out
+    if (!tokensNotExpired) {
+      console.log('[Cognito] Current tokens expired, clearing storage');
+      clearTokens();
+    } else {
+      console.log('[Cognito] Current tokens still valid, preserving storage despite error');
+    }
+    
+    return null;
+  }
+}
+
+/**
+ * Load tokens from localStorage
+ * Automatically refreshes tokens if they expire in less than 5 minutes
+ */
+export async function loadTokens(): Promise<CognitoTokens | null> {
   const stored = localStorage.getItem(TOKEN_STORAGE_KEY);
   if (!stored) return null;
 
@@ -269,9 +389,16 @@ export function loadTokens(): CognitoTokens | null {
     
     // Check if tokens are expired
     if (tokens.expiresAt && tokens.expiresAt < Date.now()) {
-      console.log('Tokens expired, clearing...');
-      clearTokens();
-      return null;
+      console.log('Tokens expired, attempting refresh...');
+      return await refreshTokens();
+    }
+
+    // Check if tokens expire soon and proactively refresh
+    if (tokens.expiresAt && tokens.expiresAt < Date.now() + TOKEN_REFRESH_THRESHOLD_MS) {
+      console.log('Tokens expiring soon, proactively refreshing...');
+      const refreshed = await refreshTokens();
+      // If refresh fails, return current tokens (they're still valid for now)
+      return refreshed || tokens;
     }
 
     return tokens;
@@ -290,8 +417,8 @@ export function clearTokens(): void {
 /**
  * Get the current access token for API calls
  */
-export function getAccessToken(): string | null {
-  const tokens = loadTokens();
+export async function getAccessToken(): Promise<string | null> {
+  const tokens = await loadTokens();
   return tokens?.accessToken || null;
 }
 
@@ -300,16 +427,16 @@ export function getAccessToken(): string | null {
  * ID tokens contain user identity claims (sub, email, etc.)
  * Use this instead of access token for ASP.NET Core JWT authentication
  */
-export function getIdToken(): string | null {
-  const tokens = loadTokens();
+export async function getIdToken(): Promise<string | null> {
+  const tokens = await loadTokens();
   return tokens?.idToken || null;
 }
 
 /**
  * Get the current user from stored tokens
  */
-export function getCurrentUser(): CognitoUser | null {
-  const tokens = loadTokens();
+export async function getCurrentUser(): Promise<CognitoUser | null> {
+  const tokens = await loadTokens();
   if (!tokens?.idToken) return null;
   return parseIdToken(tokens.idToken);
 }
@@ -317,6 +444,7 @@ export function getCurrentUser(): CognitoUser | null {
 /**
  * Check if user is authenticated
  */
-export function isAuthenticated(): boolean {
-  return !!loadTokens();
+export async function isAuthenticated(): Promise<boolean> {
+  const tokens = await loadTokens();
+  return !!tokens;
 }
