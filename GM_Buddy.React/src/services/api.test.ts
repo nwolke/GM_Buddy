@@ -96,6 +96,9 @@ describe('API Service - 401 Interceptor', () => {
     // Mock refresh to fail
     vi.mocked(cognito.refreshTokens).mockResolvedValue(null);
 
+    // Set up gm_buddy_auth in localStorage
+    localStorage.setItem('gm_buddy_auth', JSON.stringify({ email: 'test@example.com' }));
+
     try {
       await apiClient.get('/protected');
       expect.fail('Should have thrown an error');
@@ -107,6 +110,8 @@ describe('API Service - 401 Interceptor', () => {
 
     expect(cognito.refreshTokens).toHaveBeenCalledOnce();
     expect(cognito.clearTokens).toHaveBeenCalledOnce();
+    // Should also clear auth state
+    expect(localStorage.getItem('gm_buddy_auth')).toBeNull();
   });
 
   it('should clear tokens when refresh throws an error', async () => {
@@ -116,6 +121,9 @@ describe('API Service - 401 Interceptor', () => {
     // Mock refresh to throw an error
     vi.mocked(cognito.refreshTokens).mockRejectedValue(new Error('Network error'));
 
+    // Set up gm_buddy_auth in localStorage
+    localStorage.setItem('gm_buddy_auth', JSON.stringify({ email: 'test@example.com' }));
+
     try {
       await apiClient.get('/protected');
       expect.fail('Should have thrown an error');
@@ -127,6 +135,8 @@ describe('API Service - 401 Interceptor', () => {
 
     expect(cognito.refreshTokens).toHaveBeenCalledOnce();
     expect(cognito.clearTokens).toHaveBeenCalledOnce();
+    // Should also clear auth state
+    expect(localStorage.getItem('gm_buddy_auth')).toBeNull();
   });
 
   it('should not retry non-401 errors', async () => {
