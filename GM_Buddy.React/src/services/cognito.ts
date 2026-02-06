@@ -42,6 +42,9 @@ if (config.useCognito) {
   console.error('   3. Refresh the browser');
 }
 
+// Token expiry threshold for proactive refresh (5 minutes in milliseconds)
+const TOKEN_REFRESH_THRESHOLD_MS = 5 * 60 * 1000;
+
 // Token storage keys
 const TOKEN_STORAGE_KEY = 'gm_buddy_tokens';
 const PKCE_STORAGE_KEY = 'gm_buddy_pkce_verifier';
@@ -358,9 +361,8 @@ export async function loadTokens(): Promise<CognitoTokens | null> {
       return await refreshTokens();
     }
 
-    // Check if tokens expire in less than 5 minutes (300000 ms)
-    const fiveMinutes = 5 * 60 * 1000;
-    if (tokens.expiresAt && tokens.expiresAt < Date.now() + fiveMinutes) {
+    // Check if tokens expire soon and proactively refresh
+    if (tokens.expiresAt && tokens.expiresAt < Date.now() + TOKEN_REFRESH_THRESHOLD_MS) {
       console.log('Tokens expiring soon, proactively refreshing...');
       const refreshed = await refreshTokens();
       // If refresh fails, return current tokens (they're still valid for now)

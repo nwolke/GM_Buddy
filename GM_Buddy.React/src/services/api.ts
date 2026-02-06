@@ -19,10 +19,13 @@ const apiClient = axios.create({
 // Add request interceptor for authentication and debugging
 apiClient.interceptors.request.use(
   async (config) => {
-    // Add JWT token to requests if available
-    const token = await getIdToken();
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    // Skip adding token for retry requests (they already have the updated token)
+    if (!(config as any)._retry) {
+      // Add JWT token to requests if available
+      const token = await getIdToken();
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
     
     console.log(`API Request: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`, config.params || '');
