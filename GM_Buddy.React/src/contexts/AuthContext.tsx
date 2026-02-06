@@ -63,6 +63,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (storedAuth) {
         try {
           const user = JSON.parse(storedAuth) as User;
+          
+          // Validate tokens and refresh if necessary
+          const tokens = await cognito.loadTokens();
+          if (!tokens) {
+            // Tokens are invalid or expired and couldn't be refreshed
+            console.log('[AuthContext] Tokens expired and refresh failed, clearing session...');
+            localStorage.removeItem(STORAGE_KEY);
+            cognito.clearTokens();
+            setAuthState({ isAuthenticated: false, user: null, loading: false });
+            return;
+          }
+          
           console.log('[AuthContext] Restored session for user:', user.email, 'accountId:', user.accountId);
           setAuthState({ isAuthenticated: true, user, loading: false });
         } catch {

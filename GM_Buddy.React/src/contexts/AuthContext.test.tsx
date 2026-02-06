@@ -17,6 +17,7 @@ vi.mock('@/services/cognito', () => ({
   redirectToLogin: vi.fn(),
   redirectToLogout: vi.fn(),
   clearTokens: vi.fn(),
+  loadTokens: vi.fn(),
 }))
 
 // Test component that uses the auth context
@@ -42,6 +43,9 @@ describe('AuthContext', () => {
     
     // Default to non-Cognito mode
     vi.mocked(cognito.isCognitoEnabled).mockReturnValue(false)
+    
+    // Mock loadTokens to return null by default (no tokens)
+    vi.mocked(cognito.loadTokens).mockResolvedValue(null)
   })
 
   it('should provide auth context', async () => {
@@ -79,6 +83,14 @@ describe('AuthContext', () => {
       accountId: 1,
     }
     localStorage.setItem('gm_buddy_auth', JSON.stringify(mockUser))
+    
+    // Mock loadTokens to return valid tokens
+    vi.mocked(cognito.loadTokens).mockResolvedValue({
+      accessToken: 'valid-access-token',
+      idToken: 'valid-id-token',
+      refreshToken: 'valid-refresh-token',
+      expiresAt: Date.now() + 3600000, // Expires in 1 hour
+    })
 
     render(
       <AuthProvider>
@@ -169,6 +181,14 @@ describe('AuthContext', () => {
       accountId: 1,
     }
     localStorage.setItem('gm_buddy_auth', JSON.stringify(mockUser))
+    
+    // Mock loadTokens to return valid tokens
+    vi.mocked(cognito.loadTokens).mockResolvedValue({
+      accessToken: 'valid-access-token',
+      idToken: 'valid-id-token',
+      refreshToken: 'valid-refresh-token',
+      expiresAt: Date.now() + 3600000,
+    })
 
     render(
       <AuthProvider>
