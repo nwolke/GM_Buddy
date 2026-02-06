@@ -258,9 +258,84 @@ function saveTokens(tokens: CognitoTokens): void {
 }
 
 /**
- * Load tokens from localStorage
+ * Refresh tokens using the refresh token
+ * Returns new tokens or null if refresh fails
  */
-export function loadTokens(): CognitoTokens | null {
+export async function refreshTokens(): Promise<CognitoTokens | null> {
+  if (!isCognitoEnabled()) {
+    console.warn('Cognito is not configured. Cannot refresh tokens.');
+    return null;
+  }
+
+  const stored = localStorage.getItem(TOKEN_STORAGE_KEY);
+  if (!stored) {
+    console.log('No tokens to refresh');
+    return null;
+  }
+
+  let currentTokens: CognitoTokens;
+  try {
+    currentTokens = JSON.parse(stored) as CognitoTokens;
+  } catch {
+    console.error('Failed to parse stored tokens');
+    clearTokens();
+    return null;
+  }
+
+  if (!currentTokens.refreshToken) {
+    console.error('No refresh token available');
+    clearTokens();
+    return null;
+  }
+
+  const tokenUrl = `https://${config.domain}/oauth2/token`;
+  const body = new URLSearchParams({
+    grant_type: 'refresh_token',
+    client_id: config.clientId,
+    refresh_token: currentTokens.refreshToken,
+  });
+
+  try {
+    console.log('[Cognito] Refreshing tokens...');
+    const response = await fetch(tokenUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: body.toString(),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ Token refresh failed:', response.status, errorText);
+      clearTokens();
+      return null;
+    }
+
+    const data = await response.json();
+    console.log('✅ Token refresh successful');
+
+    const newTokens: CognitoTokens = {
+      accessToken: data.access_token,
+      idToken: data.id_token,
+      refreshToken: data.refresh_token || currentTokens.refreshToken, // Use new refresh token if provided, else keep existing
+      expiresAt: Date.now() + (data.expires_in * 1000),
+    };
+
+    saveTokens(newTokens);
+    return newTokens;
+  } catch (err) {
+    console.error('Token refresh error:', err);
+    clearTokens();
+    return null;
+  }
+}
+
+/**
+ * Load tokens from localStorage
+ * Automatically refreshes tokens if they expire in less than 5 minutes
+ */
+export async function loadTokens(): Promise<CognitoTokens | null> {
   const stored = localStorage.getItem(TOKEN_STORAGE_KEY);
   if (!stored) return null;
 
@@ -269,9 +344,17 @@ export function loadTokens(): CognitoTokens | null {
     
     // Check if tokens are expired
     if (tokens.expiresAt && tokens.expiresAt < Date.now()) {
-      console.log('Tokens expired, clearing...');
-      clearTokens();
-      return null;
+      console.log('Tokens expired, attempting refresh...');
+      return await refreshTokens();
+    }
+
+    // Check if tokens expire in less than 5 minutes (300000 ms)
+    const fiveMinutes = 5 * 60 * 1000;
+    if (tokens.expiresAt && tokens.expiresAt < Date.now() + fiveMinutes) {
+      console.log('Tokens expiring soon, proactively refreshing...');
+      const refreshed = await refreshTokens();
+      // If refresh fails, return current tokens (they're still valid for now)
+      return refreshed || tokens;
     }
 
     return tokens;
@@ -290,8 +373,8 @@ export function clearTokens(): void {
 /**
  * Get the current access token for API calls
  */
-export function getAccessToken(): string | null {
-  const tokens = loadTokens();
+export async function getAccessToken(): Promise<string | null> {
+  const tokens = await loadTokens();
   return tokens?.accessToken || null;
 }
 
@@ -300,16 +383,16 @@ export function getAccessToken(): string | null {
  * ID tokens contain user identity claims (sub, email, etc.)
  * Use this instead of access token for ASP.NET Core JWT authentication
  */
-export function getIdToken(): string | null {
-  const tokens = loadTokens();
+export async function getIdToken(): Promise<string | null> {
+  const tokens = await loadTokens();
   return tokens?.idToken || null;
 }
 
 /**
  * Get the current user from stored tokens
  */
-export function getCurrentUser(): CognitoUser | null {
-  const tokens = loadTokens();
+export async function getCurrentUser(): Promise<CognitoUser | null> {
+  const tokens = await loadTokens();
   if (!tokens?.idToken) return null;
   return parseIdToken(tokens.idToken);
 }
@@ -317,6 +400,7 @@ export function getCurrentUser(): CognitoUser | null {
 /**
  * Check if user is authenticated
  */
-export function isAuthenticated(): boolean {
-  return !!loadTokens();
+export async function isAuthenticated(): Promise<boolean> {
+  const tokens = await loadTokens();
+  return !!tokens;
 }
