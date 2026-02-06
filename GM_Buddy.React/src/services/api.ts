@@ -3,6 +3,24 @@ import { NPC } from '@/types/npc';
 import { Campaign } from '@/types/campaign';
 import { getIdToken, refreshTokens, clearTokens } from './cognito';
 
+// Storage key for auth state - must match AuthContext
+const AUTH_STORAGE_KEY = 'gm_buddy_auth';
+
+/**
+ * Helper function to perform full logout when token refresh fails
+ * Clears both Cognito tokens and auth state to keep UI and storage consistent
+ */
+function performFullLogout(): void {
+  clearTokens();
+  localStorage.removeItem(AUTH_STORAGE_KEY);
+  
+  // Emit a custom event to notify AuthContext of the logout
+  // Using CustomEvent instead of StorageEvent for better test compatibility
+  window.dispatchEvent(new CustomEvent('auth-logout', { 
+    detail: { reason: 'token-refresh-failed' } 
+  }));
+}
+
 // API base URL - use environment variable or fall back to relative path
 const API_BASE_URL = import.meta.env.VITE_API_URL
     ? `${import.meta.env.VITE_API_URL}/api`  // Production: full URL to backend + /api prefix
@@ -65,15 +83,13 @@ apiClient.interceptors.response.use(
           console.log('[API Interceptor] Token refreshed, retrying request...');
           return apiClient(originalRequest);
         } else {
-          // Refresh failed - clear tokens and treat as logged out
-          console.error('[API Interceptor] Token refresh failed, clearing tokens');
-          clearTokens();
-          // Optionally, you could trigger a redirect to login here
-          // For now, we'll just reject the request
+          // Refresh failed - perform full logout to keep UI and storage consistent
+          console.error('[API Interceptor] Token refresh failed, performing full logout');
+          performFullLogout();
         }
       } catch (refreshError) {
         console.error('[API Interceptor] Error during token refresh:', refreshError);
-        clearTokens();
+        performFullLogout();
       }
     }
     

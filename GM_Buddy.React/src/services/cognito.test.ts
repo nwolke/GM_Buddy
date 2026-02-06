@@ -73,13 +73,13 @@ describe('Cognito Service - Token Refresh', () => {
       expect(localStorage.getItem('gm_buddy_tokens')).toBeNull(); // Should clear tokens
     });
 
-    it('should handle refresh failure', async () => {
-      // Setup - store tokens with a refresh token
+    it('should handle refresh failure with valid tokens', async () => {
+      // Setup - store tokens with a refresh token that are still valid
       const currentTokens = {
         accessToken: 'old-access-token',
         idToken: 'old-id-token',
         refreshToken: 'invalid-refresh-token',
-        expiresAt: Date.now() + 60000,
+        expiresAt: Date.now() + 60000, // still valid for 1 minute
       };
       localStorage.setItem('gm_buddy_tokens', JSON.stringify(currentTokens));
 
@@ -93,16 +93,43 @@ describe('Cognito Service - Token Refresh', () => {
       const result = await cognito.refreshTokens();
 
       expect(result).toBeNull();
-      expect(localStorage.getItem('gm_buddy_tokens')).toBeNull(); // Should clear tokens
+      // Should NOT clear tokens since they're still valid
+      expect(localStorage.getItem('gm_buddy_tokens')).toBeTruthy();
+      const stored = JSON.parse(localStorage.getItem('gm_buddy_tokens')!);
+      expect(stored.accessToken).toBe('old-access-token');
     });
 
-    it('should handle network errors', async () => {
-      // Setup - store tokens with a refresh token
+    it('should clear tokens when refresh fails and tokens are expired', async () => {
+      // Setup - store expired tokens
+      const currentTokens = {
+        accessToken: 'old-access-token',
+        idToken: 'old-id-token',
+        refreshToken: 'invalid-refresh-token',
+        expiresAt: Date.now() - 1000, // already expired
+      };
+      localStorage.setItem('gm_buddy_tokens', JSON.stringify(currentTokens));
+
+      // Mock failed refresh response
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 400,
+        text: async () => 'Invalid refresh token',
+      });
+
+      const result = await cognito.refreshTokens();
+
+      expect(result).toBeNull();
+      // Should clear tokens since they're expired
+      expect(localStorage.getItem('gm_buddy_tokens')).toBeNull();
+    });
+
+    it('should preserve tokens on network errors when tokens are still valid', async () => {
+      // Setup - store tokens with a refresh token that are still valid
       const currentTokens = {
         accessToken: 'old-access-token',
         idToken: 'old-id-token',
         refreshToken: 'valid-refresh-token',
-        expiresAt: Date.now() + 60000,
+        expiresAt: Date.now() + 60000, // still valid for 1 minute
       };
       localStorage.setItem('gm_buddy_tokens', JSON.stringify(currentTokens));
 
@@ -112,7 +139,30 @@ describe('Cognito Service - Token Refresh', () => {
       const result = await cognito.refreshTokens();
 
       expect(result).toBeNull();
-      expect(localStorage.getItem('gm_buddy_tokens')).toBeNull(); // Should clear tokens
+      // Should NOT clear tokens since they're still valid
+      expect(localStorage.getItem('gm_buddy_tokens')).toBeTruthy();
+      const stored = JSON.parse(localStorage.getItem('gm_buddy_tokens')!);
+      expect(stored.accessToken).toBe('old-access-token');
+    });
+
+    it('should clear tokens on network errors when tokens are expired', async () => {
+      // Setup - store expired tokens
+      const currentTokens = {
+        accessToken: 'old-access-token',
+        idToken: 'old-id-token',
+        refreshToken: 'valid-refresh-token',
+        expiresAt: Date.now() - 1000, // already expired
+      };
+      localStorage.setItem('gm_buddy_tokens', JSON.stringify(currentTokens));
+
+      // Mock network error
+      global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
+
+      const result = await cognito.refreshTokens();
+
+      expect(result).toBeNull();
+      // Should clear tokens since they're expired
+      expect(localStorage.getItem('gm_buddy_tokens')).toBeNull();
     });
 
     it('should keep existing refresh token if new one not provided', async () => {
