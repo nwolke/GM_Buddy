@@ -1,28 +1,28 @@
-version: '3.8'
-
 services:
   # PostgreSQL Database
   gm_buddy_postgres:
-    image: postgres:16-alpine
+    image: 'postgres:latest'
     container_name: gm_buddy_postgres
-    restart: unless-stopped
     ports:
-      - "15432:5432"
+      - 15432:5432
+    env_file:
+      - .env
     environment:
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB:-gm_buddy}
+    networks:
+      - gm_buddy_network
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ${PWD}/db-data:/var/lib/postgresql
+      - ${PWD}/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-gm_buddy}"]
       interval: 5s
       timeout: 5s
       retries: 10
-      start_period: 10s
-    networks:
-      - gm_buddy_network
+      start_period: 30s
+    restart: unless-stopped
 
   # pgAdmin (Optional Database Management Tool)
   gm_buddy_pgadmin:
@@ -73,7 +73,7 @@ services:
 
   # React Frontend
   gm_buddy_web:
-    image: ${DOCKER_REGISTRY}gm-buddy-react:local
+    image: ${DOCKER_REGISTRY-}gmbuddyreact
     container_name: gm_buddy_web
     restart: unless-stopped
     build:
