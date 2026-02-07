@@ -90,3 +90,43 @@ jobs:
         run: |
           echo "Deployment completed successfully!"
           echo "Application URL: ${{ secrets.EB_ENVIRONMENT_URL }}"
+      
+      - name: Wait for application to stabilize
+        run: sleep 30
+      
+      - name: Health check - Liveness
+        run: |
+          echo "Checking application liveness..."
+          response=$(curl -f -s -o /dev/null -w "%{http_code}" ${{ secrets.EB_ENVIRONMENT_URL }}/health/live || echo "failed")
+          if [ "$response" = "200" ]; then
+            echo "✅ Liveness check passed (HTTP $response)"
+          else
+            echo "❌ Liveness check failed (HTTP $response)"
+            exit 1
+          fi
+      
+      - name: Health check - Readiness
+        run: |
+          echo "Checking application readiness..."
+          response=$(curl -f -s -o /dev/null -w "%{http_code}" ${{ secrets.EB_ENVIRONMENT_URL }}/health/ready || echo "failed")
+          if [ "$response" = "200" ]; then
+            echo "✅ Readiness check passed (HTTP $response)"
+          else
+            echo "❌ Readiness check failed (HTTP $response)"
+            exit 1
+          fi
+      
+      - name: Health check - Full health status
+        run: |
+          echo "Fetching full health status..."
+          curl -f -s ${{ secrets.EB_ENVIRONMENT_URL }}/health | jq '.' || echo "Failed to fetch health status"
+      
+      - name: Record deployment metrics
+        if: always()
+        run: |
+          echo "📊 Deployment Metrics:"
+          echo "- Commit SHA: ${{ github.sha }}"
+          echo "- Deployment Time: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+          echo "- Environment: ${{ inputs.environment || 'production' }}"
+          echo "- Triggered by: ${{ github.actor }}"
+          echo "- Workflow run: ${{ github.run_id }}"

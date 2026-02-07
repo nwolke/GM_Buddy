@@ -1,0 +1,46 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "CloudWatchLogsAccess",
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents",
+        "logs:DescribeLogStreams"
+      ],
+      "Resource": [
+        "arn:aws:logs:*:*:log-group:/aws/elasticbeanstalk/gm-buddy/*",
+        "arn:aws:logs:*:*:log-group:/aws/elasticbeanstalk/gm-buddy/*:log-stream:*"
+      ]
+    },
+    {
+      "Sid": "CloudWatchMetricsAccess",
+      "Effect": "Allow",
+      "Action": [
+        "cloudwatch:PutMetricData",
+        "cloudwatch:GetMetricStatistics",
+        "cloudwatch:ListMetrics"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "cloudwatch:namespace": [
+            "GMBuddy/Application",
+            "AWS/ElasticBeanstalk"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "CloudWatchAlarmsReadAccess",
+      "Effect": "Allow",
+      "Action": [
+        "cloudwatch:DescribeAlarms",
+        "cloudwatch:DescribeAlarmsForMetric"
+      ],
+      "Resource": "*"
+    }
+  ]
+}

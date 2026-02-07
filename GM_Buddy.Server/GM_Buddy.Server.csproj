@@ -29,6 +29,23 @@
     </PackageReference>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="8.0.0" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.3" />
+    
+    <!-- Structured Logging with Serilog -->
+    <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+    <PackageReference Include="Serilog.Enrichers.Environment" Version="3.0.1" />
+    <PackageReference Include="Serilog.Enrichers.Thread" Version="4.0.0" />
+    
+    <!-- AWS CloudWatch Integration - using v4 SDK for compatibility -->
+    <PackageReference Include="AWS.Logger.SeriLog" Version="4.0.0" />
+    <PackageReference Include="AWSSDK.CloudWatch" Version="4.0.0" />
+    <PackageReference Include="AWSSDK.Core" Version="4.0.3.3" />
+    
+    <!-- Health Checks and Diagnostics -->
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="9.0.3" />
+    <PackageReference Include="AspNetCore.HealthChecks.Npgsql" Version="9.0.0" />
+    <PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="9.0.0" />
   </ItemGroup>
 
   <ItemGroup>

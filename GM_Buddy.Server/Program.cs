@@ -2,219 +2,315 @@ using GM_Buddy.Business;
 using GM_Buddy.Contracts;
 using GM_Buddy.Contracts.Interfaces;
 using GM_Buddy.Data;
+using GM_Buddy.Server.Configuration;
 using GM_Buddy.Server.Helpers;
 using GM_Buddy.Server.Middleware;
+using GM_Buddy.Server.Services;
+using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Serilog;
+using Serilog.Events;
 using System.IO.Compression;
 using System.Net;
 using System.Net.Security;
 
-WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+// Configure Serilog early in the application startup
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .CreateBootstrapLogger();
 
-// Load Cognito settings
-var cognitoSettings = builder.Configuration.GetSection("Cognito").Get<CognitoSettings>();
-
-builder.Services.ConfigureHttpClientDefaults(config =>
+try
 {
-    config.ConfigurePrimaryHttpMessageHandler(() =>
+    Log.Information("Starting GM_Buddy application");
+
+    WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+    // Configure Serilog from appsettings.json
+    builder.Host.UseSerilog((context, services, configuration) => configuration
+        .ReadFrom.Configuration(context.Configuration)
+        .ReadFrom.Services(services)
+        .Enrich.FromLogContext()
+        .Enrich.WithProperty("Application", "GMBuddy")
+        .Enrich.WithEnvironmentName()
+        .Enrich.WithThreadId());
+
+    // Configure Observability Settings
+    builder.Services.Configure<ObservabilitySettings>(builder.Configuration.GetSection("Observability"));
+    builder.Services.Configure<CloudWatchSettings>(builder.Configuration.GetSection("AWS:CloudWatch"));
+
+    // Load Cognito settings
+    var cognitoSettings = builder.Configuration.GetSection("Cognito").Get<CognitoSettings>();
+
+    builder.Services.ConfigureHttpClientDefaults(config =>
     {
-        HttpClientHandler handler = new()
+        config.ConfigurePrimaryHttpMessageHandler(() =>
         {
-            AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
-            ServerCertificateCustomValidationCallback = (sender, certificate, chain, errors) =>
+            HttpClientHandler handler = new()
             {
-#if DEBUG
-                return true; // DEV - Accept all certificates in development
-#else
-                return errors == SslPolicyErrors.None;
-#endif
-            }
-        };
-        return handler;
-    });
-});
-
-// Add services to the container.
-// Configure JWT Bearer authentication with AWS Cognito
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    // Cognito token validation
-    options.Authority = cognitoSettings?.Authority;
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuer = true,
-        ValidIssuer = cognitoSettings?.Authority,
-        ValidateAudience = false, // Cognito doesn't always set audience in access tokens
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        // Map Cognito claims to standard claims
-        NameClaimType = "cognito:username",
-        RoleClaimType = "cognito:groups"
-    };
-});
-builder.Services.AddAuthorization();
-builder.Services.AddControllers();
-
-// Add Response Compression for better network performance
-builder.Services.AddResponseCompression(options =>
-{
-    options.EnableForHttps = true;
-    options.Providers.Add<BrotliCompressionProvider>();
-    options.Providers.Add<GzipCompressionProvider>();
-    options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[]
-    {
-        "application/json",
-        "text/json"
-    });
-});
-
-builder.Services.Configure<BrotliCompressionProviderOptions>(options =>
-{
-    options.Level = CompressionLevel.Fastest;
-});
-
-builder.Services.Configure<GzipCompressionProviderOptions>(options =>
-{
-    options.Level = CompressionLevel.SmallestSize;
-});
-
-// Add Memory Cache for caching frequently accessed data
-builder.Services.AddMemoryCache();
-
-// Add Output Cache for API response caching
-builder.Services.AddOutputCache(options =>
-{
-    options.AddBasePolicy(builder => builder.Expire(TimeSpan.FromMinutes(5)));
-    options.AddPolicy("NpcList", builder => builder.Expire(TimeSpan.FromMinutes(2)).Tag("npcs"));
-    options.AddPolicy("CampaignList", builder => builder.Expire(TimeSpan.FromMinutes(2)).Tag("campaigns"));
-    options.AddPolicy("ShortCache", builder => builder.Expire(TimeSpan.FromSeconds(30)));
-});
-
-builder.Services.Configure<DbSettings>(builder.Configuration.GetSection("DbSettings"));
-builder.Services.AddTransient<IDbConnector, DbConnector>();
-builder.Services.AddScoped<INpcLogic, NpcLogic>();
-builder.Services.AddScoped<ICampaignLogic, CampaignLogic>();
-builder.Services.AddSingleton<IAuthRepository, AuthRepository>();
-builder.Services.AddScoped<IAuthObjectResolver, AuthObjectResolver>();
-builder.Services.AddScoped<INpcRepository, NpcRepository>();
-builder.Services.AddScoped<ICampaignRepository, CampaignRepository>();
-builder.Services.AddScoped<IRelationshipRepository, RelationshipRepository>();
-builder.Services.AddScoped<IPcRepository, PcRepository>();
-builder.Services.AddScoped<IOrganizationRepository, OrganizationRepository>();
-builder.Services.AddScoped<IGameSystemRepository, GameSystemRepository>();
-builder.Services.AddScoped<IReferenceDataRepository, ReferenceDataRepository>();
-builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<IAuthHelper, AuthHelper>();
-builder.Services.AddScoped<IAuthLogic, AuthLogic>();
-builder.Services.AddScoped<IAccountLogic, AccountLogic>();
-builder.Services.AddScoped<INewAccountDataSeeder, NewAccountDataSeeder>();
-
-// Register AccountRepository for Cognito user management
-builder.Services.AddScoped<IAccountRepository>(sp =>
-{
-    var dbConnector = sp.GetRequiredService<IDbConnector>();
-    return new AccountRepository(dbConnector.ConnectionString);
-});
-
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Server", Version = "v1" });
-
-    // Add Security Definition
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        In = ParameterLocation.Header,
-        Description = "Please insert JWT with Bearer into field",
-        Name = "Authorization",
-        Type = SecuritySchemeType.Http,
-        Scheme = "Bearer"
-    });
-
-    // Add Security Requirement
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement()
-    {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
+                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+                ServerCertificateCustomValidationCallback = (sender, certificate, chain, errors) =>
                 {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                },
-                Scheme = "oauth2"
-            },
-            new List<string>()
+    #if DEBUG
+                    return true; // DEV - Accept all certificates in development
+    #else
+                    return errors == SslPolicyErrors.None;
+    #endif
+                }
+            };
+            return handler;
+        });
+    });
+
+    // Add services to the container.
+    // Configure JWT Bearer authentication with AWS Cognito
+    builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        // Cognito token validation
+        options.Authority = cognitoSettings?.Authority;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = cognitoSettings?.Authority,
+            ValidateAudience = false, // Cognito doesn't always set audience in access tokens
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            // Map Cognito claims to standard claims
+            NameClaimType = "cognito:username",
+            RoleClaimType = "cognito:groups"
+        };
+    });
+    builder.Services.AddAuthorization();
+    builder.Services.AddControllers();
+
+    // Add Response Compression for better network performance
+    builder.Services.AddResponseCompression(options =>
+    {
+        options.EnableForHttps = true;
+        options.Providers.Add<BrotliCompressionProvider>();
+        options.Providers.Add<GzipCompressionProvider>();
+        options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[]
+        {
+            "application/json",
+            "text/json"
+        });
+    });
+
+    builder.Services.Configure<BrotliCompressionProviderOptions>(options =>
+    {
+        options.Level = CompressionLevel.Fastest;
+    });
+
+    builder.Services.Configure<GzipCompressionProviderOptions>(options =>
+    {
+        options.Level = CompressionLevel.SmallestSize;
+    });
+
+    // Add Memory Cache for caching frequently accessed data
+    builder.Services.AddMemoryCache();
+
+    // Add Output Cache for API response caching
+    builder.Services.AddOutputCache(options =>
+    {
+        options.AddBasePolicy(builder => builder.Expire(TimeSpan.FromMinutes(5)));
+        options.AddPolicy("NpcList", builder => builder.Expire(TimeSpan.FromMinutes(2)).Tag("npcs"));
+        options.AddPolicy("CampaignList", builder => builder.Expire(TimeSpan.FromMinutes(2)).Tag("campaigns"));
+        options.AddPolicy("ShortCache", builder => builder.Expire(TimeSpan.FromSeconds(30)));
+    });
+
+    builder.Services.Configure<DbSettings>(builder.Configuration.GetSection("DbSettings"));
+    builder.Services.AddTransient<IDbConnector, DbConnector>();
+    builder.Services.AddScoped<INpcLogic, NpcLogic>();
+    builder.Services.AddScoped<ICampaignLogic, CampaignLogic>();
+    builder.Services.AddSingleton<IAuthRepository, AuthRepository>();
+    builder.Services.AddScoped<IAuthObjectResolver, AuthObjectResolver>();
+    builder.Services.AddScoped<INpcRepository, NpcRepository>();
+    builder.Services.AddScoped<ICampaignRepository, CampaignRepository>();
+    builder.Services.AddScoped<IRelationshipRepository, RelationshipRepository>();
+    builder.Services.AddScoped<IPcRepository, PcRepository>();
+    builder.Services.AddScoped<IOrganizationRepository, OrganizationRepository>();
+    builder.Services.AddScoped<IGameSystemRepository, GameSystemRepository>();
+    builder.Services.AddScoped<IReferenceDataRepository, ReferenceDataRepository>();
+    builder.Services.AddHttpContextAccessor();
+    builder.Services.AddScoped<IAuthHelper, AuthHelper>();
+    builder.Services.AddScoped<IAuthLogic, AuthLogic>();
+    builder.Services.AddScoped<IAccountLogic, AccountLogic>();
+    builder.Services.AddScoped<INewAccountDataSeeder, NewAccountDataSeeder>();
+
+    // Register AccountRepository for Cognito user management
+    builder.Services.AddScoped<IAccountRepository>(sp =>
+    {
+        var dbConnector = sp.GetRequiredService<IDbConnector>();
+        return new AccountRepository(dbConnector.ConnectionString);
+    });
+
+    // Add Metrics Service for observability
+    builder.Services.AddSingleton<MetricsService>();
+
+    // Add Health Checks
+    var observabilitySettings = builder.Configuration.GetSection("Observability").Get<ObservabilitySettings>() ?? new ObservabilitySettings();
+    if (observabilitySettings.EnableHealthChecks)
+    {
+        var healthChecksBuilder = builder.Services.AddHealthChecks()
+            .AddCheck("self", () => HealthCheckResult.Healthy("API is running"), tags: new[] { "api" });
+
+        // Add database health check if connection string is configured
+        var dbSettings = builder.Configuration.GetSection("DbSettings").Get<DbSettings>();
+        if (dbSettings != null && !string.IsNullOrEmpty(dbSettings.Host))
+        {
+            var connectionString = $"Host={dbSettings.Host};Port={dbSettings.Port};Database={dbSettings.Database};Username={dbSettings.Username};Password={dbSettings.Password}";
+            healthChecksBuilder.AddNpgSql(
+                connectionString,
+                name: "postgresql",
+                tags: new[] { "db", "postgresql" },
+                timeout: TimeSpan.FromSeconds(5));
         }
-    });
-});
-
-// CORS Configuration - allow both HTTP and HTTPS for local dev
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowSpecificOrigins", policy =>
-    {
-        policy.WithOrigins(
-                "https://localhost:49505",  // HTTPS Vite dev server
-                "http://localhost:49505",
-                "http://localhost:3000",    // Local dev (Vite or Docker React)
-                "https://localhost:3000",
-                "https://d2zsk9max2no60.cloudfront.net" // Production CloudFront distribution
-              )
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials(); // Allow credentials (cookies, auth headers)
-    });
-});
-
-WebApplication app = builder.Build();
-
-app.UseDefaultFiles();
-app.UseStaticFiles();
-app.UseSwagger();
-app.UseSwaggerUI();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseExceptionHandler("/error-development");
-}
-else
-{
-    app.UseExceptionHandler("/error");
-    // Only use HTTPS redirection if not running in Docker (where we use HTTP internally)
-    // or if explicitly enabled via configuration
-    var runningInDocker = Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true";
-    var enableHttpsRedirect = app.Configuration.GetValue<bool>("EnableHttpsRedirect", !runningInDocker);
-    if (enableHttpsRedirect)
-    {
-        app.UseHttpsRedirection();
     }
+
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen(c =>
+    {
+        c.SwaggerDoc("v1", new OpenApiInfo { Title = "Server", Version = "v1" });
+
+        // Add Security Definition
+        c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+        {
+            In = ParameterLocation.Header,
+            Description = "Please insert JWT with Bearer into field",
+            Name = "Authorization",
+            Type = SecuritySchemeType.Http,
+            Scheme = "Bearer"
+        });
+
+        // Add Security Requirement
+        c.AddSecurityRequirement(new OpenApiSecurityRequirement()
+        {
+            {
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    },
+                    Scheme = "oauth2"
+                },
+                new List<string>()
+            }
+        });
+    });
+
+    // CORS Configuration - allow both HTTP and HTTPS for local dev
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("AllowSpecificOrigins", policy =>
+        {
+            policy.WithOrigins(
+                    "https://localhost:49505",  // HTTPS Vite dev server
+                    "http://localhost:49505",
+                    "http://localhost:3000",    // Local dev (Vite or Docker React)
+                    "https://localhost:3000",
+                    "https://d2zsk9max2no60.cloudfront.net" // Production CloudFront distribution
+                  )
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials(); // Allow credentials (cookies, auth headers)
+        });
+    });
+
+    WebApplication app = builder.Build();
+
+    // Use Serilog for request logging
+    app.UseSerilogRequestLogging(options =>
+    {
+        options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000}ms";
+        options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
+        {
+            diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
+            diagnosticContext.Set("UserAgent", httpContext.Request.Headers["User-Agent"].ToString() ?? "unknown");
+        };
+    });
+
+    app.UseDefaultFiles();
+    app.UseStaticFiles();
+    app.UseSwagger();
+    app.UseSwaggerUI();
+
+    // Configure the HTTP request pipeline.
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseExceptionHandler("/error-development");
+    }
+    else
+    {
+        app.UseExceptionHandler("/error");
+        // Only use HTTPS redirection if not running in Docker (where we use HTTP internally)
+        // or if explicitly enabled via configuration
+        var runningInDocker = Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true";
+        var enableHttpsRedirect = app.Configuration.GetValue<bool>("EnableHttpsRedirect", !runningInDocker);
+        if (enableHttpsRedirect)
+        {
+            app.UseHttpsRedirection();
+        }
+    }
+
+    // Response Compression - should be early in the pipeline
+    app.UseResponseCompression();
+
+    // Metrics logging middleware - logs timing and parameters for each request
+    app.UseMiddleware<MetricsLoggingMiddleware>();
+
+    // CORS must come BEFORE Authentication/Authorization and MapControllers
+    app.UseCors("AllowSpecificOrigins");
+
+    // Output Cache for API responses
+    app.UseOutputCache();
+
+    app.UseAuthentication();
+    app.UseAuthorization();
+
+    app.MapControllers();
+
+    // Map Health Check endpoints
+    if (observabilitySettings.EnableHealthChecks)
+    {
+        app.MapHealthChecks("/health", new HealthCheckOptions
+        {
+            ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+        });
+
+        app.MapHealthChecks("/health/ready", new HealthCheckOptions
+        {
+            Predicate = check => check.Tags.Contains("db"),
+            ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+        });
+
+        app.MapHealthChecks("/health/live", new HealthCheckOptions
+        {
+            Predicate = _ => false, // Exclude all checks, just return healthy if app is running
+            ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+        });
+    }
+
+    Log.Information("GM_Buddy application started successfully");
+    app.Run();
 }
-
-// Response Compression - should be early in the pipeline
-app.UseResponseCompression();
-
-// Metrics logging middleware - logs timing and parameters for each request
-app.UseMiddleware<MetricsLoggingMiddleware>();
-
-// CORS must come BEFORE Authentication/Authorization and MapControllers
-app.UseCors("AllowSpecificOrigins");
-
-// Output Cache for API responses
-app.UseOutputCache();
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.MapControllers();
-
-app.Run();
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Application terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
+}
