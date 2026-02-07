@@ -30,7 +30,8 @@ public class MetricsService : IDisposable
     private readonly ObservableGauge<int> _gen2Collections;
     
     private long _totalMemory;
-    private double _lastCpuTime;
+    private double _lastCpuTimeMs;
+    private double _cpuUsagePercent;
     private DateTime _lastCpuCheck = DateTime.UtcNow;
 
     public MetricsService(
@@ -66,7 +67,7 @@ public class MetricsService : IDisposable
             
         _cpuUsage = _meter.CreateObservableGauge(
             "gm_buddy.cpu.usage",
-            () => _lastCpuTime,
+            () => _cpuUsagePercent,
             unit: "percent",
             description: "CPU usage percentage");
             
@@ -192,9 +193,10 @@ public class MetricsService : IDisposable
             
             if (timeDiff > 0)
             {
-                var currentCpuTime = process.TotalProcessorTime.TotalMilliseconds;
-                var cpuUsedMs = currentCpuTime - _lastCpuTime;
-                _lastCpuTime = (cpuUsedMs / (Environment.ProcessorCount * timeDiff)) * 100;
+                var currentCpuTimeMs = process.TotalProcessorTime.TotalMilliseconds;
+                var cpuUsedMs = currentCpuTimeMs - _lastCpuTimeMs;
+                _cpuUsagePercent = (cpuUsedMs / (Environment.ProcessorCount * timeDiff)) * 100;
+                _lastCpuTimeMs = currentCpuTimeMs;
             }
             
             _lastCpuCheck = currentTime;
@@ -203,7 +205,7 @@ public class MetricsService : IDisposable
             if (_cloudWatchClient != null && _cloudWatchSettings.Enabled)
             {
                 _ = SendMetricToCloudWatchAsync("MemoryUsage", _totalMemory / (1024.0 * 1024.0), StandardUnit.Megabytes);
-                _ = SendMetricToCloudWatchAsync("CPUUsage", _lastCpuTime, StandardUnit.Percent);
+                _ = SendMetricToCloudWatchAsync("CPUUsage", _cpuUsagePercent, StandardUnit.Percent);
                 _ = SendMetricToCloudWatchAsync("ThreadCount", ThreadPool.ThreadCount, StandardUnit.Count);
             }
         }
