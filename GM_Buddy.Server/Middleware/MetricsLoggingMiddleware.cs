@@ -1,39 +1,65 @@
 using System.Diagnostics;
 using System.Text;
+using GM_Buddy.Server.Services;
 
 namespace GM_Buddy.Server.Middleware;
 
 /// <summary>
-/// Middleware that logs timing metrics for each HTTP request, including parameters and execution duration.
+/// Middleware that logs timing metrics for each HTTP request, including parameters, execution duration,
+/// and memory usage. Integrates with MetricsService for comprehensive observability.
 /// </summary>
 public class MetricsLoggingMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<MetricsLoggingMiddleware> _logger;
+    private readonly MetricsService? _metricsService;
 
-    public MetricsLoggingMiddleware(RequestDelegate next, ILogger<MetricsLoggingMiddleware> logger)
+    public MetricsLoggingMiddleware(
+        RequestDelegate next, 
+        ILogger<MetricsLoggingMiddleware> logger,
+        MetricsService? metricsService = null)
     {
         _next = next;
         _logger = logger;
+        _metricsService = metricsService;
     }
 
     public async Task InvokeAsync(HttpContext context)
     {
         var stopwatch = Stopwatch.StartNew();
+        var memoryBefore = GC.GetTotalMemory(false);
         
         try
         {
             // Continue processing the request
             await _next(context);
         }
+        catch (Exception ex)
+        {
+            // Log the exception and record error metric
+            _logger.LogError(ex, "Unhandled exception in request {Method} {Path}", 
+                context.Request.Method, context.Request.Path);
+            _metricsService?.RecordError(ex.GetType().Name, context.Request.Path);
+            throw;
+        }
         finally
         {
             stopwatch.Stop();
-            LogRequestMetrics(context, stopwatch.ElapsedMilliseconds);
+            var memoryAfter = GC.GetTotalMemory(false);
+            var memoryUsed = memoryAfter - memoryBefore;
+            
+            LogRequestMetrics(context, stopwatch.ElapsedMilliseconds, memoryUsed);
+            
+            // Record metrics in MetricsService
+            _metricsService?.RecordRequest(
+                context.Request.Method,
+                context.Request.Path,
+                context.Response.StatusCode,
+                stopwatch.ElapsedMilliseconds);
         }
     }
 
-    private void LogRequestMetrics(HttpContext context, long elapsedMilliseconds)
+    private void LogRequestMetrics(HttpContext context, long elapsedMilliseconds, long memoryUsed)
     {
         var request = context.Request;
         var response = context.Response;
@@ -71,13 +97,15 @@ public class MetricsLoggingMiddleware
         }
 
         var parameters = parametersBuilder.Length > 0 ? parametersBuilder.ToString() : "None";
+        var memoryUsedKb = memoryUsed / 1024.0;
 
         _logger.LogInformation(
-            "Request Metrics: {Method} {Path} | Status: {StatusCode} | Duration: {DurationMs}ms | Parameters: {Parameters}",
+            "Request Metrics: {Method} {Path} | Status: {StatusCode} | Duration: {DurationMs}ms | Memory: {MemoryKb:F2}KB | Parameters: {Parameters}",
             request.Method,
             request.Path,
             response.StatusCode,
             elapsedMilliseconds,
+            memoryUsedKb,
             parameters);
     }
 
