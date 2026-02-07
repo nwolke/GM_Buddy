@@ -40,6 +40,8 @@ docker compose up --build
 
 - **[QUICKSTART.md](./QUICKSTART.md)** - Get started in 5 minutes
 - **[CONFIGURATION.md](./CONFIGURATION.md)** - Complete configuration guide
+- **[OBSERVABILITY_QUICKSTART.md](./OBSERVABILITY_QUICKSTART.md)** - Quick setup for logging and metrics
+- **[OBSERVABILITY.md](./OBSERVABILITY.md)** - Comprehensive observability guide
 - **[GITHUB_SECRETS.md](./GITHUB_SECRETS.md)** - Required secrets for CI/CD
 - **[MIGRATION.md](./MIGRATION.md)** - Migrating from old configuration
 - **[DEV_SETUP.md](./DEV_SETUP.md)** - Detailed development setup
