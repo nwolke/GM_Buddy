@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" Sdk="Microsoft.Docker.Sdk">
+  <PropertyGroup Label="Globals">
+    <ProjectVersion>2.1</ProjectVersion>
+    <DockerTargetOS>Linux</DockerTargetOS>
+    <DockerLaunchAction>LaunchBrowser</DockerLaunchAction>
+    <DockerServiceUrl>{Scheme}://localhost:{ServicePort}/swagger</DockerServiceUrl>
+    <DockerServiceName>gm_buddy_server</DockerServiceName>
+  </PropertyGroup>
+  <PropertyGroup>
+    <!-- This project is for local development only -->
+    <IsPackable>false</IsPackable>
+    <IsPublishable>false</IsPublishable>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <AdditionalComposeFilePaths>docker-compose.override.yml</AdditionalComposeFilePaths>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="docker-compose.vs.yml" />
+    <None Include="docker-compose.yml" />
+    <None Include="docker-compose.override.yml">
+      <DependentUpon>docker-compose.yml</DependentUpon>
+    </None>
+    <None Include=".dockerignore" />
+    <None Include="scripts\dev-start.ps1" />
+    <None Include="scripts\dev-stop.ps1" />
+    <None Include="scripts\docker-cleanup.ps1" />
+    <None Include="scripts\README.md" />
+    <None Include="scripts\reset-database.ps1" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="GM_Buddy.Server\GM_Buddy.Server.csproj" />
+  </ItemGroup>
+</Project>
