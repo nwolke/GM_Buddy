@@ -5,7 +5,7 @@
 
 # Base stage for Visual Studio debugging
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
-USER $APP_UID
+USER app
 WORKDIR /app
 EXPOSE 8080
 
