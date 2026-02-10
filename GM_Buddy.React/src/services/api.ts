@@ -1,7 +1,9 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
+import { toast } from 'sonner';
 import { NPC } from '@/types/npc';
 import { Campaign } from '@/types/campaign';
 import { getIdToken, refreshTokens, clearTokens } from './cognito';
+import { extractApiError } from './apiError';
 
 // Storage key for auth state - must match AuthContext
 const AUTH_STORAGE_KEY = 'gm_buddy_auth';
@@ -96,8 +98,15 @@ apiClient.interceptors.response.use(
       }
     }
     
-    console.error('API Error:', error.response?.status, error.response?.data || error.message);
-    return Promise.reject(error);
+    const apiError = extractApiError(error);
+    console.error('API Error:', apiError.statusCode, apiError.message);
+
+    // Show toast for non-401 errors (401 is already handled by retry/logout above)
+    if (error.response?.status !== 401) {
+      toast.error(apiError.userMessage);
+    }
+
+    return Promise.reject(apiError);
   }
 );
 

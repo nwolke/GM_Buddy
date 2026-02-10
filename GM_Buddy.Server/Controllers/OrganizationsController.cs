@@ -24,22 +24,14 @@ public class OrganizationsController : ControllerBase
     public async Task<ActionResult<IEnumerable<Organization>>> GetOrganizations(
         [FromQuery] int? accountId = null)
     {
-        try
+        if (!accountId.HasValue)
         {
-            if (!accountId.HasValue)
-            {
-                return BadRequest("Account ID is required");
-            }
+            return BadRequest("Account ID is required");
+        }
 
-            _logger.LogInformation("Getting organizations for account {AccountId}", accountId);
-            IEnumerable<Organization> organizations = await _repository.GetOrganizationsByAccountIdAsync(accountId.Value);
-            return Ok(organizations);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving organizations");
-            return StatusCode(500, "Internal server error");
-        }
+        _logger.LogInformation("Getting organizations for account {AccountId}", accountId);
+        IEnumerable<Organization> organizations = await _repository.GetOrganizationsByAccountIdAsync(accountId.Value);
+        return Ok(organizations);
     }
 
     /// <summary>
@@ -48,23 +40,15 @@ public class OrganizationsController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<Organization>> GetOrganization(int id)
     {
-        try
+        _logger.LogInformation("Getting organization {OrganizationId}", id);
+        Organization? organization = await _repository.GetOrganizationByIdAsync(id);
+
+        if (organization == null)
         {
-            _logger.LogInformation("Getting organization {OrganizationId}", id);
-            Organization? organization = await _repository.GetOrganizationByIdAsync(id);
-            
-            if (organization == null)
-            {
-                return NotFound($"Organization with ID {id} not found");
-            }
-            
-            return Ok(organization);
+            return NotFound($"Organization with ID {id} not found");
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving organization {OrganizationId}", id);
-            return StatusCode(500, "Internal server error");
-        }
+
+        return Ok(organization);
     }
 
     /// <summary>
@@ -73,23 +57,15 @@ public class OrganizationsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<int>> CreateOrganization([FromBody] Organization organization)
     {
-        try
+        if (!ModelState.IsValid)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            return BadRequest(ModelState);
+        }
 
-            _logger.LogInformation("Creating new organization: {Name}", organization.name);
-            int organizationId = await _repository.CreateOrganizationAsync(organization);
-            
-            return CreatedAtAction(nameof(GetOrganization), new { id = organizationId }, organizationId);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating organization");
-            return StatusCode(500, "Internal server error");
-        }
+        _logger.LogInformation("Creating new organization: {Name}", organization.name);
+        int organizationId = await _repository.CreateOrganizationAsync(organization);
+
+        return CreatedAtAction(nameof(GetOrganization), new { id = organizationId }, organizationId);
     }
 
     /// <summary>
@@ -98,28 +74,20 @@ public class OrganizationsController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateOrganization(int id, [FromBody] Organization organization)
     {
-        try
+        if (id != organization.organization_id)
         {
-            if (id != organization.organization_id)
-            {
-                return BadRequest("Organization ID mismatch");
-            }
-
-            if (!await _repository.OrganizationExistsAsync(id))
-            {
-                return NotFound($"Organization with ID {id} not found");
-            }
-
-            _logger.LogInformation("Updating organization {OrganizationId}", id);
-            await _repository.UpdateOrganizationAsync(organization);
-            
-            return NoContent();
+            return BadRequest("Organization ID mismatch");
         }
-        catch (Exception ex)
+
+        if (!await _repository.OrganizationExistsAsync(id))
         {
-            _logger.LogError(ex, "Error updating organization {OrganizationId}", id);
-            return StatusCode(500, "Internal server error");
+            return NotFound($"Organization with ID {id} not found");
         }
+
+        _logger.LogInformation("Updating organization {OrganizationId}", id);
+        await _repository.UpdateOrganizationAsync(organization);
+
+        return NoContent();
     }
 
     /// <summary>
@@ -128,23 +96,15 @@ public class OrganizationsController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteOrganization(int id)
     {
-        try
+        if (!await _repository.OrganizationExistsAsync(id))
         {
-            if (!await _repository.OrganizationExistsAsync(id))
-            {
-                return NotFound($"Organization with ID {id} not found");
-            }
+            return NotFound($"Organization with ID {id} not found");
+        }
 
-            _logger.LogInformation("Deleting organization {OrganizationId}", id);
-            await _repository.DeleteOrganizationAsync(id);
-            
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting organization {OrganizationId}", id);
-            return StatusCode(500, "Internal server error");
-        }
+        _logger.LogInformation("Deleting organization {OrganizationId}", id);
+        await _repository.DeleteOrganizationAsync(id);
+
+        return NoContent();
     }
 
     /// <summary>
@@ -153,17 +113,9 @@ public class OrganizationsController : ControllerBase
     [HttpGet("account/{accountId}")]
     public async Task<ActionResult<IEnumerable<Organization>>> GetOrganizationsByAccount(int accountId)
     {
-        try
-        {
-            _logger.LogInformation("Getting organizations for account {AccountId}", accountId);
-            IEnumerable<Organization> organizations = await _repository.GetOrganizationsByAccountIdAsync(accountId);
-            return Ok(organizations);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving organizations for account {AccountId}", accountId);
-            return StatusCode(500, "Internal server error");
-        }
+        _logger.LogInformation("Getting organizations for account {AccountId}", accountId);
+        IEnumerable<Organization> organizations = await _repository.GetOrganizationsByAccountIdAsync(accountId);
+        return Ok(organizations);
     }
 
     /// <summary>
@@ -172,17 +124,9 @@ public class OrganizationsController : ControllerBase
     [HttpGet("campaign/{campaignId}")]
     public async Task<ActionResult<IEnumerable<Organization>>> GetOrganizationsByCampaign(int campaignId)
     {
-        try
-        {
-            _logger.LogInformation("Getting organizations for campaign {CampaignId}", campaignId);
-            IEnumerable<Organization> organizations = await _repository.GetOrganizationsByCampaignIdAsync(campaignId);
-            return Ok(organizations);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving organizations for campaign {CampaignId}", campaignId);
-            return StatusCode(500, "Internal server error");
-        }
+        _logger.LogInformation("Getting organizations for campaign {CampaignId}", campaignId);
+        IEnumerable<Organization> organizations = await _repository.GetOrganizationsByCampaignIdAsync(campaignId);
+        return Ok(organizations);
     }
 
     /// <summary>
@@ -194,24 +138,16 @@ public class OrganizationsController : ControllerBase
         [FromQuery] string? name = null,
         [FromQuery] string? type = null)
     {
-        try
+        if (string.IsNullOrWhiteSpace(name) && string.IsNullOrWhiteSpace(type))
         {
-            if (string.IsNullOrWhiteSpace(name) && string.IsNullOrWhiteSpace(type))
-            {
-                return BadRequest("At least one search parameter (name or type) is required");
-            }
+            return BadRequest("At least one search parameter (name or type) is required");
+        }
 
-            _logger.LogInformation("Searching organizations");
-            string searchTerm = name ?? type ?? "";
-            IEnumerable<Organization> organizations = await _repository.SearchOrganizationsAsync(accountId, searchTerm);
-            
-            return Ok(organizations);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error searching organizations");
-            return StatusCode(500, "Internal server error");
-        }
+        _logger.LogInformation("Searching organizations");
+        string searchTerm = name ?? type ?? "";
+        IEnumerable<Organization> organizations = await _repository.SearchOrganizationsAsync(accountId, searchTerm);
+
+        return Ok(organizations);
     }
 
     /// <summary>
@@ -220,27 +156,19 @@ public class OrganizationsController : ControllerBase
     [HttpGet("{id}/members")]
     public async Task<ActionResult<object>> GetOrganizationMembers(int id)
     {
-        try
-        {
-            _logger.LogInformation("Getting members for organization {OrganizationId}", id);
-            
-            if (!await _repository.OrganizationExistsAsync(id))
-            {
-                return NotFound($"Organization with ID {id} not found");
-            }
+        _logger.LogInformation("Getting members for organization {OrganizationId}", id);
 
-            // Return reference to relationships API
-            return Ok(new 
-            { 
-                message = "Use /Relationships/to/organization/{id} endpoint to get members",
-                endpoint = $"/Relationships/to/organization/{id}"
-            });
-        }
-        catch (Exception ex)
+        if (!await _repository.OrganizationExistsAsync(id))
         {
-            _logger.LogError(ex, "Error retrieving members for organization {OrganizationId}", id);
-            return StatusCode(500, "Internal server error");
+            return NotFound($"Organization with ID {id} not found");
         }
+
+        // Return reference to relationships API
+        return Ok(new
+        {
+            message = "Use /Relationships/to/organization/{id} endpoint to get members",
+            endpoint = $"/Relationships/to/organization/{id}"
+        });
     }
 
     /// <summary>
@@ -249,26 +177,18 @@ public class OrganizationsController : ControllerBase
     [HttpGet("{id}/leaders")]
     public async Task<ActionResult<object>> GetOrganizationLeaders(int id)
     {
-        try
-        {
-            _logger.LogInformation("Getting leaders for organization {OrganizationId}", id);
-            
-            if (!await _repository.OrganizationExistsAsync(id))
-            {
-                return NotFound($"Organization with ID {id} not found");
-            }
+        _logger.LogInformation("Getting leaders for organization {OrganizationId}", id);
 
-            return Ok(new 
-            { 
-                message = "Use /Relationships/to/organization/{id} with type filter",
-                endpoint = $"/Relationships/entity/organization/{id}/type/8"  // 8 is Leader relationship type
-            });
-        }
-        catch (Exception ex)
+        if (!await _repository.OrganizationExistsAsync(id))
         {
-            _logger.LogError(ex, "Error retrieving leaders for organization {OrganizationId}", id);
-            return StatusCode(500, "Internal server error");
+            return NotFound($"Organization with ID {id} not found");
         }
+
+        return Ok(new
+        {
+            message = "Use /Relationships/to/organization/{id} with type filter",
+            endpoint = $"/Relationships/entity/organization/{id}/type/8"  // 8 is Leader relationship type
+        });
     }
 
     /// <summary>
@@ -277,23 +197,15 @@ public class OrganizationsController : ControllerBase
     [HttpGet("{id}/hierarchy")]
     public async Task<ActionResult<object>> GetOrganizationHierarchy(int id)
     {
-        try
-        {
-            _logger.LogInformation("Getting hierarchy for organization {OrganizationId}", id);
-            
-            if (!await _repository.OrganizationExistsAsync(id))
-            {
-                return NotFound($"Organization with ID {id} not found");
-            }
+        _logger.LogInformation("Getting hierarchy for organization {OrganizationId}", id);
 
-            // TODO: Build hierarchy tree from relationships
-            return Ok(new { message = "Hierarchy not yet implemented" });
-        }
-        catch (Exception ex)
+        if (!await _repository.OrganizationExistsAsync(id))
         {
-            _logger.LogError(ex, "Error retrieving hierarchy for organization {OrganizationId}", id);
-            return StatusCode(500, "Internal server error");
+            return NotFound($"Organization with ID {id} not found");
         }
+
+        // TODO: Build hierarchy tree from relationships
+        return Ok(new { message = "Hierarchy not yet implemented" });
     }
 
     /// <summary>
@@ -302,26 +214,18 @@ public class OrganizationsController : ControllerBase
     [HttpGet("{id}/allies")]
     public async Task<ActionResult<object>> GetAlliedOrganizations(int id)
     {
-        try
-        {
-            _logger.LogInformation("Getting allies for organization {OrganizationId}", id);
-            
-            if (!await _repository.OrganizationExistsAsync(id))
-            {
-                return NotFound($"Organization with ID {id} not found");
-            }
+        _logger.LogInformation("Getting allies for organization {OrganizationId}", id);
 
-            return Ok(new 
-            { 
-                message = "Use /Relationships/from/organization/{id} with type=Ally filter",
-                endpoint = $"/Relationships/entity/organization/{id}/type/2"  // 2 is Ally relationship type
-            });
-        }
-        catch (Exception ex)
+        if (!await _repository.OrganizationExistsAsync(id))
         {
-            _logger.LogError(ex, "Error retrieving allies for organization {OrganizationId}", id);
-            return StatusCode(500, "Internal server error");
+            return NotFound($"Organization with ID {id} not found");
         }
+
+        return Ok(new
+        {
+            message = "Use /Relationships/from/organization/{id} with type=Ally filter",
+            endpoint = $"/Relationships/entity/organization/{id}/type/2"  // 2 is Ally relationship type
+        });
     }
 
     /// <summary>
@@ -330,26 +234,18 @@ public class OrganizationsController : ControllerBase
     [HttpGet("{id}/enemies")]
     public async Task<ActionResult<object>> GetEnemyOrganizations(int id)
     {
-        try
-        {
-            _logger.LogInformation("Getting enemies for organization {OrganizationId}", id);
-            
-            if (!await _repository.OrganizationExistsAsync(id))
-            {
-                return NotFound($"Organization with ID {id} not found");
-            }
+        _logger.LogInformation("Getting enemies for organization {OrganizationId}", id);
 
-            return Ok(new 
-            { 
-                message = "Use /Relationships/from/organization/{id} with type=Enemy filter",
-                endpoint = $"/Relationships/entity/organization/{id}/type/3"  // 3 is Enemy relationship type
-            });
-        }
-        catch (Exception ex)
+        if (!await _repository.OrganizationExistsAsync(id))
         {
-            _logger.LogError(ex, "Error retrieving enemies for organization {OrganizationId}", id);
-            return StatusCode(500, "Internal server error");
+            return NotFound($"Organization with ID {id} not found");
         }
+
+        return Ok(new
+        {
+            message = "Use /Relationships/from/organization/{id} with type=Enemy filter",
+            endpoint = $"/Relationships/entity/organization/{id}/type/3"  // 3 is Enemy relationship type
+        });
     }
 
     /// <summary>
@@ -360,21 +256,13 @@ public class OrganizationsController : ControllerBase
         [FromQuery] int accountId,
         [FromQuery] string format = "json")
     {
-        try
-        {
-            _logger.LogInformation("Exporting organizations for account {AccountId} in {Format} format", 
-                accountId, format);
-            
-            IEnumerable<Organization> organizations = await _repository.GetOrganizationsByAccountIdAsync(accountId);
-            
-            // For now, just return JSON
-            // TODO: Add support for other formats
-            return Ok(organizations);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error exporting organizations");
-            return StatusCode(500, "Internal server error");
-        }
+        _logger.LogInformation("Exporting organizations for account {AccountId} in {Format} format",
+            accountId, format);
+
+        IEnumerable<Organization> organizations = await _repository.GetOrganizationsByAccountIdAsync(accountId);
+
+        // For now, just return JSON
+        // TODO: Add support for other formats
+        return Ok(organizations);
     }
 }
