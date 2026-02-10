@@ -4,7 +4,6 @@ import { accountApi } from '@/services/api';
 import * as cognito from '@/services/cognito';
 
 interface AuthContextType extends AuthState {
-  login: (cognitoSub: string, email: string) => Promise<void>;
   loginWithCognito: () => void;
   logout: () => void;
   isCognitoMode: boolean;
@@ -12,8 +11,6 @@ interface AuthContextType extends AuthState {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// For demo purposes, we'll use localStorage to simulate authentication
-// In production, this would integrate with AWS Cognito Hosted UI
 const STORAGE_KEY = 'gm_buddy_auth';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -25,11 +22,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const isCognitoMode = cognito.isCognitoEnabled();
   
-  if (isCognitoMode) {
-    console.log('? [AuthContext] Cognito mode: ENABLED');
-  } else {
-    console.warn('??  [AuthContext] Cognito is not configured. Use demo login instead.');
-    console.warn('    If you set up .env.local, you need to RESTART Vite dev server!');
+  if (!isCognitoMode) {
+    console.warn('[AuthContext] Cognito is not configured. Authentication will not work.');
   }
 
   useEffect(() => {
@@ -91,26 +85,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initAuth();
   }, [isCognitoMode]);
 
-  // Demo/manual login (for development without Cognito)
-  // NOTE: This will NOT work with the secured endpoints that require JWT authentication
-  // To use the app in development, either:
-  // 1. Configure real Cognito authentication (recommended)
-  // 2. Use a development bypass (requires backend changes)
-  const login = async (cognitoSub: string, email: string) => {
-    console.log('[AuthContext] Demo login with cognitoSub:', cognitoSub, 'email:', email);
-    console.warn('[AuthContext] Demo login will fail - backend requires JWT authentication');
-    
-    // This will fail because the backend now requires a valid JWT token with 'sub' claim
-    // The cognitoSub parameter is no longer accepted from request body for security reasons
-    throw new Error('Demo login is not supported. Please configure Cognito authentication.');
-  };
-
   // Cognito Hosted UI login
   const loginWithCognito = () => {
     if (isCognitoMode) {
       cognito.redirectToLogin();
     } else {
-      console.warn('[AuthContext] Cognito is not configured. Use demo login instead.');
+      console.warn('[AuthContext] Cognito is not configured. Authentication will not work.');
     }
   };
 
@@ -130,7 +110,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ ...authState, login, loginWithCognito, logout, isCognitoMode }}>
+    <AuthContext.Provider value={{ ...authState, loginWithCognito, logout, isCognitoMode }}>
       {children}
     </AuthContext.Provider>
   );
