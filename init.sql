@@ -143,7 +143,7 @@ ON CONFLICT (relationship_type_name) DO NOTHING;
 
 
 -- Seed data
--- Dev user with cognito_sub matching the dev mode login
+-- Dev user account for testing
 INSERT INTO auth.account (username, first_name, last_name, email, cognito_sub, subscription_tier)
 VALUES
   ('gm_admin', 'GM', 'Admin', 'nathanwolke@outlook.com', '38318390-3021-70cf-5f3d-fae7caa59be1', 'premium')
