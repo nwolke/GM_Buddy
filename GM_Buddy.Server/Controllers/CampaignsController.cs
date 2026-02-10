@@ -31,29 +31,13 @@ public class CampaignsController : ControllerBase
     [HttpGet("account")]
     public async Task<ActionResult<IEnumerable<Campaign>>> GetCampaignsByAccount()
     {
-        try
-        {
-            int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
-            
-            _logger.LogInformation("Getting campaigns for account {AccountId}", accountId);
-            var campaigns = await _campaignLogic.GetCampaignsByAccountAsync(accountId);
-            
-            _logger.LogInformation("Retrieved {Count} campaigns", campaigns.Count());
-            return Ok(campaigns);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Unauthorized(ex.Message);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving campaigns");
-            return StatusCode(500, "Internal server error");
-        }
+        int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
+
+        _logger.LogInformation("Getting campaigns for account {AccountId}", accountId);
+        var campaigns = await _campaignLogic.GetCampaignsByAccountAsync(accountId);
+
+        _logger.LogInformation("Retrieved {Count} campaigns", campaigns.Count());
+        return Ok(campaigns);
     }
 
     /// <summary>
@@ -62,34 +46,22 @@ public class CampaignsController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<Campaign>> GetCampaign(int id)
     {
-        try
-        {
-            int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
+        int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
 
-            var campaign = await _campaignLogic.GetCampaignAsync(id);
-            if (campaign == null)
-            {
-                return NotFound($"Campaign with ID {id} not found");
-            }
-
-            // Verify the campaign belongs to the authenticated user's account
-            if (campaign.account_id != accountId)
-            {
-                _logger.LogWarning("User attempted to access campaign {CampaignId} not owned by their account {AccountId}", id, accountId);
-                return Forbid();
-            }
-
-            return Ok(campaign);
-        }
-        catch (UnauthorizedAccessException ex)
+        var campaign = await _campaignLogic.GetCampaignAsync(id);
+        if (campaign == null)
         {
-            return Unauthorized(ex.Message);
+            return NotFound($"Campaign with ID {id} not found");
         }
-        catch (Exception ex)
+
+        // Verify the campaign belongs to the authenticated user's account
+        if (campaign.account_id != accountId)
         {
-            _logger.LogError(ex, "Error retrieving campaign {CampaignId}", id);
-            return StatusCode(500, "Internal server error");
+            _logger.LogWarning("User attempted to access campaign {CampaignId} not owned by their account {AccountId}", id, accountId);
+            return Forbid();
         }
+
+        return Ok(campaign);
     }
 
     /// <summary>
@@ -98,44 +70,27 @@ public class CampaignsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<int>> CreateCampaign([FromBody] Campaign campaign)
     {
-        try
-        {
-            int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
+        int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
 
-            if (string.IsNullOrWhiteSpace(campaign.name))
-            {
-                return BadRequest("Campaign name is required");
-            }
-
-            if (campaign.game_system_id <= 0)
-            {
-                return BadRequest("Valid game system ID is required");
-            }
-
-            _logger.LogInformation("Creating new campaign: {Name} for account {AccountId}", campaign.name, accountId);
-            
-            int campaignId = await _campaignLogic.CreateCampaignAsync(
-                accountId, 
-                campaign.name, 
-                campaign.description, 
-                campaign.game_system_id);
-
-            return CreatedAtAction(nameof(GetCampaign), new { id = campaignId }, campaignId);
-        }
-        catch (UnauthorizedAccessException ex)
+        if (string.IsNullOrWhiteSpace(campaign.name))
         {
-            return Unauthorized(ex.Message);
+            return BadRequest("Campaign name is required");
         }
-        catch (InvalidOperationException ex)
+
+        if (campaign.game_system_id <= 0)
         {
-            _logger.LogInformation(ex, "Authenticated account is not synced");
-            return NotFound(ex.Message);
+            return BadRequest("Valid game system ID is required");
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating campaign");
-            return StatusCode(500, "Internal server error");
-        }
+
+        _logger.LogInformation("Creating new campaign: {Name} for account {AccountId}", campaign.name, accountId);
+
+        int campaignId = await _campaignLogic.CreateCampaignAsync(
+            accountId,
+            campaign.name,
+            campaign.description,
+            campaign.game_system_id);
+
+        return CreatedAtAction(nameof(GetCampaign), new { id = campaignId }, campaignId);
     }
 
     /// <summary>
@@ -144,50 +99,38 @@ public class CampaignsController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateCampaign(int id, [FromBody] Campaign campaign)
     {
-        try
+        int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
+
+        if (id != campaign.campaign_id)
         {
-            int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
-
-            if (id != campaign.campaign_id)
-            {
-                return BadRequest("Campaign ID mismatch");
-            }
-
-            if (string.IsNullOrWhiteSpace(campaign.name))
-            {
-                return BadRequest("Campaign name is required");
-            }
-
-            if (campaign.game_system_id <= 0)
-            {
-                return BadRequest("Valid game system ID is required");
-            }
-
-            _logger.LogInformation("Updating campaign {CampaignId}", id);
-            
-            bool success = await _campaignLogic.UpdateCampaignAsync(
-                id, 
-                accountId, 
-                campaign.name, 
-                campaign.description, 
-                campaign.game_system_id);
-
-            if (!success)
-            {
-                return NotFound($"Campaign with ID {id} not found or not owned by your account");
-            }
-
-            return NoContent();
+            return BadRequest("Campaign ID mismatch");
         }
-        catch (UnauthorizedAccessException ex)
+
+        if (string.IsNullOrWhiteSpace(campaign.name))
         {
-            return Unauthorized(ex.Message);
+            return BadRequest("Campaign name is required");
         }
-        catch (Exception ex)
+
+        if (campaign.game_system_id <= 0)
         {
-            _logger.LogError(ex, "Error updating campaign {CampaignId}", id);
-            return StatusCode(500, "Internal server error");
+            return BadRequest("Valid game system ID is required");
         }
+
+        _logger.LogInformation("Updating campaign {CampaignId}", id);
+
+        bool success = await _campaignLogic.UpdateCampaignAsync(
+            id,
+            accountId,
+            campaign.name,
+            campaign.description,
+            campaign.game_system_id);
+
+        if (!success)
+        {
+            return NotFound($"Campaign with ID {id} not found or not owned by your account");
+        }
+
+        return NoContent();
     }
 
     /// <summary>
@@ -196,41 +139,29 @@ public class CampaignsController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteCampaign(int id)
     {
-        try
+        int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
+
+        // First verify ownership
+        var campaign = await _campaignLogic.GetCampaignAsync(id);
+        if (campaign == null)
         {
-            int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
-
-            // First verify ownership
-            var campaign = await _campaignLogic.GetCampaignAsync(id);
-            if (campaign == null)
-            {
-                return NotFound($"Campaign with ID {id} not found");
-            }
-
-            if (campaign.account_id != accountId)
-            {
-                _logger.LogWarning("User attempted to delete campaign {CampaignId} not owned by their account {AccountId}", id, accountId);
-                return Forbid();
-            }
-
-            _logger.LogInformation("Deleting campaign {CampaignId}", id);
-            bool success = await _campaignLogic.DeleteCampaignAsync(id);
-
-            if (!success)
-            {
-                return NotFound($"Campaign with ID {id} not found");
-            }
-
-            return NoContent();
+            return NotFound($"Campaign with ID {id} not found");
         }
-        catch (UnauthorizedAccessException ex)
+
+        if (campaign.account_id != accountId)
         {
-            return Unauthorized(ex.Message);
+            _logger.LogWarning("User attempted to delete campaign {CampaignId} not owned by their account {AccountId}", id, accountId);
+            return Forbid();
         }
-        catch (Exception ex)
+
+        _logger.LogInformation("Deleting campaign {CampaignId}", id);
+        bool success = await _campaignLogic.DeleteCampaignAsync(id);
+
+        if (!success)
         {
-            _logger.LogError(ex, "Error deleting campaign {CampaignId}", id);
-            return StatusCode(500, "Internal server error");
+            return NotFound($"Campaign with ID {id} not found");
         }
+
+        return NoContent();
     }
 }
