@@ -1,7 +1,7 @@
 services:
   # PostgreSQL Database
   gm_buddy_postgres:
-    image: 'postgres:latest'
+    image: 'postgres:18-alpine'
     container_name: gm_buddy_postgres
     ports:
       - 15432:5432
@@ -14,8 +14,8 @@ services:
     networks:
       - gm_buddy_network
     volumes:
-      - ${PWD}/db-data:/var/lib/postgresql
-      - ${PWD}/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./db-data:/var/lib/postgresql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-gm_buddy}"]
       interval: 5s
