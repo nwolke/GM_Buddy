@@ -86,9 +86,8 @@ useEffect(() => {
         localStorage.setItem('ttrpg-relationships', JSON.stringify(transformedRelationships));
       }
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      console.error('[useNPCData] Failed to load NPCs:', errorMessage, err);
-      setError(`Failed to load NPCs. Using local storage as fallback.`);
+      console.error('[useNPCData] Failed to load NPCs:', err);
+      setError('Using cached data. Changes may not be saved.');
       
       // Fallback to localStorage with campaign-specific key
       console.log('[useNPCData] Falling back to localStorage...');
@@ -190,7 +189,7 @@ useEffect(() => {
       await loadNpcs();
     } catch (err) {
       console.error('Failed to save NPC:', err);
-      setError('Failed to save NPC to server.');
+      // Toast is shown automatically by the axios interceptor
     }
   }, [loadNpcs, npcs, relationships]);
 
@@ -236,8 +235,8 @@ useEffect(() => {
       setRelationships(prev => [...prev, newRelationship]);
     } catch (err) {
       console.error('[useNPCData] Failed to create relationship:', err);
-      setError('Failed to create relationship on server.');
-      throw err; // Throw error instead of creating local fallback
+      // Toast is shown automatically by the axios interceptor
+      throw err;
     }
   }, []);
 
