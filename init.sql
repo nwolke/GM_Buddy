@@ -143,10 +143,10 @@ ON CONFLICT (relationship_type_name) DO NOTHING;
 
 
 -- Seed data
--- Dev user account for testing
+-- Dev user for local development and seed data
 INSERT INTO auth.account (username, first_name, last_name, email, cognito_sub, subscription_tier)
 VALUES
-  ('gm_admin', 'GM', 'Admin', 'nathanwolke@outlook.com', '38318390-3021-70cf-5f3d-fae7caa59be1', 'premium')
+  ('gm_admin', 'GM', 'Admin', 'admin@gmbuddy.local', 'c801b3d0-3071-709f-ebb9-c69f61e297f5', 'premium')
 ON CONFLICT (username) DO NOTHING;
 
 INSERT INTO public.game_system (game_system_name)
