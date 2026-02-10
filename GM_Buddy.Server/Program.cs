@@ -102,8 +102,6 @@ builder.Services.Configure<DbSettings>(builder.Configuration.GetSection("DbSetti
 builder.Services.AddTransient<IDbConnector, DbConnector>();
 builder.Services.AddScoped<INpcLogic, NpcLogic>();
 builder.Services.AddScoped<ICampaignLogic, CampaignLogic>();
-builder.Services.AddSingleton<IAuthRepository, AuthRepository>();
-builder.Services.AddScoped<IAuthObjectResolver, AuthObjectResolver>();
 builder.Services.AddScoped<INpcRepository, NpcRepository>();
 builder.Services.AddScoped<ICampaignRepository, CampaignRepository>();
 builder.Services.AddScoped<IRelationshipRepository, RelationshipRepository>();

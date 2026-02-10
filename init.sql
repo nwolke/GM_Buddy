@@ -2,7 +2,7 @@
 CREATE SCHEMA IF NOT EXISTS auth;
 
 -- account - Links Cognito users to application data
--- Authentication is handled by AWS Cognito, so password/salt are optional (for legacy support)
+-- Authentication is handled by AWS Cognito
 CREATE TABLE IF NOT EXISTS auth.account (
   id SERIAL PRIMARY KEY,
   username VARCHAR(100) UNIQUE,
@@ -11,48 +11,12 @@ CREATE TABLE IF NOT EXISTS auth.account (
   email VARCHAR(255) NOT NULL UNIQUE,
   cognito_sub VARCHAR(255) UNIQUE,  -- Cognito user ID (sub claim from JWT)
   subscription_tier VARCHAR(50) DEFAULT 'free',  -- free, supporter, premium, lifetime
-  password TEXT,  -- Optional: Only for legacy accounts
-  salt TEXT,      -- Optional: Only for legacy accounts
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   last_login_at TIMESTAMPTZ
 );
 
 -- Index for fast Cognito sub lookups
 CREATE INDEX IF NOT EXISTS idx_account_cognito_sub ON auth.account(cognito_sub);
-
--- role
-CREATE TABLE IF NOT EXISTS auth.role (
-  id SERIAL PRIMARY KEY,
-  name VARCHAR(100) NOT NULL UNIQUE,
-  description TEXT
-);
-
--- user_role (join) - still called user_role for clarity about its purpose
-CREATE TABLE IF NOT EXISTS auth.user_role (
-  account_id INTEGER NOT NULL REFERENCES auth.account(id) ON DELETE CASCADE,
-  role_id INTEGER NOT NULL REFERENCES auth.role(id) ON DELETE CASCADE,
-  PRIMARY KEY (account_id, role_id)
-);
-
--- client
-CREATE TABLE IF NOT EXISTS auth.client (
-  id SERIAL PRIMARY KEY,
-  client_id VARCHAR(100) NOT NULL UNIQUE,
-  name VARCHAR(100) NOT NULL,
-  client_url VARCHAR(200) NOT NULL
-);
-
-
--- seed roles
-INSERT INTO auth.role (name, description) VALUES
-  ('Admin', 'Administrator role'),
-  ('User', 'Default user role')
-ON CONFLICT (name) DO NOTHING;
-
--- seed web client for frontend authentication
-INSERT INTO auth.client (client_id, name, client_url) VALUES
-  ('gm-buddy-web', 'GM Buddy Web Application', 'https://localhost:49505')
-ON CONFLICT (client_id) DO NOTHING;
 
 -- Seed + schema for GM_Buddy public schema
 
@@ -179,16 +143,10 @@ ON CONFLICT (relationship_type_name) DO NOTHING;
 
 
 -- Seed data
--- Dev user with cognito_sub matching the dev mode login
+-- Dev user for local development and seed data
 INSERT INTO auth.account (username, first_name, last_name, email, cognito_sub, subscription_tier)
 VALUES
-  ('gm_admin', 'GM', 'Admin', 'nathanwolke@outlook.com', '38318390-3021-70cf-5f3d-fae7caa59be1', 'premium')
-ON CONFLICT (username) DO NOTHING;
-
--- Demo user for React app demo login (fallback if gm_admin doesn't work)
-INSERT INTO auth.account (username, first_name, last_name, email, cognito_sub, subscription_tier)
-VALUES
-  ('demo_user', 'Demo', 'User', 'demo@example.com', 'demo-user-sub', 'free')
+  ('gm_admin', 'GM', 'Admin', 'admin@gmbuddy.local', 'c801b3d0-3071-709f-ebb9-c69f61e297f5', 'premium')
 ON CONFLICT (username) DO NOTHING;
 
 INSERT INTO public.game_system (game_system_name)
