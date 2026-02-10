@@ -406,6 +406,9 @@ FodyWeavers.xsd
 /db-data
 /pgadmin-data
 
+# Docker Compose local override (developer-specific)
+docker-compose.override.yml
+
 # Development settings with secrets
 appsettings.Development.json
 **/appsettings.Development.json
