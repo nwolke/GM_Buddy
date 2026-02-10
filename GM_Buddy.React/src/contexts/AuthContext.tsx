@@ -21,10 +21,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   const isCognitoMode = cognito.isCognitoEnabled();
-  
-  if (!isCognitoMode) {
-    console.warn('[AuthContext] Cognito is not configured. Authentication will not work.');
-  }
+
+  useEffect(() => {
+    if (!isCognitoMode) {
+      console.warn('[AuthContext] Cognito is not configured. Authentication will not work.');
+    }
+  }, [isCognitoMode]);
 
   useEffect(() => {
     const initAuth = async () => {
