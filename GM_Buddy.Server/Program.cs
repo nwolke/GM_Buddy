@@ -181,13 +181,8 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/error-development");
-}
-else
-{
-    app.UseExceptionHandler("/error");
     // Only use HTTPS redirection if not running in Docker (where we use HTTP internally)
     // or if explicitly enabled via configuration
     var runningInDocker = Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true";
@@ -200,6 +195,9 @@ else
 
 // Response Compression - should be early in the pipeline
 app.UseResponseCompression();
+
+// Global exception handler - converts unhandled exceptions to ProblemDetails with correlation IDs
+app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
 // Metrics logging middleware - logs timing and parameters for each request
 app.UseMiddleware<MetricsLoggingMiddleware>();

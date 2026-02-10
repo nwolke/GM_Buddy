@@ -25,16 +25,8 @@ public class GameSystemsController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Game_System>>> GetGameSystems()
     {
-        try
-        {
-            var gameSystems = await _repository.GetAllAsync();
-            return Ok(gameSystems);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving game systems");
-            return StatusCode(500, "Internal server error");
-        }
+        var gameSystems = await _repository.GetAllAsync();
+        return Ok(gameSystems);
     }
 
     /// <summary>
@@ -43,19 +35,11 @@ public class GameSystemsController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<Game_System>> GetGameSystem(int id)
     {
-        try
+        var gameSystem = await _repository.GetByIdAsync(id);
+        if (gameSystem == null)
         {
-            var gameSystem = await _repository.GetByIdAsync(id);
-            if (gameSystem == null)
-            {
-                return NotFound($"Game system with ID {id} not found");
-            }
-            return Ok(gameSystem);
+            return NotFound($"Game system with ID {id} not found");
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving game system {GameSystemId}", id);
-            return StatusCode(500, "Internal server error");
-        }
+        return Ok(gameSystem);
     }
 }

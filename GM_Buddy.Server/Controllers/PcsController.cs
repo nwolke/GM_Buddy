@@ -25,24 +25,16 @@ public class PcsController : ControllerBase
         [FromQuery] int? accountId = null,
         [FromQuery] int? gameSystemId = null)
     {
-        try
+        if (!accountId.HasValue)
         {
-            if (!accountId.HasValue)
-            {
-                return BadRequest("Account ID is required");
-            }
-
-            IEnumerable<Pc> pcs = gameSystemId.HasValue
-                ? await _repository.GetPcsByGameSystemIdAsync(gameSystemId.Value, accountId.Value)
-                : await _repository.GetPcsByAccountIdAsync(accountId.Value);
-
-            return Ok(pcs);
+            return BadRequest("Account ID is required");
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving PCs");
-            return StatusCode(500, "Internal server error");
-        }
+
+        IEnumerable<Pc> pcs = gameSystemId.HasValue
+            ? await _repository.GetPcsByGameSystemIdAsync(gameSystemId.Value, accountId.Value)
+            : await _repository.GetPcsByAccountIdAsync(accountId.Value);
+
+        return Ok(pcs);
     }
 
     /// <summary>
@@ -51,23 +43,15 @@ public class PcsController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<Pc>> GetPc(int id)
     {
-        try
+        _logger.LogInformation("Getting PC {PcId}", id);
+        Pc? pc = await _repository.GetPcByIdAsync(id);
+
+        if (pc == null)
         {
-            _logger.LogInformation("Getting PC {PcId}", id);
-            Pc? pc = await _repository.GetPcByIdAsync(id);
-            
-            if (pc == null)
-            {
-                return NotFound($"PC with ID {id} not found");
-            }
-            
-            return Ok(pc);
+            return NotFound($"PC with ID {id} not found");
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving PC {PcId}", id);
-            return StatusCode(500, "Internal server error");
-        }
+
+        return Ok(pc);
     }
 
     /// <summary>
@@ -76,23 +60,15 @@ public class PcsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<int>> CreatePc([FromBody] Pc pc)
     {
-        try
+        if (!ModelState.IsValid)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            return BadRequest(ModelState);
+        }
 
-            _logger.LogInformation("Creating new PC: {Name}", pc.name);
-            int pcId = await _repository.CreatePcAsync(pc);
-            
-            return CreatedAtAction(nameof(GetPc), new { id = pcId }, pcId);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating PC");
-            return StatusCode(500, "Internal server error");
-        }
+        _logger.LogInformation("Creating new PC: {Name}", pc.name);
+        int pcId = await _repository.CreatePcAsync(pc);
+
+        return CreatedAtAction(nameof(GetPc), new { id = pcId }, pcId);
     }
 
     /// <summary>
@@ -101,28 +77,20 @@ public class PcsController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdatePc(int id, [FromBody] Pc pc)
     {
-        try
+        if (id != pc.pc_id)
         {
-            if (id != pc.pc_id)
-            {
-                return BadRequest("PC ID mismatch");
-            }
-
-            if (!await _repository.PcExistsAsync(id))
-            {
-                return NotFound($"PC with ID {id} not found");
-            }
-
-            _logger.LogInformation("Updating PC {PcId}", id);
-            await _repository.UpdatePcAsync(pc);
-            
-            return NoContent();
+            return BadRequest("PC ID mismatch");
         }
-        catch (Exception ex)
+
+        if (!await _repository.PcExistsAsync(id))
         {
-            _logger.LogError(ex, "Error updating PC {PcId}", id);
-            return StatusCode(500, "Internal server error");
+            return NotFound($"PC with ID {id} not found");
         }
+
+        _logger.LogInformation("Updating PC {PcId}", id);
+        await _repository.UpdatePcAsync(pc);
+
+        return NoContent();
     }
 
     /// <summary>
@@ -131,23 +99,15 @@ public class PcsController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeletePc(int id)
     {
-        try
+        if (!await _repository.PcExistsAsync(id))
         {
-            if (!await _repository.PcExistsAsync(id))
-            {
-                return NotFound($"PC with ID {id} not found");
-            }
+            return NotFound($"PC with ID {id} not found");
+        }
 
-            _logger.LogInformation("Deleting PC {PcId}", id);
-            await _repository.DeletePcAsync(id);
-            
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting PC {PcId}", id);
-            return StatusCode(500, "Internal server error");
-        }
+        _logger.LogInformation("Deleting PC {PcId}", id);
+        await _repository.DeletePcAsync(id);
+
+        return NoContent();
     }
 
     /// <summary>
@@ -156,17 +116,9 @@ public class PcsController : ControllerBase
     [HttpGet("account/{accountId}")]
     public async Task<ActionResult<IEnumerable<Pc>>> GetPcsByAccount(int accountId)
     {
-        try
-        {
-            _logger.LogInformation("Getting PCs for account {AccountId}", accountId);
-            IEnumerable<Pc> pcs = await _repository.GetPcsByAccountIdAsync(accountId);
-            return Ok(pcs);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving PCs for account {AccountId}", accountId);
-            return StatusCode(500, "Internal server error");
-        }
+        _logger.LogInformation("Getting PCs for account {AccountId}", accountId);
+        IEnumerable<Pc> pcs = await _repository.GetPcsByAccountIdAsync(accountId);
+        return Ok(pcs);
     }
 
     /// <summary>
@@ -175,17 +127,9 @@ public class PcsController : ControllerBase
     [HttpGet("campaign/{campaignId}")]
     public async Task<ActionResult<IEnumerable<Pc>>> GetPcsByCampaign(int campaignId)
     {
-        try
-        {
-            _logger.LogInformation("Getting PCs for campaign {CampaignId}", campaignId);
-            IEnumerable<Pc> pcs = await _repository.GetPcsByCampaignIdAsync(campaignId);
-            return Ok(pcs);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving PCs for campaign {CampaignId}", campaignId);
-            return StatusCode(500, "Internal server error");
-        }
+        _logger.LogInformation("Getting PCs for campaign {CampaignId}", campaignId);
+        IEnumerable<Pc> pcs = await _repository.GetPcsByCampaignIdAsync(campaignId);
+        return Ok(pcs);
     }
 
     /// <summary>
@@ -194,19 +138,11 @@ public class PcsController : ControllerBase
     [HttpGet("active")]
     public async Task<ActionResult<IEnumerable<Pc>>> GetActivePcs([FromQuery] int accountId)
     {
-        try
-        {
-            _logger.LogInformation("Getting active PCs for account {AccountId}", accountId);
-            // For now, return all PCs for the account
-            // TODO: Filter to only PCs currently in active campaigns
-            IEnumerable<Pc> pcs = await _repository.GetPcsByAccountIdAsync(accountId);
-            return Ok(pcs);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving active PCs");
-            return StatusCode(500, "Internal server error");
-        }
+        _logger.LogInformation("Getting active PCs for account {AccountId}", accountId);
+        // For now, return all PCs for the account
+        // TODO: Filter to only PCs currently in active campaigns
+        IEnumerable<Pc> pcs = await _repository.GetPcsByAccountIdAsync(accountId);
+        return Ok(pcs);
     }
 
     /// <summary>
@@ -215,17 +151,9 @@ public class PcsController : ControllerBase
     [HttpGet("party/{campaignId}")]
     public async Task<ActionResult<IEnumerable<Pc>>> GetParty(int campaignId)
     {
-        try
-        {
-            _logger.LogInformation("Getting party for campaign {CampaignId}", campaignId);
-            IEnumerable<Pc> pcs = await _repository.GetPcsByCampaignIdAsync(campaignId);
-            return Ok(pcs);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving party for campaign {CampaignId}", campaignId);
-            return StatusCode(500, "Internal server error");
-        }
+        _logger.LogInformation("Getting party for campaign {CampaignId}", campaignId);
+        IEnumerable<Pc> pcs = await _repository.GetPcsByCampaignIdAsync(campaignId);
+        return Ok(pcs);
     }
 
     /// <summary>
@@ -236,21 +164,13 @@ public class PcsController : ControllerBase
         [FromQuery] int accountId,
         [FromQuery] string format = "json")
     {
-        try
-        {
-            _logger.LogInformation("Exporting PCs for account {AccountId} in {Format} format", 
-                accountId, format);
-            
-            IEnumerable<Pc> pcs = await _repository.GetPcsByAccountIdAsync(accountId);
-            
-            // For now, just return JSON
-            // TODO: Add support for other formats (CSV, XML, etc.)
-            return Ok(pcs);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error exporting PCs");
-            return StatusCode(500, "Internal server error");
-        }
+        _logger.LogInformation("Exporting PCs for account {AccountId} in {Format} format",
+            accountId, format);
+
+        IEnumerable<Pc> pcs = await _repository.GetPcsByAccountIdAsync(accountId);
+
+        // For now, just return JSON
+        // TODO: Add support for other formats (CSV, XML, etc.)
+        return Ok(pcs);
     }
 }

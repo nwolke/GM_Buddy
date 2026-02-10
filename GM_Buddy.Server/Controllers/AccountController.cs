@@ -45,27 +45,19 @@ public class AccountController : ControllerBase
 
         string cognitoSub = cognitoSubClaim.Value;
 
-        try
-        {
-            var account = await _authLogic.GetOrCreateAccountByCognitoSubAsync(cognitoSub, request.Email);
+        var account = await _authLogic.GetOrCreateAccountByCognitoSubAsync(cognitoSub, request.Email);
 
-            _logger.LogInformation("Account synced for {CognitoSub}, AccountId: {AccountId}", 
-                cognitoSub, account.account_id);
+        _logger.LogInformation("Account synced for {CognitoSub}, AccountId: {AccountId}",
+            cognitoSub, account.account_id);
 
-            return Ok(new AccountResponse
-            {
-                AccountId = account.account_id,
-                Email = account.email,
-                DisplayName = account.DisplayName,
-                SubscriptionTier = account.subscription_tier,
-                CreatedAt = account.created_at
-            });
-        }
-        catch (Exception ex)
+        return Ok(new AccountResponse
         {
-            _logger.LogError(ex, "Error syncing account for {CognitoSub}", cognitoSub);
-            return StatusCode(500, "Failed to sync account");
-        }
+            AccountId = account.account_id,
+            Email = account.email,
+            DisplayName = account.DisplayName,
+            SubscriptionTier = account.subscription_tier,
+            CreatedAt = account.created_at
+        });
     }
 
     /// <summary>
@@ -124,20 +116,12 @@ public class AccountController : ControllerBase
             return NotFound("Account not found");
         }
 
-        try
-        {
-            await _accountLogic.DeleteAccountAsync(account.account_id);
-            
-            _logger.LogInformation("Account {AccountId} deleted successfully for user {CognitoSub}", 
-                account.account_id, cognitoSub);
+        await _accountLogic.DeleteAccountAsync(account.account_id);
 
-            return Ok(new { message = "Account successfully deleted" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting account {AccountId}", account.account_id);
-            return StatusCode(500, "Failed to delete account");
-        }
+        _logger.LogInformation("Account {AccountId} deleted successfully for user {CognitoSub}",
+            account.account_id, cognitoSub);
+
+        return Ok(new { message = "Account successfully deleted" });
     }
 
     /// <summary>
@@ -162,19 +146,11 @@ public class AccountController : ControllerBase
             return NotFound("Account not found");
         }
 
-        try
-        {
-            var exportData = await _accountLogic.ExportAccountDataAsync(account.account_id);
-            
-            _logger.LogInformation("Account data exported successfully for account {AccountId}", account.account_id);
+        var exportData = await _accountLogic.ExportAccountDataAsync(account.account_id);
 
-            return Ok(exportData);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error exporting account data for {AccountId}", account.account_id);
-            return StatusCode(500, "Failed to export account data");
-        }
+        _logger.LogInformation("Account data exported successfully for account {AccountId}", account.account_id);
+
+        return Ok(exportData);
     }
 }
 

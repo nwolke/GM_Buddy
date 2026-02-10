@@ -35,9 +35,8 @@ export function useCampaignData(): UseCampaignDataReturn {
       
       setCampaigns(apiCampaigns);
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      console.error('[useCampaignData] Failed to load campaigns:', errorMessage, err);
-      setError(`Failed to load campaigns. Using local storage as fallback.`);
+      console.error('[useCampaignData] Failed to load campaigns:', err);
+      setError('Using cached data. Changes may not be saved.');
       
       // Fallback to localStorage
       console.log('[useCampaignData] Falling back to localStorage...');
