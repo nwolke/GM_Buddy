@@ -21,11 +21,6 @@
       <DependentUpon>docker-compose.yml</DependentUpon>
     </None>
     <None Include=".dockerignore" />
-    <None Include="scripts\dev-start.ps1" />
-    <None Include="scripts\dev-stop.ps1" />
-    <None Include="scripts\docker-cleanup.ps1" />
-    <None Include="scripts\README.md" />
-    <None Include="scripts\reset-database.ps1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="GM_Buddy.Server\GM_Buddy.Server.csproj" />
