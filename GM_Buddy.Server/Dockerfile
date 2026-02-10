@@ -3,8 +3,15 @@
 # ===========================================
 # Multi-stage build for ASP.NET Core backend
 
+# Base stage for Visual Studio debugging
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
+USER app
+WORKDIR /app
+EXPOSE 8080
+
 # Build stage
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+ARG BUILD_CONFIGURATION=Debug
 WORKDIR /src
 
 # Copy project files
@@ -21,14 +28,15 @@ COPY . .
 
 # Build the application
 WORKDIR "/src/GM_Buddy.Server"
-RUN dotnet build "GM_Buddy.Server.csproj" -c Debug -o /app/build
+RUN dotnet build "GM_Buddy.Server.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # Publish stage
 FROM build AS publish
-RUN dotnet publish "GM_Buddy.Server.csproj" -c Debug -o /app/publish /p:UseAppHost=false
+ARG BUILD_CONFIGURATION=Debug
+RUN dotnet publish "GM_Buddy.Server.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # Runtime stage
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
+FROM base AS final
 WORKDIR /app
 
 # Copy published application
