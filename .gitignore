@@ -433,3 +433,5 @@ appsettings.Development.json
 
 # scripts folder
 scripts/
+# Claude AI local settings
+.claude/settings.local.json
