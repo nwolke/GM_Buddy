@@ -18,7 +18,7 @@ public class Campaign
     /// <summary>
     /// Foreign key to game_system
     /// </summary>
-    public int game_system_id { get; set; }
+    public int? game_system_id { get; set; }
 
     /// <summary>
     /// Campaign name
@@ -41,7 +41,7 @@ public class Campaign
     public DateTime updated_at { get; set; }
 
     /// <summary>
-    /// Game system name (from join)
+    /// Game system name (from joined game_system table)
     /// </summary>
     public string? game_system_name { get; set; }
 }

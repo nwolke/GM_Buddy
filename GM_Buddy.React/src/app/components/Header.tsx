@@ -88,18 +88,18 @@ export function Header({ showRefresh = false, onRefresh, loading = false, error 
           </Button>
         )}
         {isAuthenticated ? (
-          <DropdownMenu modal={false}>
+          <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button 
                 variant="outline" 
-                size="sm" 
-                className="gap-2"
+                size="icon"
+                title={user?.email || 'Account'}
+                aria-label="Account menu"
               >
-                <UserCircle className="size-4" />
-                <span className="hidden sm:inline">{user?.email}</span>
+                <UserCircle className="size-5" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuContent align="end" sideOffset={8} className="w-56">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => navigate('/account')}>
