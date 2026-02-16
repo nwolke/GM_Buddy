@@ -23,6 +23,16 @@ internal class FakeCampaignRepository : ICampaignRepository
         return Task.FromResult(campaign);
     }
 
+    public Task<Campaign?> GetByIdAndAccountAsync(int campaignId, int accountId, CancellationToken ct = default)
+    {
+        _campaigns.TryGetValue(campaignId, out var campaign);
+        if (campaign != null && campaign.account_id != accountId)
+        {
+            return Task.FromResult<Campaign?>(null);
+        }
+        return Task.FromResult(campaign);
+    }
+
     public Task<IEnumerable<Campaign>> GetByAccountIdAsync(int accountId, CancellationToken ct = default)
     {
         var campaigns = _campaigns.Values.Where(c => c.account_id == accountId);
@@ -46,8 +56,12 @@ internal class FakeCampaignRepository : ICampaignRepository
         return Task.FromResult(true);
     }
 
-    public Task<bool> DeleteAsync(int campaignId, CancellationToken ct = default)
+    public Task<bool> DeleteAsync(int campaignId, int accountId, CancellationToken ct = default)
     {
-        return Task.FromResult(_campaigns.Remove(campaignId));
+        if (_campaigns.TryGetValue(campaignId, out var campaign) && campaign.account_id == accountId)
+        {
+            return Task.FromResult(_campaigns.Remove(campaignId));
+        }
+        return Task.FromResult(false);
     }
 }

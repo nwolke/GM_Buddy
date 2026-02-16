@@ -185,10 +185,11 @@ public class CampaignLogicTests
     public async Task DeleteCampaignAsync_ExistingCampaign_ReturnsTrue()
     {
         // Arrange
+        var accountId = 123;
         var campaign = new Campaign
         {
             campaign_id = 0,
-            account_id = 123,
+            account_id = accountId,
             name = "Campaign to Delete",
             created_at = DateTime.UtcNow,
             updated_at = DateTime.UtcNow
@@ -196,7 +197,7 @@ public class CampaignLogicTests
         var createdId = await _fakeRepository.CreateAsync(campaign);
 
         // Act
-        var result = await _campaignLogic.DeleteCampaignAsync(createdId);
+        var result = await _campaignLogic.DeleteCampaignAsync(createdId, accountId);
 
         // Assert
         Assert.True(result);
@@ -210,7 +211,7 @@ public class CampaignLogicTests
         // Arrange - repository is empty
 
         // Act
-        var result = await _campaignLogic.DeleteCampaignAsync(999);
+        var result = await _campaignLogic.DeleteCampaignAsync(999, 123);
 
         // Assert
         Assert.False(result);

@@ -48,7 +48,7 @@ public class CampaignsController : ControllerBase
     {
         int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
 
-        var campaign = await _campaignLogic.GetCampaignAsync(id);
+        var campaign = await _campaignLogic.GetCampaignAsync(id, accountId);
         if (campaign == null)
         {
             return NotFound($"Campaign with ID {id} not found");
@@ -70,7 +70,7 @@ public class CampaignsController : ControllerBase
             return BadRequest("Campaign name is required");
         }
 
-        if (campaign.Game_system_id <= 0)
+        if (!campaign.Game_system_id.HasValue || campaign.Game_system_id.Value <= 0)
         {
             return BadRequest("Valid game system ID is required");
         }
@@ -129,15 +129,8 @@ public class CampaignsController : ControllerBase
     {
         int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
 
-        // First verify ownership
-        var campaign = await _campaignLogic.GetCampaignAsync(id);
-        if (campaign == null)
-        {
-            return NotFound($"Campaign with ID {id} not found");
-        }
-
         _logger.LogInformation("Deleting campaign {CampaignId}", id);
-        bool success = await _campaignLogic.DeleteCampaignAsync(id);
+        bool success = await _campaignLogic.DeleteCampaignAsync(id, accountId);
 
         if (!success)
         {

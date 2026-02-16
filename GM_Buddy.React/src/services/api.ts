@@ -400,7 +400,7 @@ export const gameSystemApi = {
 // Campaign API response type (matches CampaignDTO)
 export interface ApiCampaign {
   campaign_id: number;
-  game_system_id: number;
+  game_system_id: number | null;
   name: string;
   description?: string;
   game_system_name?: string;
