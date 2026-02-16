@@ -32,12 +32,6 @@ internal class FakePcRepository : IPcRepository
         return Task.FromResult(pc);
     }
 
-    public Task<IEnumerable<Pc>> GetPcsByGameSystemIdAsync(int gameSystemId, int accountId, CancellationToken ct = default)
-    {
-        var result = _pcs.Where(p => p.game_system_id == gameSystemId && p.account_id == accountId);
-        return Task.FromResult(result.AsEnumerable());
-    }
-
     public Task<IEnumerable<Pc>> GetPcsByCampaignIdAsync(int campaignId, CancellationToken ct = default)
     {
         // In real implementation, this would query entity_relationship table
@@ -61,7 +55,6 @@ internal class FakePcRepository : IPcRepository
         {
             existing.name = pc.name;
             existing.description = pc.description;
-            existing.game_system_id = pc.game_system_id;
             existing.updated_at = DateTime.UtcNow;
         }
         return Task.CompletedTask;

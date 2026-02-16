@@ -15,8 +15,7 @@ public class CampaignMapperTests
         {
             Campaign_id = 0,
             Name = "Test Campaign",
-            Description = "Test Description",
-            Game_system_id = 456
+            Description = "Test Description"
         };
 
         // Act
@@ -26,7 +25,6 @@ public class CampaignMapperTests
         Assert.Equal(accountId, result.account_id);
         Assert.Equal(dto.Name, result.name);
         Assert.Equal(dto.Description, result.description);
-        Assert.Equal(dto.Game_system_id, result.game_system_id);
     }
 
     [Fact]
@@ -38,8 +36,7 @@ public class CampaignMapperTests
         {
             Campaign_id = 0,
             Name = "Test Campaign",
-            Description = null,
-            Game_system_id = 456
+            Description = null
         };
 
         // Act
@@ -49,7 +46,6 @@ public class CampaignMapperTests
         Assert.Equal(accountId, result.account_id);
         Assert.Equal(dto.Name, result.name);
         Assert.Null(result.description);
-        Assert.Equal(dto.Game_system_id, result.game_system_id);
     }
 
     [Fact]
@@ -62,8 +58,6 @@ public class CampaignMapperTests
             account_id = 123,
             name = "Test Campaign",
             description = "Test Description",
-            game_system_id = 456,
-            game_system_name = "D&D 5E",
             created_at = DateTime.UtcNow,
             updated_at = DateTime.UtcNow
         };
@@ -75,8 +69,6 @@ public class CampaignMapperTests
         Assert.Equal(entity.campaign_id, result.Campaign_id);
         Assert.Equal(entity.name, result.Name);
         Assert.Equal(entity.description, result.Description);
-        Assert.Equal(entity.game_system_id, result.Game_system_id);
-        Assert.Equal(entity.game_system_name, result.Game_system_name);
     }
 
     [Fact]
@@ -89,8 +81,6 @@ public class CampaignMapperTests
             account_id = 123,
             name = "Test Campaign",
             description = null,
-            game_system_id = null,
-            game_system_name = null,
             created_at = DateTime.UtcNow,
             updated_at = DateTime.UtcNow
         };
@@ -102,8 +92,6 @@ public class CampaignMapperTests
         Assert.Equal(entity.campaign_id, result.Campaign_id);
         Assert.Equal(entity.name, result.Name);
         Assert.Null(result.Description);
-        Assert.Null(result.Game_system_id);
-        Assert.Null(result.Game_system_name);
     }
 
     [Fact]
@@ -116,7 +104,6 @@ public class CampaignMapperTests
             account_id = 123,
             name = "Test Campaign",
             description = "Test Description",
-            game_system_id = 456,
             created_at = DateTime.UtcNow,
             updated_at = DateTime.UtcNow
         };
