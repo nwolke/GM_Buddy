@@ -16,8 +16,12 @@
     <AdditionalComposeFilePaths>docker-compose.override.yml</AdditionalComposeFilePaths>
   </PropertyGroup>
   <ItemGroup>
+    <None Include="clean-docker-cache.ps1" />
     <None Include="docker-compose.yml" />
     <None Include="docker-compose.override.yml">
+      <DependentUpon>docker-compose.yml</DependentUpon>
+    </None>
+    <None Include=".env">
       <DependentUpon>docker-compose.yml</DependentUpon>
     </None>
     <None Include=".dockerignore" />

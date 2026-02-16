@@ -1,12 +1,14 @@
 using GM_Buddy.Contracts.DbEntities;
+using GM_Buddy.Contracts.DTOs;
 
 namespace GM_Buddy.Contracts.Interfaces;
 
 public interface ICampaignLogic
 {
-    Task<IEnumerable<Campaign>> GetCampaignsByAccountAsync(int accountId, CancellationToken ct = default);
-    Task<Campaign?> GetCampaignAsync(int campaignId, CancellationToken ct = default);
-    Task<int> CreateCampaignAsync(int accountId, string name, string? description, int gameSystemId, CancellationToken ct = default);
-    Task<bool> UpdateCampaignAsync(int campaignId, int accountId, string name, string? description, int gameSystemId, CancellationToken ct = default);
-    Task<bool> DeleteCampaignAsync(int campaignId, CancellationToken ct = default);
+    Task<IEnumerable<CampaignDTO>> GetCampaignsByAccountAsync(int accountId, CancellationToken ct = default);
+    Task<CampaignDTO?> GetCampaignAsync(int campaignId, CancellationToken ct = default);
+    Task<CampaignDTO?> GetCampaignAsync(int campaignId, int accountId, CancellationToken ct = default);
+    Task<int> CreateCampaignAsync(int accountId, CampaignDTO campaignDto, CancellationToken ct = default);
+    Task<bool> UpdateCampaignAsync(int accountId, CampaignDTO campaignDto, CancellationToken ct = default);
+    Task<bool> DeleteCampaignAsync(int campaignId, int accountId, CancellationToken ct = default);
 }
