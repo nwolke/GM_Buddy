@@ -1,7 +1,7 @@
 import { Campaign } from "@/types/campaign";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/components/ui/card";
 import { Button } from "@/app/components/ui/button";
-import { Pencil, Trash2, BookOpen } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 
 interface CampaignCardProps {
   campaign: Campaign;
@@ -18,12 +18,6 @@ export function CampaignCard({ campaign, onEdit, onDelete }: CampaignCardProps) 
             <CardTitle className="text-2xl mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent truncate">
               {campaign.name}
             </CardTitle>
-            {campaign.gameSystemName && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <BookOpen className="size-4" />
-                <span>{campaign.gameSystemName}</span>
-              </div>
-            )}
           </div>
         </div>
       </CardHeader>

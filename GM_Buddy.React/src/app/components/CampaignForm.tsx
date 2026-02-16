@@ -1,12 +1,10 @@
 import { useState, useEffect } from "react";
 import { Campaign } from "@/types/campaign";
-import { gameSystemApi, ApiGameSystem } from "@/services/api";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
 import { Textarea } from "@/app/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select";
 
 interface CampaignFormProps {
   open: boolean;
@@ -19,72 +17,32 @@ export function CampaignForm({ open, onOpenChange, onSave, editingCampaign }: Ca
   const [formData, setFormData] = useState({
     name: "",
     description: "",
-    gameSystemId: 0,
   });
-
-  const [gameSystems, setGameSystems] = useState<ApiGameSystem[]>([]);
-  const [loadingGameSystems, setLoadingGameSystems] = useState(false);
-
-  useEffect(() => {
-    const loadGameSystems = async () => {
-      try {
-        setLoadingGameSystems(true);
-        const systems = await gameSystemApi.getGameSystems();
-        setGameSystems(systems);
-        
-        // Set default game system if none selected and systems loaded
-        if (systems.length > 0) {
-          setFormData(prev => {
-            if (prev.gameSystemId !== 0) {
-              return prev;
-            }
-
-            return {
-              ...prev,
-              gameSystemId: systems[0].game_system_id
-            };
-          });
-        }
-      } catch (error) {
-        console.error('Failed to load game systems:', error);
-      } finally {
-        setLoadingGameSystems(false);
-      }
-    };
-
-    if (open) {
-      loadGameSystems();
-    }
-  }, [open]);
 
   useEffect(() => {
     if (editingCampaign) {
       setFormData({
         name: editingCampaign.name,
         description: editingCampaign.description || "",
-        gameSystemId: editingCampaign.gameSystemId ?? 0,
       });
     } else {
       setFormData({
         name: "",
         description: "",
-        gameSystemId: gameSystems.length > 0 ? gameSystems[0].game_system_id : 0,
       });
     }
-  }, [editingCampaign, open, gameSystems]);
+  }, [editingCampaign, open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
       if (editingCampaign) {
-        // Only send updatable fields (name, description)
         await onSave({ 
           ...editingCampaign, 
           ...formData
         });
       } else {
-        // Send creation fields (name, description, gameSystemId)
         await onSave(formData);
       }
       
@@ -127,29 +85,6 @@ export function CampaignForm({ open, onOpenChange, onSave, editingCampaign }: Ca
                 rows={4}
               />
             </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="gameSystem">Game System *</Label>
-              <Select
-                value={formData.gameSystemId.toString()}
-                onValueChange={(value) => setFormData({ ...formData, gameSystemId: parseInt(value) })}
-                disabled={loadingGameSystems || !!editingCampaign}
-              >
-                <SelectTrigger id="gameSystem">
-                  <SelectValue placeholder={loadingGameSystems ? "Loading game systems..." : "Select a game system"} />
-                </SelectTrigger>
-                <SelectContent>
-                  {gameSystems.map((system) => (
-                    <SelectItem 
-                      key={system.game_system_id} 
-                      value={system.game_system_id.toString()}
-                    >
-                      {system.game_system_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
           </div>
 
           <DialogFooter>
@@ -159,7 +94,7 @@ export function CampaignForm({ open, onOpenChange, onSave, editingCampaign }: Ca
             <Button 
               type="submit"
               className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
-              disabled={!formData.name || formData.gameSystemId === 0}
+              disabled={!formData.name}
             >
               {editingCampaign ? "Update Campaign" : "Create Campaign"}
             </Button>
