@@ -27,7 +27,10 @@ Write-Host ""
 
 # 2. Remove specific Docker images
 Write-Host "???  Removing gm-buddy-server/gmbuddyserver images..." -ForegroundColor Yellow
-$images = docker images -q "gm-buddy-server","gmbuddyserver"
+$images = @(
+    docker images -q "gm-buddy-server"
+    docker images -q "gmbuddyserver"
+) | Where-Object { $_ } | Select-Object -Unique
 if ($images) {
     docker rmi $images -f
     Write-Host "? Removed gm-buddy-server/gmbuddyserver images" -ForegroundColor Green
