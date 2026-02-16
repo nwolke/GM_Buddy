@@ -1,4 +1,5 @@
-using GM_Buddy.Contracts.DbEntities;
+using GM_Buddy.Business.Mappers;
+using GM_Buddy.Contracts.DTOs;
 using GM_Buddy.Contracts.Interfaces;
 using Microsoft.Extensions.Logging;
 
@@ -17,12 +18,12 @@ public class CampaignLogic : ICampaignLogic
         _logger = logger;
     }
 
-    public async Task<IEnumerable<Campaign>> GetCampaignsByAccountAsync(int accountId, CancellationToken ct = default)
+    public async Task<IEnumerable<CampaignDTO>> GetCampaignsByAccountAsync(int accountId, CancellationToken ct = default)
     {
         try
         {
             var campaigns = await _campaignRepository.GetByAccountIdAsync(accountId, ct);
-            return campaigns ?? Enumerable.Empty<Campaign>();
+            return campaigns?.Select(c => c.DbEntityToDto()) ?? Enumerable.Empty<CampaignDTO>();
         }
         catch (Exception ex)
         {
@@ -31,12 +32,12 @@ public class CampaignLogic : ICampaignLogic
         }
     }
 
-    public async Task<Campaign?> GetCampaignAsync(int campaignId, CancellationToken ct = default)
+    public async Task<CampaignDTO?> GetCampaignAsync(int campaignId, CancellationToken ct = default)
     {
         try
         {
             var campaign = await _campaignRepository.GetByIdAsync(campaignId, ct);
-            return campaign;
+            return campaign?.DbEntityToDto();
         }
         catch (Exception ex)
         {
@@ -47,20 +48,12 @@ public class CampaignLogic : ICampaignLogic
 
     public async Task<int> CreateCampaignAsync(
         int accountId, 
-        string name, 
-        string? description, 
-        int gameSystemId, 
+        CampaignDTO campaignDto,
         CancellationToken ct = default)
     {
         try
         {
-            var campaign = new Campaign
-            {
-                account_id = accountId,
-                game_system_id = gameSystemId,
-                name = name,
-                description = description
-            };
+            var campaign = campaignDto.CampaignToDbEntity(accountId);
 
             int campaignId = await _campaignRepository.CreateAsync(campaign, ct);
             _logger.LogInformation("Created campaign {CampaignId} for account {AccountId}", campaignId, accountId);
@@ -73,40 +66,30 @@ public class CampaignLogic : ICampaignLogic
         }
     }
 
-    public async Task<bool> UpdateCampaignAsync(
-        int campaignId, 
+    public async Task<bool> UpdateCampaignAsync( 
         int accountId, 
-        string name, 
-        string? description, 
-        int gameSystemId, 
+        CampaignDTO campaignDto,
         CancellationToken ct = default)
     {
         try
         {
-            var campaign = new Campaign
-            {
-                campaign_id = campaignId,
-                account_id = accountId,
-                game_system_id = gameSystemId,
-                name = name,
-                description = description
-            };
+            var campaign = campaignDto.CampaignToDbEntity(accountId);
 
             bool success = await _campaignRepository.UpdateAsync(campaign, ct);
             if (success)
             {
-                _logger.LogInformation("Updated campaign {CampaignId}", campaignId);
+                _logger.LogInformation("Updated campaign {CampaignId}", campaignDto.Campaign_id);
             }
             else
             {
-                _logger.LogWarning("Campaign {CampaignId} not found or not owned by account {AccountId}", campaignId, accountId);
+                _logger.LogWarning("Campaign {CampaignId} not found or not owned by account {AccountId}", campaignDto.Campaign_id, accountId);
             }
             
             return success;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error updating campaign {CampaignId}", campaignId);
+            _logger.LogError(ex, "Error updating campaign {CampaignId}", campaignDto.Campaign_id);
             throw;
         }
     }

@@ -130,9 +130,12 @@ internal class FakeCampaignRepository : ICampaignRepository
         var existing = _campaigns.FirstOrDefault(c => c.campaign_id == campaign.campaign_id);
         if (existing == null) return Task.FromResult(false);
         
+        // Verify account ownership
+        if (existing.account_id != campaign.account_id) return Task.FromResult(false);
+        
+        // Only update name and description - game_system_id cannot be changed
         existing.name = campaign.name;
         existing.description = campaign.description;
-        existing.game_system_id = campaign.game_system_id;
         return Task.FromResult(true);
     }
 }

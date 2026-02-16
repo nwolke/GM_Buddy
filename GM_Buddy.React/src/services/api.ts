@@ -397,23 +397,27 @@ export const gameSystemApi = {
 };
 
 
-// Campaign API response type
+// Campaign API response type (matches CampaignDTO)
 export interface ApiCampaign {
   campaign_id: number;
-  account_id: number;
   game_system_id: number;
   name: string;
   description?: string;
-  created_at: string;
-  updated_at: string;
   game_system_name?: string;
 }
 
-// Create/Update Campaign request type
+// Create Campaign request type
 export interface CreateCampaignRequest {
   name: string;
   description?: string;
   game_system_id: number;
+}
+
+// Update Campaign request type (game_system_id cannot be changed)
+export interface UpdateCampaignRequest {
+  campaign_id: number;
+  name: string;
+  description?: string;
 }
 
 // Transform API Campaign to frontend Campaign
@@ -424,9 +428,6 @@ const transformApiCampaignToCampaign = (apiCampaign: ApiCampaign): Campaign => {
     description: apiCampaign.description,
     gameSystemId: apiCampaign.game_system_id,
     gameSystemName: apiCampaign.game_system_name,
-    accountId: apiCampaign.account_id,
-    createdAt: apiCampaign.created_at,
-    updatedAt: apiCampaign.updated_at,
   };
 };
 
@@ -451,12 +452,9 @@ export const campaignApi = {
     return await campaignApi.getCampaign(response.data);
   },
 
-  // Update an existing campaign
-  async updateCampaign(id: number, campaign: CreateCampaignRequest): Promise<void> {
-    await apiClient.put(`/Campaigns/${id}`, {
-      campaign_id: id,
-      ...campaign,
-    });
+  // Update an existing campaign (game_system_id cannot be changed)
+  async updateCampaign(id: number, campaign: UpdateCampaignRequest): Promise<void> {
+    await apiClient.put(`/Campaigns/${id}`, campaign);
   },
 
   // Delete a campaign

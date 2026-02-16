@@ -43,8 +43,7 @@ public class CampaignRepository : ICampaignRepository
                    c.name, 
                    c.description,
                    c.created_at,
-                   c.updated_at,
-                   gs.game_system_name
+                   c.updated_at
             FROM campaign c
             LEFT JOIN game_system gs ON c.game_system_id = gs.game_system_id
             WHERE c.account_id = @AccountId
@@ -77,9 +76,7 @@ public class CampaignRepository : ICampaignRepository
         using IDbConnection dbConnection = _dbConnector.CreateConnection();
         const string sql = @"
             UPDATE campaign 
-            SET account_id = @account_id,
-                game_system_id = @game_system_id,
-                name = @name,
+            SET name = @name,
                 description = @description
             WHERE campaign_id = @campaign_id AND account_id = @account_id";
         var cmd = new CommandDefinition(sql, campaign, cancellationToken: ct);

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Campaign } from '@/types/campaign';
-import { campaignApi, CreateCampaignRequest } from '@/services/api';
+import { campaignApi, CreateCampaignRequest, UpdateCampaignRequest } from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface UseCampaignDataReturn {
@@ -83,13 +83,13 @@ export function useCampaignData(): UseCampaignDataReturn {
   const saveCampaign = async (campaignData: Omit<Campaign, 'id'> | Campaign) => {
     try {
       if ('id' in campaignData && campaignData.id) {
-        // Update existing campaign
+        // Update existing campaign (game_system_id cannot be changed)
         console.log('[useCampaignData] Updating campaign:', campaignData.id);
         
-        const updateRequest: CreateCampaignRequest = {
+        const updateRequest: UpdateCampaignRequest = {
+          campaign_id: campaignData.id,
           name: campaignData.name,
           description: campaignData.description,
-          game_system_id: campaignData.gameSystemId,
         };
         await campaignApi.updateCampaign(campaignData.id, updateRequest);
         
@@ -99,6 +99,11 @@ export function useCampaignData(): UseCampaignDataReturn {
       } else {
         // Create new campaign
         console.log('[useCampaignData] Creating new campaign:', campaignData);
+        
+        if (!campaignData.gameSystemId) {
+          throw new Error('Game system is required for new campaigns');
+        }
+        
         const createRequest: CreateCampaignRequest = {
           name: campaignData.name,
           description: campaignData.description,
