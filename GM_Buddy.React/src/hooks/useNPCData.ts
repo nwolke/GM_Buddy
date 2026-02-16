@@ -42,7 +42,7 @@ useEffect(() => {
     try {
       // Only pass filter if we have a valid campaign ID
       const filters = selectedCampaignId !== undefined && selectedCampaignId !== null
-        ? { campaign_id: selectedCampaignId }
+        ? { campaignId: selectedCampaignId }
         : undefined;
       
       console.log(`[useNPCData] Calling npcApi.getNpcs() with filters:`, filters);
