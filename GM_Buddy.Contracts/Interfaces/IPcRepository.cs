@@ -18,11 +18,6 @@ public interface IPcRepository
     Task<Pc?> GetPcByIdAsync(int pcId, CancellationToken ct = default);
 
     /// <summary>
-    /// Get all PCs for a specific game system
-    /// </summary>
-    Task<IEnumerable<Pc>> GetPcsByGameSystemIdAsync(int gameSystemId, int accountId, CancellationToken ct = default);
-
-    /// <summary>
     /// Get all PCs in a specific campaign
     /// </summary>
     Task<IEnumerable<Pc>> GetPcsByCampaignIdAsync(int campaignId, CancellationToken ct = default);
