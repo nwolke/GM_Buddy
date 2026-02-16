@@ -253,7 +253,7 @@ export interface CreateNpcRequest {
 
 // NPC filter params
 export interface NpcFilterParams {
-  campaign_id?: number;
+  campaignId?: number;
 }
 
 // NPC API calls
