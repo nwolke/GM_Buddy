@@ -16,11 +16,6 @@ public class Pc
     public int account_id { get; set; }
 
     /// <summary>
-    /// Foreign key to game_system
-    /// </summary>
-    public int game_system_id { get; set; }
-
-    /// <summary>
     /// PC name
     /// </summary>
     public required string name { get; set; }
@@ -39,9 +34,4 @@ public class Pc
     /// Last update timestamp
     /// </summary>
     public DateTime updated_at { get; set; }
-
-    /// <summary>
-    /// Game system name (from join)
-    /// </summary>
-    public string? game_system_name { get; set; }
 }

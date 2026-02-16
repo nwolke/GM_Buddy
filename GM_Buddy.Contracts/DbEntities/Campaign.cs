@@ -16,11 +16,6 @@ public class Campaign
     public int account_id { get; set; }
 
     /// <summary>
-    /// Foreign key to game_system
-    /// </summary>
-    public int? game_system_id { get; set; }
-
-    /// <summary>
     /// Campaign name
     /// </summary>
     public required string name { get; set; }
@@ -39,9 +34,4 @@ public class Campaign
     /// Last update timestamp
     /// </summary>
     public DateTime updated_at { get; set; }
-
-    /// <summary>
-    /// Game system name (from joined game_system table)
-    /// </summary>
-    public string? game_system_name { get; set; }
 }

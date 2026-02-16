@@ -23,16 +23,12 @@ public class NpcRepository : INpcRepository
                    n.campaign_id,
                    n.name,
                    n.description,
-                   n.stats,
-                   c.game_system_id,
-                   gs.game_system_name
+                   n.stats
             FROM npc AS n
-            JOIN campaign AS c ON n.campaign_id = c.campaign_id
-            JOIN game_system AS gs ON c.game_system_id = gs.game_system_id
             WHERE n.account_id = @AccountId";
         if (campaignId != null)
         {
-            sql += " AND c.campaign_id = @CampaignId";
+            sql += " AND n.campaign_id = @CampaignId";
         }
         sql += " ORDER BY n.npc_id";
         var cmd = new CommandDefinition(sql, new { AccountId = account_id, CampaignId = campaignId }, cancellationToken: ct);
@@ -48,12 +44,8 @@ public class NpcRepository : INpcRepository
                    n.campaign_id,
                    n.name,
                    n.description,
-                   n.stats,
-                   c.game_system_id,
-                   gs.game_system_name
+                   n.stats
             FROM npc AS n
-            JOIN campaign AS c ON n.campaign_id = c.campaign_id
-            JOIN game_system AS gs ON c.game_system_id = gs.game_system_id
             WHERE n.npc_id = @NpcId";
         var cmd = new CommandDefinition(sql, new { NpcId = npc_id }, cancellationToken: ct);
         return await dbConnection.QueryFirstOrDefaultAsync<Npc>(cmd);
