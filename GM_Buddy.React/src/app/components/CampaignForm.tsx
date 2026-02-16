@@ -62,7 +62,7 @@ export function CampaignForm({ open, onOpenChange, onSave, editingCampaign }: Ca
       setFormData({
         name: editingCampaign.name,
         description: editingCampaign.description || "",
-        gameSystemId: editingCampaign.gameSystemId,
+        gameSystemId: editingCampaign.gameSystemId ?? 0,
       });
     } else {
       setFormData({
@@ -76,20 +76,16 @@ export function CampaignForm({ open, onOpenChange, onSave, editingCampaign }: Ca
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const selectedGameSystem = gameSystems.find(gs => gs.game_system_id === formData.gameSystemId);
-    
     try {
       if (editingCampaign) {
+        // Only send updatable fields (name, description)
         await onSave({ 
           ...editingCampaign, 
-          ...formData,
-          gameSystemName: selectedGameSystem?.game_system_name
+          ...formData
         });
       } else {
-        await onSave({
-          ...formData,
-          gameSystemName: selectedGameSystem?.game_system_name
-        });
+        // Send creation fields (name, description, gameSystemId)
+        await onSave(formData);
       }
       
       onOpenChange(false);
@@ -137,7 +133,7 @@ export function CampaignForm({ open, onOpenChange, onSave, editingCampaign }: Ca
               <Select
                 value={formData.gameSystemId.toString()}
                 onValueChange={(value) => setFormData({ ...formData, gameSystemId: parseInt(value) })}
-                disabled={loadingGameSystems}
+                disabled={loadingGameSystems || !!editingCampaign}
               >
                 <SelectTrigger id="gameSystem">
                   <SelectValue placeholder={loadingGameSystems ? "Loading game systems..." : "Select a game system"} />
