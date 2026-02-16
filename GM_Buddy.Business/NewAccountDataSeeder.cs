@@ -33,19 +33,11 @@ public class NewAccountDataSeeder : INewAccountDataSeeder
     {
         _logger.LogInformation("Seeding default data for new account {AccountId}", accountId);
 
-        var defaultGameSystem = await _gamesystemRepository.GetByNameAsync("Generic");
-        if (defaultGameSystem == null)
-        {
-            _logger.LogError("Game System 'Generic' not found. Aborting seeding for account {AccountId}.", accountId);
-            throw new InvalidOperationException("Generic Game System not found.");
-        }
-
         var defaultCampaign = new Campaign
         {
             account_id = accountId,
             name = "The Heroes Adventure",
-            description = "A beginner-friendly adventure in the world of GM Buddy",
-            game_system_id = defaultGameSystem.game_system_id
+            description = "A beginner-friendly adventure in the world of GM Buddy"
         };
         int campaignId = await _campaignRepository.CreateAsync(defaultCampaign);
 

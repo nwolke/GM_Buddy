@@ -28,8 +28,6 @@ public class CampaignLogicTests
             account_id = accountId,
             name = "Campaign 1",
             description = "Description 1",
-            game_system_id = 1,
-            game_system_name = "D&D 5E",
             created_at = DateTime.UtcNow,
             updated_at = DateTime.UtcNow
         };
@@ -39,8 +37,6 @@ public class CampaignLogicTests
             account_id = accountId,
             name = "Campaign 2",
             description = "Description 2",
-            game_system_id = 2,
-            game_system_name = "Pathfinder",
             created_at = DateTime.UtcNow,
             updated_at = DateTime.UtcNow
         };
@@ -69,8 +65,6 @@ public class CampaignLogicTests
             account_id = 123,
             name = "Test Campaign",
             description = "Test Description",
-            game_system_id = 1,
-            game_system_name = "D&D 5E",
             created_at = DateTime.UtcNow,
             updated_at = DateTime.UtcNow
         };
@@ -84,7 +78,6 @@ public class CampaignLogicTests
         Assert.NotNull(result);
         Assert.Equal("Test Campaign", result.Name);
         Assert.Equal("Test Description", result.Description);
-        Assert.Equal(1, result.Game_system_id);
     }
 
     [Fact]
@@ -110,7 +103,6 @@ public class CampaignLogicTests
             Campaign_id = 0,
             Name = "New Campaign",
             Description = "New Description",
-            Game_system_id = 1
         };
 
         // Act
@@ -122,7 +114,6 @@ public class CampaignLogicTests
         Assert.NotNull(created);
         Assert.Equal(dto.Name, created.name);
         Assert.Equal(dto.Description, created.description);
-        Assert.Equal(dto.Game_system_id, created.game_system_id);
         Assert.Equal(accountId, created.account_id);
     }
 
@@ -137,7 +128,6 @@ public class CampaignLogicTests
             account_id = accountId,
             name = "Original Campaign",
             description = "Original Description",
-            game_system_id = 1,
             created_at = DateTime.UtcNow,
             updated_at = DateTime.UtcNow
         };
@@ -148,7 +138,6 @@ public class CampaignLogicTests
             Campaign_id = createdId,
             Name = "Updated Campaign",
             Description = "Updated Description",
-            Game_system_id = null // Game system ID should not be updated
         };
 
         // Act
