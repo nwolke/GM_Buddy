@@ -426,7 +426,7 @@ const transformApiCampaignToCampaign = (apiCampaign: ApiCampaign): Campaign => {
     id: apiCampaign.campaign_id,
     name: apiCampaign.name,
     description: apiCampaign.description,
-    gameSystemId: apiCampaign.game_system_id,
+    gameSystemId: apiCampaign.game_system_id ?? undefined,
     gameSystemName: apiCampaign.game_system_name,
   };
 };
