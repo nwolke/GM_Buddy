@@ -70,7 +70,7 @@ public class CampaignsController : ControllerBase
             return BadRequest("Campaign name is required");
         }
 
-        if (!campaign.Game_system_id.HasValue || campaign.Game_system_id.Value <= 0)
+        if (campaign.Game_system_id is not > 0)
         {
             return BadRequest("Valid game system ID is required");
         }
