@@ -18,21 +18,18 @@ public class PcsController : ControllerBase
     }
 
     /// <summary>
-    /// Get all PCs, optionally filtered by account or game system
+    /// Get all PCs, optionally filtered by account
     /// </summary>
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Pc>>> GetPcs(
-        [FromQuery] int? accountId = null,
-        [FromQuery] int? gameSystemId = null)
+        [FromQuery] int? accountId = null)
     {
         if (!accountId.HasValue)
         {
             return BadRequest("Account ID is required");
         }
 
-        IEnumerable<Pc> pcs = gameSystemId.HasValue
-            ? await _repository.GetPcsByGameSystemIdAsync(gameSystemId.Value, accountId.Value)
-            : await _repository.GetPcsByAccountIdAsync(accountId.Value);
+        IEnumerable<Pc> pcs = await _repository.GetPcsByAccountIdAsync(accountId.Value);
 
         return Ok(pcs);
     }

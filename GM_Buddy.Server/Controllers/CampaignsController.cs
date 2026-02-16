@@ -70,11 +70,6 @@ public class CampaignsController : ControllerBase
             return BadRequest("Campaign name is required");
         }
 
-        if (campaign.Game_system_id is not > 0)
-        {
-            return BadRequest("Valid game system ID is required");
-        }
-
         _logger.LogInformation("Creating new campaign: {Name} for account {AccountId}", campaign.Name, accountId);
 
         int campaignId = await _campaignLogic.CreateCampaignAsync(
@@ -100,11 +95,6 @@ public class CampaignsController : ControllerBase
         if (string.IsNullOrWhiteSpace(campaign.Name))
         {
             return BadRequest("Campaign name is required");
-        }
-
-        if (campaign.Game_system_id.HasValue)
-        {
-            return BadRequest("Cannot update existing campaign's game system ID");
         }
 
         _logger.LogInformation("Updating campaign {CampaignId}", id);
