@@ -143,7 +143,7 @@ public class PcRepositoryTests
         { 
             pc_id = 1, 
             account_id = 1, 
-            game_system_id = 1, 
+             
             name = "Updated Name",
             description = "New description"
         };
@@ -167,7 +167,7 @@ public class PcRepositoryTests
         { 
             pc_id = 1, 
             account_id = 1, 
-            game_system_id = 1, 
+             
             name = "PC",
             updated_at = originalTime
         };

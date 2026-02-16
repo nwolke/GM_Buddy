@@ -5,16 +5,12 @@ export const mockCampaigns: Campaign[] = [
     id: 1,
     name: 'Test Campaign 1',
     description: 'A test campaign',
-    gameSystemId: 1,
-    gameSystemName: 'D&D 5e',
     accountId: 1,
   },
   {
     id: 2,
     name: 'Test Campaign 2',
     description: 'Another test campaign',
-    gameSystemId: 2,
-    gameSystemName: 'Pathfinder',
     accountId: 1,
   },
 ]

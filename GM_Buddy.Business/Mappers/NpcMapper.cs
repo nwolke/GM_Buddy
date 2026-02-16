@@ -29,7 +29,7 @@ public class NpcMapper
             Campaign_Id = npc.campaign_id,
             Name = npc.name,
             Description = npc.description,
-            System = npc.game_system_name,
+            System = null, // Game system removed as part of GM-108
             Stats = stats
         };
     }
