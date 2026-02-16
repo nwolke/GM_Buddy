@@ -230,12 +230,17 @@ internal class FakeCampaignRepositoryForAccountTests : ICampaignRepository
         return Task.FromResult(_campaigns.FirstOrDefault(c => c.campaign_id == campaignId));
     }
 
+    public Task<Campaign?> GetByIdAndAccountAsync(int campaignId, int accountId, CancellationToken ct = default)
+    {
+        return Task.FromResult(_campaigns.FirstOrDefault(c => c.campaign_id == campaignId && c.account_id == accountId));
+    }
+
     public Task<int> CreateAsync(Campaign campaign, CancellationToken ct = default)
     {
         throw new NotImplementedException();
     }
 
-    public Task<bool> DeleteAsync(int campaignId, CancellationToken ct = default)
+    public Task<bool> DeleteAsync(int campaignId, int accountId, CancellationToken ct = default)
     {
         throw new NotImplementedException();
     }

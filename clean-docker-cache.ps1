@@ -26,13 +26,16 @@ Write-Host "? Docker containers stopped" -ForegroundColor Green
 Write-Host ""
 
 # 2. Remove specific Docker images
-Write-Host "???  Removing gm-buddy-server images..." -ForegroundColor Yellow
-$images = docker images -q "gm-buddy-server"
+Write-Host "???  Removing gm-buddy-server/gmbuddyserver images..." -ForegroundColor Yellow
+$images = @(
+    docker images -q "gm-buddy-server"
+    docker images -q "gmbuddyserver"
+) | Where-Object { $_ } | Select-Object -Unique
 if ($images) {
     docker rmi $images -f
-    Write-Host "? Removed gm-buddy-server images" -ForegroundColor Green
+    Write-Host "? Removed gm-buddy-server/gmbuddyserver images" -ForegroundColor Green
 } else {
-    Write-Host "??  No gm-buddy-server images found" -ForegroundColor Gray
+    Write-Host "??  No gm-buddy-server or gmbuddyserver images found" -ForegroundColor Gray
 }
 
 $images = docker images -q "*gmbuddyreact*"
