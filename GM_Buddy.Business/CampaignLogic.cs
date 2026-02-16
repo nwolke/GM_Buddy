@@ -46,6 +46,20 @@ public class CampaignLogic : ICampaignLogic
         }
     }
 
+    public async Task<CampaignDTO?> GetCampaignAsync(int campaignId, int accountId, CancellationToken ct = default)
+    {
+        try
+        {
+            var campaign = await _campaignRepository.GetByIdAndAccountAsync(campaignId, accountId, ct);
+            return campaign?.DbEntityToDto();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving campaign {CampaignId} for account {AccountId}", campaignId, accountId);
+            throw;
+        }
+    }
+
     public async Task<int> CreateCampaignAsync(
         int accountId, 
         CampaignDTO campaignDto,
@@ -94,18 +108,18 @@ public class CampaignLogic : ICampaignLogic
         }
     }
 
-    public async Task<bool> DeleteCampaignAsync(int campaignId, CancellationToken ct = default)
+    public async Task<bool> DeleteCampaignAsync(int campaignId, int accountId, CancellationToken ct = default)
     {
         try
         {
-            bool success = await _campaignRepository.DeleteAsync(campaignId, ct);
+            bool success = await _campaignRepository.DeleteAsync(campaignId, accountId, ct);
             if (success)
             {
                 _logger.LogInformation("Deleted campaign {CampaignId}", campaignId);
             }
             else
             {
-                _logger.LogWarning("Campaign {CampaignId} not found", campaignId);
+                _logger.LogWarning("Campaign {CampaignId} not found or not owned by account {AccountId}", campaignId, accountId);
             }
             
             return success;

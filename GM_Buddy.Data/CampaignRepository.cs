@@ -8,6 +8,19 @@ namespace GM_Buddy.Data;
 public class CampaignRepository : ICampaignRepository
 {
     private readonly IDbConnector _dbConnector;
+    
+    private const string CampaignSelectClause = @"
+            SELECT c.campaign_id,
+                   c.account_id, 
+                   c.game_system_id, 
+                   c.name, 
+                   c.description,
+                   c.created_at,
+                   c.updated_at,
+                   gs.game_system_name
+            FROM campaign c
+            LEFT JOIN game_system gs ON c.game_system_id = gs.game_system_id";
+    
     public CampaignRepository(IDbConnector dbConnector)
     {
         _dbConnector = dbConnector;
@@ -24,11 +37,11 @@ public class CampaignRepository : ICampaignRepository
         return await dbConnection.ExecuteScalarAsync<int>(cmd);
     }
 
-    public async Task<bool> DeleteAsync(int campaignId, CancellationToken ct = default)
+    public async Task<bool> DeleteAsync(int campaignId, int accountId, CancellationToken ct = default)
     {
         using IDbConnection dbConnection = _dbConnector.CreateConnection();
-        const string sql = @"DELETE FROM campaign WHERE campaign_id = @CampaignId";
-        var cmd = new CommandDefinition(sql, new { CampaignId = campaignId }, cancellationToken: ct);
+        const string sql = @"DELETE FROM campaign WHERE campaign_id = @CampaignId AND account_id = @AccountId";
+        var cmd = new CommandDefinition(sql, new { CampaignId = campaignId, AccountId = accountId }, cancellationToken: ct);
         int rowsAffected = await dbConnection.ExecuteAsync(cmd);
         return rowsAffected > 0;
     }
@@ -55,19 +68,18 @@ public class CampaignRepository : ICampaignRepository
     public async Task<Campaign?> GetByIdAsync(int campaignId, CancellationToken ct = default)
     {
         using IDbConnection dbConnection = _dbConnector.CreateConnection();
-        const string sql = @"
-            SELECT c.campaign_id,
-                   c.account_id, 
-                   c.game_system_id, 
-                   c.name, 
-                   c.description,
-                   c.created_at,
-                   c.updated_at,
-                   gs.game_system_name
-            FROM campaign c
-            LEFT JOIN game_system gs ON c.game_system_id = gs.game_system_id
+        const string sql = CampaignSelectClause + @"
             WHERE c.campaign_id = @CampaignId";
         var cmd = new CommandDefinition(sql, new { CampaignId = campaignId }, cancellationToken: ct);
+        return await dbConnection.QueryFirstOrDefaultAsync<Campaign>(cmd);
+    }
+
+    public async Task<Campaign?> GetByIdAndAccountAsync(int campaignId, int accountId, CancellationToken ct = default)
+    {
+        using IDbConnection dbConnection = _dbConnector.CreateConnection();
+        const string sql = CampaignSelectClause + @"
+            WHERE c.campaign_id = @CampaignId AND c.account_id = @AccountId";
+        var cmd = new CommandDefinition(sql, new { CampaignId = campaignId, AccountId = accountId }, cancellationToken: ct);
         return await dbConnection.QueryFirstOrDefaultAsync<Campaign>(cmd);
     }
 
