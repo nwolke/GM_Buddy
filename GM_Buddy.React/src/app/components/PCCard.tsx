@@ -54,13 +54,6 @@ export function PCCard({ pc, onEdit, onDelete }: PCCardProps) {
             <p className="text-sm text-foreground/90 mt-1 leading-relaxed">{pc.description}</p>
           </div>
         )}
-        {pc.createdAt && (
-          <div className="border-t border-border/50 pt-3">
-            <span className="text-xs text-muted-foreground">
-              Created {new Date(pc.createdAt).toLocaleDateString()}
-            </span>
-          </div>
-        )}
       </CardContent>
     </Card>
   );

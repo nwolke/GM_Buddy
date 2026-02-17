@@ -9,8 +9,6 @@ public class PcMapper
     {
         Pc_Id = pc.pc_id,
         Name = pc.name,
-        Description = pc.description,
-        Created_At = pc.created_at,
-        Updated_At = pc.updated_at
+        Description = pc.description
     };
 }
