@@ -1,4 +1,5 @@
 import { Campaign, NPC, Relationship } from '@/types'
+import { PC } from '@/types/pc'
 
 export const mockCampaigns: Campaign[] = [
   {
@@ -62,6 +63,29 @@ export const mockRelationships: Relationship[] = [
     npcId2: 3,
     type: 'rival',
     description: 'Competing for glory',
+  },
+]
+
+export const mockPCs: PC[] = [
+  {
+    id: 1,
+    name: 'Thorin Ironforge',
+    description: 'A stout dwarven cleric',
+    createdAt: '2024-01-01T00:00:00Z',
+    updatedAt: '2024-01-01T00:00:00Z',
+  },
+  {
+    id: 2,
+    name: 'Lyra Shadowstep',
+    description: 'A nimble half-elf rogue',
+    createdAt: '2024-01-02T00:00:00Z',
+    updatedAt: '2024-01-02T00:00:00Z',
+  },
+  {
+    id: 3,
+    name: 'Silent Scout',
+    description: undefined,
+    createdAt: '2024-01-03T00:00:00Z',
   },
 ]
 
