@@ -3,6 +3,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { Toaster } from "@/app/components/ui/sonner";
 import { LandingPage } from "@/app/pages/LandingPage";
 import { NPCManagerPage } from "@/app/pages/NPCManagerPage";
+import { PCManagerPage } from "@/app/pages/PCManagerPage";
 import { CampaignManagerPage } from "@/app/pages/CampaignManagerPage";
 import { AccountPage } from "@/app/pages/AccountPage";
 import { AboutPage } from "@/app/pages/AboutPage";
@@ -22,6 +23,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <NPCManagerPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/pc-manager" 
+            element={
+              <ProtectedRoute>
+                <PCManagerPage />
               </ProtectedRoute>
             } 
           />

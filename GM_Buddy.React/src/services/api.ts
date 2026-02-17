@@ -1,6 +1,7 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { toast } from 'sonner';
 import { NPC } from '@/types/npc';
+import { PC } from '@/types/pc';
 import { Campaign } from '@/types/campaign';
 import { getIdToken, refreshTokens, clearTokens } from './cognito';
 import { extractApiError } from './apiError';
@@ -428,6 +429,67 @@ export const campaignApi = {
   // Delete a campaign
   async deleteCampaign(id: number): Promise<void> {
     await apiClient.delete(`/Campaigns/${id}`);
+  },
+};
+
+// PC API Types (matching backend response - ASP.NET uses PascalCase for DTOs)
+interface ApiPc {
+  pcId: number;
+  name: string;
+  description?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Transform API PC to frontend PC
+const transformApiPcToPc = (apiPc: ApiPc): PC => {
+  return {
+    id: apiPc.pcId,
+    name: apiPc.name,
+    description: apiPc.description || '',
+  };
+};
+
+// Create PC request type
+export interface CreatePcRequest {
+  name: string;
+  description?: string;
+}
+
+// Update PC request type
+export interface UpdatePcRequest {
+  name: string;
+  description?: string;
+}
+
+// PC API calls
+export const pcApi = {
+  // Get all PCs for the authenticated user
+  async getPcs(): Promise<PC[]> {
+    const response = await apiClient.get<ApiPc[]>('/Pcs');
+    return response.data.map(transformApiPcToPc);
+  },
+
+  // Get single PC by ID
+  async getPc(id: number): Promise<PC> {
+    const response = await apiClient.get<ApiPc>(`/Pcs/${id}`);
+    return transformApiPcToPc(response.data);
+  },
+
+  // Create a new PC for the authenticated user
+  async createPc(pc: CreatePcRequest): Promise<PC> {
+    const response = await apiClient.post<ApiPc>('/Pcs', pc);
+    return transformApiPcToPc(response.data);
+  },
+
+  // Update an existing PC owned by the authenticated user
+  async updatePc(id: number, pc: UpdatePcRequest): Promise<void> {
+    await apiClient.put(`/Pcs/${id}`, pc);
+  },
+
+  // Delete a PC
+  async deletePc(id: number): Promise<void> {
+    await apiClient.delete(`/Pcs/${id}`);
   },
 };
 
