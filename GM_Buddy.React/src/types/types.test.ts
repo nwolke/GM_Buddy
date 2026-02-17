@@ -9,25 +9,20 @@ describe('Type Definitions', () => {
         id: 1,
         name: 'Test Campaign',
         description: 'A test campaign',
-        gameSystemId: 1,
-        gameSystemName: 'D&D 5e',
         accountId: 1,
       }
 
       expect(campaign.id).toBe(1)
       expect(campaign.name).toBe('Test Campaign')
-      expect(campaign.gameSystemId).toBe(1)
     })
 
     it('should allow campaigns without optional fields', () => {
       const campaign: Campaign = {
         id: 1,
         name: 'Minimal Campaign',
-        gameSystemId: 1,
       }
 
       expect(campaign.description).toBeUndefined()
-      expect(campaign.gameSystemName).toBeUndefined()
     })
   })
 

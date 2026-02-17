@@ -41,7 +41,7 @@ internal class FakeNpcRepository : INpcRepository
     {
         var existing = _npcs.FirstOrDefault(n => n.npc_id == npc.npc_id);
         if (existing == null) return Task.FromResult(false);
-        
+
         existing.name = npc.name;
         existing.description = npc.description;
         existing.stats = npc.stats;
@@ -52,39 +52,9 @@ internal class FakeNpcRepository : INpcRepository
     {
         var npc = _npcs.FirstOrDefault(n => n.npc_id == npcId);
         if (npc == null) return Task.FromResult(false);
-        
+
         _npcs.Remove(npc);
         return Task.FromResult(true);
-    }
-}
-
-internal class FakeGameSystemRepository : IGameSystemRepository
-{
-    private readonly List<Game_System> _gameSystems;
-
-    public FakeGameSystemRepository(IEnumerable<Game_System>? gameSystems = null)
-    {
-        _gameSystems = gameSystems?.ToList() ?? new List<Game_System>
-        {
-            new Game_System { game_system_id = 1, game_system_name = "Dungeons & Dragons (5e)" },
-            new Game_System { game_system_id = 2, game_system_name = "Pathfinder 2e" },
-            new Game_System { game_system_id = 3, game_system_name = "Generic" }
-        };
-    }
-
-    public Task<IEnumerable<Game_System>> GetAllAsync(CancellationToken ct = default)
-    {
-        return Task.FromResult(_gameSystems.AsEnumerable());
-    }
-
-    public Task<Game_System?> GetByIdAsync(int id, CancellationToken ct = default)
-    {
-        return Task.FromResult(_gameSystems.FirstOrDefault(gs => gs.game_system_id == id));
-    }
-
-    public Task<Game_System?> GetByNameAsync(string name, CancellationToken ct = default)
-    {
-        return Task.FromResult(_gameSystems.FirstOrDefault(gs => gs.game_system_name == name));
     }
 }
 
@@ -92,9 +62,9 @@ internal class FakeCampaignRepository : ICampaignRepository
 {
     private readonly List<Campaign> _campaigns = new()
     {
-        new Campaign { campaign_id = 1, account_id = 10, game_system_id = 1, name = "Test Campaign 1" },
-        new Campaign { campaign_id = 2, account_id = 10, game_system_id = 2, name = "Test Campaign 2" },
-        new Campaign { campaign_id = 3, account_id = 5, game_system_id = 1, name = "Test Campaign 3" }
+        new Campaign { campaign_id = 1, account_id = 10, name = "Test Campaign 1" },
+        new Campaign { campaign_id = 2, account_id = 10, name = "Test Campaign 2" },
+        new Campaign { campaign_id = 3, account_id = 5, name = "Test Campaign 3" }
     };
 
     private int _nextId = 100;
@@ -134,11 +104,11 @@ internal class FakeCampaignRepository : ICampaignRepository
     {
         var existing = _campaigns.FirstOrDefault(c => c.campaign_id == campaign.campaign_id);
         if (existing == null) return Task.FromResult(false);
-        
+
         // Verify account ownership
         if (existing.account_id != campaign.account_id) return Task.FromResult(false);
-        
-        // Only update name and description - game_system_id cannot be changed
+
+        // Only update name and description; other fields remain unchanged
         existing.name = campaign.name;
         existing.description = campaign.description;
         return Task.FromResult(true);
@@ -153,8 +123,8 @@ public class NpcLogicTests
         // Arrange
         var npcs = new[]
         {
-            new Npc { name="test", npc_id = 1, account_id = 10, campaign_id = 1, game_system_id = 1, stats = string.Empty},
-            new Npc { name="test2",npc_id = 2, account_id = 10, campaign_id = 1, game_system_id = 1, stats = string.Empty }
+            new Npc { name="test", npc_id = 1, account_id = 10, campaign_id = 1, stats = string.Empty},
+            new Npc { name="test2",npc_id = 2, account_id = 10, campaign_id = 1, stats = string.Empty }
         };
         var repo = new FakeNpcRepository(npcs);
         var campaignRepo = new FakeCampaignRepository();
@@ -175,9 +145,9 @@ public class NpcLogicTests
         // Arrange
         var npcs = new[]
         {
-            new Npc { name="Campaign1NPC", npc_id = 1, account_id = 10, campaign_id = 1, game_system_id = 1, stats = string.Empty},
-            new Npc { name="Campaign2NPC", npc_id = 2, account_id = 10, campaign_id = 2, game_system_id = 1, stats = string.Empty },
-            new Npc { name="Campaign1NPC2", npc_id = 3, account_id = 10, campaign_id = 1, game_system_id = 1, stats = string.Empty }
+            new Npc { name="Campaign1NPC", npc_id = 1, account_id = 10, campaign_id = 1, stats = string.Empty},
+            new Npc { name="Campaign2NPC", npc_id = 2, account_id = 10, campaign_id = 2, stats = string.Empty },
+            new Npc { name="Campaign1NPC2", npc_id = 3, account_id = 10, campaign_id = 1, stats = string.Empty }
         };
         var repo = new FakeNpcRepository(npcs);
         var campaignRepo = new FakeCampaignRepository();
@@ -212,7 +182,7 @@ public class NpcLogicTests
     public async Task GetNpc_ReturnsMappedNpc_WhenFound()
     {
         // Arrange
-        var npc = new Npc { name = "SupGirl", npc_id = 42, account_id = 5, campaign_id = 3, game_system_id = 1, stats = string.Empty };
+        var npc = new Npc { name = "SupGirl", npc_id = 42, account_id = 5, campaign_id = 3, stats = string.Empty };
         var repo = new FakeNpcRepository(new[] { npc });
         var campaignRepo = new FakeCampaignRepository();
         var logic = new NpcLogic(repo, campaignRepo, NullLogger<NpcLogic>.Instance);
@@ -229,7 +199,7 @@ public class NpcLogicTests
     public async Task UpdateNpcAsync_ThrowsInvalidOperationException_WhenCampaignDoesNotExist()
     {
         // Arrange
-        var npc = new Npc { name = "TestNpc", npc_id = 1, account_id = 10, campaign_id = 1, game_system_id = 1, stats = string.Empty };
+        var npc = new Npc { name = "TestNpc", npc_id = 1, account_id = 10, campaign_id = 1, stats = string.Empty };
         var repo = new FakeNpcRepository(new[] { npc });
         var campaignRepo = new FakeCampaignRepository();
         var logic = new NpcLogic(repo, campaignRepo, NullLogger<NpcLogic>.Instance);
@@ -254,7 +224,7 @@ public class NpcLogicTests
     public async Task UpdateNpcAsync_ThrowsUnauthorizedAccessException_WhenCampaignBelongsToDifferentAccount()
     {
         // Arrange
-        var npc = new Npc { name = "TestNpc", npc_id = 1, account_id = 10, campaign_id = 1, game_system_id = 1, stats = string.Empty };
+        var npc = new Npc { name = "TestNpc", npc_id = 1, account_id = 10, campaign_id = 1, stats = string.Empty };
         var repo = new FakeNpcRepository(new[] { npc });
         var campaignRepo = new FakeCampaignRepository(); // Campaign 3 belongs to account 5
         var logic = new NpcLogic(repo, campaignRepo, NullLogger<NpcLogic>.Instance);
@@ -279,7 +249,7 @@ public class NpcLogicTests
     public async Task UpdateNpcAsync_ReturnsTrue_WhenCampaignIsValidAndBelongsToAccount()
     {
         // Arrange
-        var npc = new Npc { name = "TestNpc", npc_id = 1, account_id = 10, campaign_id = 1, game_system_id = 1, stats = string.Empty };
+        var npc = new Npc { name = "TestNpc", npc_id = 1, account_id = 10, campaign_id = 1, stats = string.Empty };
         var repo = new FakeNpcRepository(new[] { npc });
         var campaignRepo = new FakeCampaignRepository(); // Campaign 1 belongs to account 10
         var logic = new NpcLogic(repo, campaignRepo, NullLogger<NpcLogic>.Instance);

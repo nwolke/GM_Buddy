@@ -24,14 +24,11 @@ public class PcRepository : IPcRepository
             SELECT 
                 p.pc_id,
                 p.account_id,
-                p.game_system_id,
                 p.name,
                 p.description,
                 p.created_at,
-                p.updated_at,
-                gs.game_system_name
+                p.updated_at
             FROM public.pc p
-            LEFT JOIN public.game_system gs ON p.game_system_id = gs.game_system_id
             WHERE p.account_id = @AccountId
             ORDER BY p.created_at DESC";
 
@@ -46,61 +43,32 @@ public class PcRepository : IPcRepository
             SELECT 
                 p.pc_id,
                 p.account_id,
-                p.game_system_id,
                 p.name,
                 p.description,
                 p.created_at,
-                p.updated_at,
-                gs.game_system_name
+                p.updated_at
             FROM public.pc p
-            LEFT JOIN public.game_system gs ON p.game_system_id = gs.game_system_id
             WHERE p.pc_id = @PcId";
 
         CommandDefinition cmd = new(sql, new { PcId = pcId }, cancellationToken: ct);
         return await dbConnection.QueryFirstOrDefaultAsync<Pc>(cmd);
     }
 
-    public async Task<IEnumerable<Pc>> GetPcsByGameSystemIdAsync(int gameSystemId, int accountId, CancellationToken ct = default)
-    {
-        using IDbConnection dbConnection = _dbConnector.CreateConnection();
-        const string sql = @"
-            SELECT 
-                p.pc_id,
-                p.account_id,
-                p.game_system_id,
-                p.name,
-                p.description,
-                p.created_at,
-                p.updated_at,
-                gs.game_system_name
-            FROM public.pc p
-            LEFT JOIN public.game_system gs ON p.game_system_id = gs.game_system_id
-            WHERE p.game_system_id = @GameSystemId
-              AND p.account_id = @AccountId
-            ORDER BY p.created_at DESC";
-
-        CommandDefinition cmd = new(sql, new { GameSystemId = gameSystemId, AccountId = accountId }, cancellationToken: ct);
-        return await dbConnection.QueryAsync<Pc>(cmd);
-    }
-
     public async Task<IEnumerable<Pc>> GetPcsByCampaignIdAsync(int campaignId, CancellationToken ct = default)
     {
         using IDbConnection dbConnection = _dbConnector.CreateConnection();
-        
+
         // Get PCs that have relationships with this campaign
         // This assumes PCs are linked to campaigns via entity_relationship table
         const string sql = @"
             SELECT DISTINCT
                 p.pc_id,
                 p.account_id,
-                p.game_system_id,
                 p.name,
                 p.description,
                 p.created_at,
-                p.updated_at,
-                gs.game_system_name
+                p.updated_at
             FROM public.pc p
-            LEFT JOIN public.game_system gs ON p.game_system_id = gs.game_system_id
             INNER JOIN public.entity_relationship er 
                 ON er.source_entity_type = 'pc' 
                 AND er.source_entity_id = p.pc_id
@@ -118,13 +86,11 @@ public class PcRepository : IPcRepository
         const string sql = @"
             INSERT INTO public.pc (
                 account_id,
-                game_system_id,
                 name,
                 description
             )
             VALUES (
                 @account_id,
-                @game_system_id,
                 @name,
                 @description
             )
@@ -141,7 +107,6 @@ public class PcRepository : IPcRepository
             UPDATE public.pc
             SET name = @name,
                 description = @description,
-                game_system_id = @game_system_id,
                 updated_at = NOW()
             WHERE pc_id = @pc_id";
 

@@ -12,20 +12,17 @@ public class NewAccountDataSeeder : INewAccountDataSeeder
     private readonly ILogger<NewAccountDataSeeder> _logger;
     private readonly INpcRepository _npcRepository;
     private readonly ICampaignRepository _campaignRepository;
-    private readonly IGameSystemRepository _gamesystemRepository;
     private readonly IRelationshipRepository _relationshipRepository;
 
     public NewAccountDataSeeder(ILogger<NewAccountDataSeeder> logger,
         INpcRepository npcRepository,
         ICampaignRepository campaignRepository,
-        IGameSystemRepository gameSystemRepository,
         IRelationshipRepository relationshipRepository)
 
     {
         _logger = logger;
         _campaignRepository = campaignRepository;
         _npcRepository = npcRepository;
-        _gamesystemRepository = gameSystemRepository;
         _relationshipRepository = relationshipRepository;
     }
 
@@ -33,19 +30,11 @@ public class NewAccountDataSeeder : INewAccountDataSeeder
     {
         _logger.LogInformation("Seeding default data for new account {AccountId}", accountId);
 
-        var defaultGameSystem = await _gamesystemRepository.GetByNameAsync("Generic");
-        if (defaultGameSystem == null)
-        {
-            _logger.LogError("Game System 'Generic' not found. Aborting seeding for account {AccountId}.", accountId);
-            throw new InvalidOperationException("Generic Game System not found.");
-        }
-
         var defaultCampaign = new Campaign
         {
             account_id = accountId,
             name = "The Heroes Adventure",
-            description = "A beginner-friendly adventure in the world of GM Buddy",
-            game_system_id = defaultGameSystem.game_system_id
+            description = "A beginner-friendly adventure in the world of GM Buddy"
         };
         int campaignId = await _campaignRepository.CreateAsync(defaultCampaign);
 

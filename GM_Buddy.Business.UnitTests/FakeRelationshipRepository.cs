@@ -18,7 +18,7 @@ internal class FakeRelationshipRepository : IRelationshipRepository
     {
         _relationshipTypes = relationshipTypes?.ToList() ?? CreateDefaultRelationshipTypes();
         _relationships = relationships?.ToList() ?? new List<EntityRelationship>();
-        
+
         if (_relationships.Any())
         {
             _nextRelationshipId = _relationships.Max(r => r.entity_relationship_id) + 1;
@@ -89,7 +89,7 @@ internal class FakeRelationshipRepository : IRelationshipRepository
             ((r.source_entity_type == entityType && r.source_entity_id == entityId) ||
              (r.target_entity_type == entityType && r.target_entity_id == entityId)) &&
             (includeInactive || r.is_active));
-        
+
         return Task.FromResult(result.AsEnumerable());
     }
 
@@ -103,7 +103,7 @@ internal class FakeRelationshipRepository : IRelationshipRepository
             r.source_entity_type == entityType &&
             r.source_entity_id == entityId &&
             (includeInactive || r.is_active));
-        
+
         return Task.FromResult(result.AsEnumerable());
     }
 
@@ -117,7 +117,7 @@ internal class FakeRelationshipRepository : IRelationshipRepository
             r.target_entity_type == entityType &&
             r.target_entity_id == entityId &&
             (includeInactive || r.is_active));
-        
+
         return Task.FromResult(result.AsEnumerable());
     }
 
@@ -133,7 +133,7 @@ internal class FakeRelationshipRepository : IRelationshipRepository
              (r.target_entity_type == entityType && r.target_entity_id == entityId)) &&
             r.relationship_type_id == relationshipTypeId &&
             (includeInactive || r.is_active));
-        
+
         return Task.FromResult(result.AsEnumerable());
     }
 
@@ -145,7 +145,7 @@ internal class FakeRelationshipRepository : IRelationshipRepository
         var result = _relationships.Where(r =>
             r.campaign_id == campaignId &&
             (includeInactive || r.is_active));
-        
+
         return Task.FromResult(result.AsEnumerable());
     }
 
@@ -153,7 +153,7 @@ internal class FakeRelationshipRepository : IRelationshipRepository
     {
         var existing = _relationships.FirstOrDefault(r => 
             r.entity_relationship_id == relationship.entity_relationship_id);
-        
+
         if (existing != null)
         {
             existing.description = relationship.description;
@@ -162,7 +162,7 @@ internal class FakeRelationshipRepository : IRelationshipRepository
             existing.campaign_id = relationship.campaign_id;
             existing.updated_at = DateTime.UtcNow;
         }
-        
+
         return Task.CompletedTask;
     }
 
@@ -213,7 +213,7 @@ internal class FakeRelationshipRepository : IRelationshipRepository
             r.target_entity_id == targetEntityId &&
             r.relationship_type_id == relationshipTypeId &&
             r.is_active);
-        
+
         return Task.FromResult(exists);
     }
 

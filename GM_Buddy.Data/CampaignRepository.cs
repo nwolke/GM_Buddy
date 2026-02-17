@@ -8,19 +8,16 @@ namespace GM_Buddy.Data;
 public class CampaignRepository : ICampaignRepository
 {
     private readonly IDbConnector _dbConnector;
-    
+
     private const string CampaignSelectClause = @"
             SELECT c.campaign_id,
                    c.account_id, 
-                   c.game_system_id, 
                    c.name, 
                    c.description,
                    c.created_at,
-                   c.updated_at,
-                   gs.game_system_name
-            FROM campaign c
-            LEFT JOIN game_system gs ON c.game_system_id = gs.game_system_id";
-    
+                   c.updated_at
+            FROM campaign c";
+
     public CampaignRepository(IDbConnector dbConnector)
     {
         _dbConnector = dbConnector;
@@ -30,8 +27,8 @@ public class CampaignRepository : ICampaignRepository
     {
         using IDbConnection dbConnection = _dbConnector.CreateConnection();
         const string sql = @"
-            INSERT INTO campaign (account_id, game_system_id, name, description)
-            VALUES (@account_id, @game_system_id, @name, @description)
+            INSERT INTO campaign (account_id, name, description)
+            VALUES (@account_id, @name, @description)
             RETURNING campaign_id";
         var cmd = new CommandDefinition(sql, campaign, cancellationToken: ct);
         return await dbConnection.ExecuteScalarAsync<int>(cmd);
@@ -52,13 +49,11 @@ public class CampaignRepository : ICampaignRepository
         const string sql = @"
             SELECT c.campaign_id,
                    c.account_id, 
-                   c.game_system_id, 
                    c.name, 
                    c.description,
                    c.created_at,
                    c.updated_at
             FROM campaign c
-            LEFT JOIN game_system gs ON c.game_system_id = gs.game_system_id
             WHERE c.account_id = @AccountId
             ORDER BY c.updated_at DESC";
         var cmd = new CommandDefinition(sql, new { AccountId = accountId }, cancellationToken: ct);

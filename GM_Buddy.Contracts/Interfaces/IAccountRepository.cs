@@ -11,17 +11,17 @@ public interface IAccountRepository
     /// Get an account by its internal ID
     /// </summary>
     Task<Account?> GetByIdAsync(int accountId);
-    
+
     /// <summary>
     /// Get an account by Cognito sub (user ID from JWT)
     /// </summary>
     Task<Account?> GetByCognitoSubAsync(string cognitoSub);
-    
+
     /// <summary>
     /// Get an account by email
     /// </summary>
     Task<Account?> GetByEmailAsync(string email);
-    
+
     /// <summary>
     /// Create a new account for a Cognito user
     /// </summary>
@@ -38,7 +38,7 @@ public interface IAccountRepository
     /// Update the subscription tier for an account
     /// </summary>
     Task UpdateSubscriptionTierAsync(int accountId, string tier);
-    
+
     /// <summary>
     /// Update last login timestamp
     /// </summary>

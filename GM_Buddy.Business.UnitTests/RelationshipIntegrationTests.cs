@@ -13,7 +13,7 @@ public class RelationshipIntegrationTests
     {
         // Arrange
         var relationshipRepo = new FakeRelationshipRepository();
-        
+
         var relationship = new EntityRelationship
         {
             source_entity_type = EntityTypes.Npc,
@@ -43,7 +43,7 @@ public class RelationshipIntegrationTests
     {
         // Arrange
         var relationshipRepo = new FakeRelationshipRepository();
-        
+
         // Create NPC member
         var npcMember = new EntityRelationship
         {
@@ -69,7 +69,7 @@ public class RelationshipIntegrationTests
         // Act
         await relationshipRepo.CreateRelationshipAsync(npcMember);
         await relationshipRepo.CreateRelationshipAsync(pcMember);
-        
+
         var members = await relationshipRepo.GetRelationshipsToEntityAsync(EntityTypes.Organization, 10);
 
         // Assert
@@ -84,7 +84,7 @@ public class RelationshipIntegrationTests
     {
         // Arrange
         var relationshipRepo = new FakeRelationshipRepository();
-        
+
         var rivalry = new EntityRelationship
         {
             source_entity_type = EntityTypes.Organization,
@@ -112,7 +112,7 @@ public class RelationshipIntegrationTests
     {
         // Arrange
         var relationshipRepo = new FakeRelationshipRepository();
-        
+
         // Campaign 1 relationships
         await relationshipRepo.CreateRelationshipAsync(new EntityRelationship
         {
@@ -162,7 +162,7 @@ public class RelationshipIntegrationTests
     {
         // Arrange
         var relationshipRepo = new FakeRelationshipRepository();
-        
+
         var relationship = new EntityRelationship
         {
             source_entity_type = EntityTypes.Npc,
@@ -191,7 +191,7 @@ public class RelationshipIntegrationTests
     {
         // Arrange
         var relationshipRepo = new FakeRelationshipRepository();
-        
+
         var mentorRel = new EntityRelationship
         {
             source_entity_type = EntityTypes.Npc,
@@ -219,7 +219,7 @@ public class RelationshipIntegrationTests
     {
         // Arrange - Create a complex web of relationships
         var relationshipRepo = new FakeRelationshipRepository();
-        
+
         // NPC1 is friends with PC1
         await relationshipRepo.CreateRelationshipAsync(new EntityRelationship
         {
@@ -259,7 +259,7 @@ public class RelationshipIntegrationTests
         // Assert
         var relList = npc1Relationships.ToList();
         Assert.Equal(3, relList.Count);
-        
+
         // Verify different target types
         Assert.Contains(relList, r => r.target_entity_type == EntityTypes.Pc);
         Assert.Contains(relList, r => r.target_entity_type == EntityTypes.Npc);

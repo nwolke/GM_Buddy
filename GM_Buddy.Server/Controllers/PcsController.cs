@@ -1,49 +1,51 @@
 using GM_Buddy.Contracts.DbEntities;
 using GM_Buddy.Contracts.Interfaces;
+using GM_Buddy.Server.Helpers;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GM_Buddy.Server.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class PcsController : ControllerBase
 {
     private readonly ILogger<PcsController> _logger;
     private readonly IPcRepository _repository;
+    private readonly IAuthHelper _authHelper;
 
-    public PcsController(ILogger<PcsController> logger, IPcRepository repository)
+    public PcsController(
+        ILogger<PcsController> logger, 
+        IPcRepository repository,
+        IAuthHelper authHelper)
     {
         _logger = logger;
         _repository = repository;
+        _authHelper = authHelper;
     }
 
     /// <summary>
-    /// Get all PCs, optionally filtered by account or game system
+    /// Get all PCs for the authenticated account
     /// </summary>
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Pc>>> GetPcs(
-        [FromQuery] int? accountId = null,
-        [FromQuery] int? gameSystemId = null)
+    public async Task<ActionResult<IEnumerable<Pc>>> GetPcs()
     {
-        if (!accountId.HasValue)
-        {
-            return BadRequest("Account ID is required");
-        }
-
-        IEnumerable<Pc> pcs = gameSystemId.HasValue
-            ? await _repository.GetPcsByGameSystemIdAsync(gameSystemId.Value, accountId.Value)
-            : await _repository.GetPcsByAccountIdAsync(accountId.Value);
+        int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
+        IEnumerable<Pc> pcs = await _repository.GetPcsByAccountIdAsync(accountId);
 
         return Ok(pcs);
     }
 
     /// <summary>
-    /// Get a specific PC by ID
+    /// Get a specific PC by ID (must be owned by the authenticated user)
     /// </summary>
     [HttpGet("{id}")]
     public async Task<ActionResult<Pc>> GetPc(int id)
     {
-        _logger.LogInformation("Getting PC {PcId}", id);
+        int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
+        _logger.LogInformation("Getting PC {PcId} for account {AccountId}", id, accountId);
+        
         Pc? pc = await _repository.GetPcByIdAsync(id);
 
         if (pc == null)
@@ -51,60 +53,98 @@ public class PcsController : ControllerBase
             return NotFound($"PC with ID {id} not found");
         }
 
+        // Verify ownership
+        if (pc.account_id != accountId)
+        {
+            _logger.LogWarning("Account {AccountId} attempted to access PC {PcId} owned by {OwnerId}", 
+                accountId, id, pc.account_id);
+            return Forbid();
+        }
+
         return Ok(pc);
     }
 
     /// <summary>
-    /// Create a new PC
+    /// Create a new PC for the authenticated user
     /// </summary>
     [HttpPost]
     public async Task<ActionResult<int>> CreatePc([FromBody] Pc pc)
     {
+        int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
+
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
 
-        _logger.LogInformation("Creating new PC: {Name}", pc.name);
+        // Ensure PC is tied to authenticated user
+        pc.account_id = accountId;
+
+        _logger.LogInformation("Creating new PC: {Name} for account {AccountId}", pc.name, accountId);
         int pcId = await _repository.CreatePcAsync(pc);
 
         return CreatedAtAction(nameof(GetPc), new { id = pcId }, pcId);
     }
 
     /// <summary>
-    /// Update an existing PC
+    /// Update an existing PC (must be owned by the authenticated user)
     /// </summary>
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdatePc(int id, [FromBody] Pc pc)
     {
+        int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
+
         if (id != pc.pc_id)
         {
             return BadRequest("PC ID mismatch");
         }
 
-        if (!await _repository.PcExistsAsync(id))
+        Pc? existingPc = await _repository.GetPcByIdAsync(id);
+        if (existingPc == null)
         {
             return NotFound($"PC with ID {id} not found");
         }
 
-        _logger.LogInformation("Updating PC {PcId}", id);
+        // Verify ownership
+        if (existingPc.account_id != accountId)
+        {
+            _logger.LogWarning("Account {AccountId} attempted to update PC {PcId} owned by {OwnerId}", 
+                accountId, id, existingPc.account_id);
+            return Forbid();
+        }
+
+        // Ensure account_id cannot be changed
+        pc.account_id = accountId;
+
+        _logger.LogInformation("Updating PC {PcId} for account {AccountId}", id, accountId);
         await _repository.UpdatePcAsync(pc);
 
         return NoContent();
     }
 
     /// <summary>
-    /// Delete a PC
+    /// Delete a PC (must be owned by the authenticated user)
     /// </summary>
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeletePc(int id)
     {
-        if (!await _repository.PcExistsAsync(id))
+        int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
+
+        Pc? pc = await _repository.GetPcByIdAsync(id);
+        if (pc == null)
         {
             return NotFound($"PC with ID {id} not found");
         }
 
-        _logger.LogInformation("Deleting PC {PcId}", id);
+        // Verify ownership
+        if (pc.account_id != accountId)
+        {
+            _logger.LogWarning("Account {AccountId} attempted to delete PC {PcId} owned by {OwnerId}", 
+                accountId, id, pc.account_id);
+            return Forbid();
+        }
+
+        _logger.LogInformation("Deleting PC {PcId} for account {AccountId}", id, accountId);
         await _repository.DeletePcAsync(id);
 
         return NoContent();

@@ -246,7 +246,7 @@ public class OrganizationRepositoryTests
             name = "Original Name" 
         };
         var repo = new FakeOrganizationRepository(new[] { org });
-        
+
         var updated = new Organization 
         { 
             organization_id = 1, 

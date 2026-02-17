@@ -123,8 +123,6 @@ export interface ApiNpc {
   Name?: string;        // Alternative casing
   description?: string; // From BaseNpc.Description
   Description?: string; // Alternative casing
-  system?: string;      // From BaseNpc.System
-  System?: string;      // Alternative casing
   stats?: {             // Stats object from DndNpc (supporting legacy and current shapes)
     // Legacy fields (older API shape)
     race?: string;
@@ -154,7 +152,6 @@ const normalizeApiNpc = (apiNpc: ApiNpc): {
   campaignId?: number;
   name: string; 
   description?: string; 
-  system?: string;
   race?: string;
   class?: string;
   faction?: string;
@@ -167,7 +164,6 @@ const normalizeApiNpc = (apiNpc: ApiNpc): {
     campaignId: apiNpc.campaign_Id ?? apiNpc.Campaign_Id,
     name: apiNpc.name ?? apiNpc.Name ?? '',
     description: apiNpc.description ?? apiNpc.Description,
-    system: apiNpc.system ?? apiNpc.System,
     // Support both legacy shape (race/class) and current DnDStats shape (lineage/occupation)
     race: stats?.race ?? stats?.lineage,
     class: stats?.class ?? stats?.occupation,
@@ -204,7 +200,6 @@ const transformApiNpcToNpc = (apiNpc: ApiNpc): NPC => {
     class: normalized.class || 'Adventurer',
     description: normalized.description || '',
     campaignId: normalized.campaignId,
-    system: normalized.system,
     faction: normalized.faction,
     notes: normalized.notes,
   };
@@ -375,45 +370,20 @@ export const accountApi = {
   },
 };
 
-// Game System API response type
-export interface ApiGameSystem {
-  game_system_id: number;
-  game_system_name: string;
-}
-
-// Game System API calls
-export const gameSystemApi = {
-  // Get all game systems
-  async getGameSystems(): Promise<ApiGameSystem[]> {
-    const response = await apiClient.get<ApiGameSystem[]>('/GameSystems');
-    return response.data;
-  },
-
-  // Get single game system by ID
-  async getGameSystem(id: number): Promise<ApiGameSystem> {
-    const response = await apiClient.get<ApiGameSystem>(`/GameSystems/${id}`);
-    return response.data;
-  },
-};
-
-
 // Campaign API response type (matches CampaignDTO)
 export interface ApiCampaign {
   campaign_id: number;
-  game_system_id: number | null;
   name: string;
   description?: string;
-  game_system_name?: string;
 }
 
 // Create Campaign request type
 export interface CreateCampaignRequest {
   name: string;
   description?: string;
-  game_system_id: number;
 }
 
-// Update Campaign request type (game_system_id cannot be changed)
+// Update Campaign request type
 export interface UpdateCampaignRequest {
   campaign_id: number;
   name: string;
@@ -426,8 +396,6 @@ const transformApiCampaignToCampaign = (apiCampaign: ApiCampaign): Campaign => {
     id: apiCampaign.campaign_id,
     name: apiCampaign.name,
     description: apiCampaign.description,
-    gameSystemId: apiCampaign.game_system_id ?? undefined,
-    gameSystemName: apiCampaign.game_system_name,
   };
 };
 
@@ -452,7 +420,7 @@ export const campaignApi = {
     return await campaignApi.getCampaign(response.data);
   },
 
-  // Update an existing campaign (game_system_id cannot be changed)
+  // Update an existing campaign
   async updateCampaign(id: number, campaign: UpdateCampaignRequest): Promise<void> {
     await apiClient.put(`/Campaigns/${id}`, campaign);
   },
