@@ -33,8 +33,13 @@ export function PCForm({ open, onOpenChange, onSave, editingPC }: PCFormProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    const trimmedName = formData.name.trim();
+    if (!trimmedName) {
+      return;
+    }
+
     const pcData = {
-      name: formData.name,
+      name: trimmedName,
       description: formData.description || undefined,
     };
 
