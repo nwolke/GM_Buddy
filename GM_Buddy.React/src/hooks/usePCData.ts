@@ -34,7 +34,7 @@ export function usePCData(selectedCampaignId?: number): UsePCDataReturn {
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated, selectedCampaignId]);
+  }, [selectedCampaignId]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -62,6 +62,8 @@ export function usePCData(selectedCampaignId?: number): UsePCDataReturn {
       await loadPcs();
     } catch (err) {
       console.error('[usePCData] Failed to save PC:', err);
+      setError('Failed to save player character.');
+      throw err;
     }
   }, [loadPcs]);
 
@@ -70,6 +72,8 @@ export function usePCData(selectedCampaignId?: number): UsePCDataReturn {
       await pcApi.deletePc(id);
     } catch (err) {
       console.error('[usePCData] Failed to delete PC:', err);
+      setError('Failed to delete player character.');
+      throw err;
     }
 
     setPcs(prev => prev.filter(pc => pc.id !== id));

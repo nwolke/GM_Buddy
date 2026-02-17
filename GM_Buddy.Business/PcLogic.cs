@@ -31,28 +31,16 @@ public class PcLogic : IPcLogic
 
     public async Task<PcDto?> GetPcAsync(int pcId, int accountId, CancellationToken ct = default)
     {
-        try
-        {
-            var pc = await _pcRepository.GetPcByIdAsync(pcId, ct);
-            if (pc is null) return null;
+        var pc = await _pcRepository.GetPcByIdAsync(pcId, ct);
+        if (pc is null) return null;
 
-            if (pc.account_id != accountId)
-            {
-                throw new UnauthorizedAccessException(
-                    $"Account {accountId} does not own PC {pcId}");
-            }
+        if (pc.account_id != accountId)
+        {
+            throw new UnauthorizedAccessException(
+                $"Account {accountId} does not own PC {pcId}");
+        }
 
-            return PcMapper.MapToPcDto(pc);
-        }
-        catch (UnauthorizedAccessException)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error fetching PC {PcId}", pcId);
-            return null;
-        }
+        return PcMapper.MapToPcDto(pc);
     }
 
     public async Task<PcDto> CreatePcAsync(int accountId, CreatePcRequest request, CancellationToken ct = default)
@@ -68,7 +56,13 @@ public class PcLogic : IPcLogic
         _logger.LogInformation("Created PC {PcId} for account {AccountId}", pcId, accountId);
 
         var created = await _pcRepository.GetPcByIdAsync(pcId, ct);
-        return PcMapper.MapToPcDto(created!);
+        if (created is null)
+        {
+            _logger.LogError("PC {PcId} was created but could not be retrieved", pcId);
+            throw new InvalidOperationException($"PC with id {pcId} could not be retrieved after creation.");
+        }
+
+        return PcMapper.MapToPcDto(created);
     }
 
     public async Task<bool> UpdatePcAsync(int pcId, int accountId, UpdatePcRequest request, CancellationToken ct = default)
