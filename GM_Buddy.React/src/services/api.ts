@@ -374,28 +374,6 @@ export const accountApi = {
   },
 };
 
-// Game System API response type
-export interface ApiGameSystem {
-  game_system_id: number;
-  game_system_name: string;
-}
-
-// Game System API calls
-export const gameSystemApi = {
-  // Get all game systems
-  async getGameSystems(): Promise<ApiGameSystem[]> {
-    const response = await apiClient.get<ApiGameSystem[]>('/GameSystems');
-    return response.data;
-  },
-
-  // Get single game system by ID
-  async getGameSystem(id: number): Promise<ApiGameSystem> {
-    const response = await apiClient.get<ApiGameSystem>(`/GameSystems/${id}`);
-    return response.data;
-  },
-};
-
-
 // Campaign API response type (matches CampaignDTO)
 export interface ApiCampaign {
   campaign_id: number;

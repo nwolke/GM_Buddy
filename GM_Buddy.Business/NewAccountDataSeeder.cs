@@ -12,20 +12,17 @@ public class NewAccountDataSeeder : INewAccountDataSeeder
     private readonly ILogger<NewAccountDataSeeder> _logger;
     private readonly INpcRepository _npcRepository;
     private readonly ICampaignRepository _campaignRepository;
-    private readonly IGameSystemRepository _gamesystemRepository;
     private readonly IRelationshipRepository _relationshipRepository;
 
     public NewAccountDataSeeder(ILogger<NewAccountDataSeeder> logger,
         INpcRepository npcRepository,
         ICampaignRepository campaignRepository,
-        IGameSystemRepository gameSystemRepository,
         IRelationshipRepository relationshipRepository)
 
     {
         _logger = logger;
         _campaignRepository = campaignRepository;
         _npcRepository = npcRepository;
-        _gamesystemRepository = gameSystemRepository;
         _relationshipRepository = relationshipRepository;
     }
 

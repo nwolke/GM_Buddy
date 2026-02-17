@@ -58,36 +58,6 @@ internal class FakeNpcRepository : INpcRepository
     }
 }
 
-internal class FakeGameSystemRepository : IGameSystemRepository
-{
-    private readonly List<Game_System> _gameSystems;
-
-    public FakeGameSystemRepository(IEnumerable<Game_System>? gameSystems = null)
-    {
-        _gameSystems = gameSystems?.ToList() ?? new List<Game_System>
-        {
-            new Game_System { game_system_id = 1, game_system_name = "System 1" },
-            new Game_System { game_system_id = 2, game_system_name = "System 2" },
-            new Game_System { game_system_id = 3, game_system_name = "System 3" }
-        };
-    }
-
-    public Task<IEnumerable<Game_System>> GetAllAsync(CancellationToken ct = default)
-    {
-        return Task.FromResult(_gameSystems.AsEnumerable());
-    }
-
-    public Task<Game_System?> GetByIdAsync(int id, CancellationToken ct = default)
-    {
-        return Task.FromResult(_gameSystems.FirstOrDefault(gs => gs.game_system_id == id));
-    }
-
-    public Task<Game_System?> GetByNameAsync(string name, CancellationToken ct = default)
-    {
-        return Task.FromResult(_gameSystems.FirstOrDefault(gs => gs.game_system_name == name));
-    }
-}
-
 internal class FakeCampaignRepository : ICampaignRepository
 {
     private readonly List<Campaign> _campaigns = new()
