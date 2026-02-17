@@ -57,7 +57,7 @@ public class OrganizationRepository : IOrganizationRepository
     public async Task<IEnumerable<Organization>> GetOrganizationsByCampaignIdAsync(int campaignId, CancellationToken ct = default)
     {
         using IDbConnection dbConnection = _dbConnector.CreateConnection();
-        
+
         // Get organizations that have relationships with this campaign
         const string sql = @"
             SELECT DISTINCT
@@ -103,7 +103,7 @@ public class OrganizationRepository : IOrganizationRepository
             AccountId = accountId, 
             SearchTerm = $"%{searchTerm}%" 
         }, cancellationToken: ct);
-        
+
         return await dbConnection.QueryAsync<Organization>(cmd);
     }
 

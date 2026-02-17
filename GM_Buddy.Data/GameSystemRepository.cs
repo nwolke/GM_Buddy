@@ -21,7 +21,7 @@ public class GameSystemRepository : IGameSystemRepository
             SELECT game_system_id, game_system_name
             FROM game_system
             ORDER BY game_system_name";
-        
+
         var cmd = new CommandDefinition(sql, cancellationToken: ct);
         return await dbConnection.QueryAsync<Game_System>(cmd);
     }
@@ -33,7 +33,7 @@ public class GameSystemRepository : IGameSystemRepository
             SELECT game_system_id, game_system_name
             FROM game_system
             WHERE game_system_id = @Id";
-        
+
         var cmd = new CommandDefinition(sql, new { Id = id }, cancellationToken: ct);
         return await dbConnection.QueryFirstOrDefaultAsync<Game_System>(cmd);
     }
@@ -45,7 +45,7 @@ public class GameSystemRepository : IGameSystemRepository
             SELECT game_system_id, game_system_name
             FROM game_system
             WHERE LOWER(game_system_name) = LOWER(@Name)";
-        
+
         var cmd = new CommandDefinition(sql, new { Name = name?.Trim() }, cancellationToken: ct);
         return await dbConnection.QueryFirstOrDefaultAsync<Game_System>(cmd);
     }

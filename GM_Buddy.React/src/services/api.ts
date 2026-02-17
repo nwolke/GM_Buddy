@@ -204,7 +204,6 @@ const transformApiNpcToNpc = (apiNpc: ApiNpc): NPC => {
     class: normalized.class || 'Adventurer',
     description: normalized.description || '',
     campaignId: normalized.campaignId,
-    system: normalized.system,
     faction: normalized.faction,
     notes: normalized.notes,
   };
