@@ -216,6 +216,7 @@ internal class FakeCampaignRepositoryForAccountTests : ICampaignRepository
 {
     private readonly List<Campaign> _campaigns = new()
     {
+        new Campaign { campaign_id = 1, account_id = 10, name = "Test Campaign", description = "A test campaign" }
     };
 
     public Task<IEnumerable<Campaign>> GetByAccountIdAsync(int accountId, CancellationToken ct = default)
