@@ -1,4 +1,4 @@
-import { Scroll, RefreshCw, LogIn, LogOut, Users, UserCircle, Settings, Info } from "lucide-react";
+import { Scroll, RefreshCw, LogIn, LogOut, Users, UserCircle, Settings, Info, User } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import {
   DropdownMenu,
@@ -24,6 +24,7 @@ export function Header({ showRefresh = false, onRefresh, loading = false, error 
   const location = useLocation();
 
   const isOnNPCManager = location.pathname === '/npc-manager';
+  const isOnPCManager = location.pathname === '/pc-manager';
   const isOnCampaignManager = location.pathname === '/campaign-manager';
 
   return (
@@ -49,7 +50,7 @@ export function Header({ showRefresh = false, onRefresh, loading = false, error 
         </div>
       </div>
       <div className="flex items-center gap-3">
-        {isAuthenticated && (isOnNPCManager || isOnCampaignManager) && (
+        {isAuthenticated && (isOnNPCManager || isOnPCManager || isOnCampaignManager) && (
           <div className="flex gap-2 mr-4">
             <Button
               variant={isOnNPCManager ? "default" : "outline"}
@@ -58,6 +59,14 @@ export function Header({ showRefresh = false, onRefresh, loading = false, error 
             >
               <Users className="size-4 mr-2" />
               NPCs
+            </Button>
+            <Button
+              variant={isOnPCManager ? "default" : "outline"}
+              size="sm"
+              onClick={() => navigate('/pc-manager')}
+            >
+              <User className="size-4 mr-2" />
+              PCs
             </Button>
             <Button
               variant={isOnCampaignManager ? "default" : "outline"}
