@@ -23,7 +23,6 @@ describe('CampaignCard', () => {
 
     expect(screen.getByText(mockCampaigns[0].name)).toBeInTheDocument()
     expect(screen.getByText(mockCampaigns[0].description!)).toBeInTheDocument()
-    expect(screen.getByText(mockCampaigns[0].gameSystemName!)).toBeInTheDocument()
   })
 
   it('should render without description when not provided', () => {
@@ -32,14 +31,6 @@ describe('CampaignCard', () => {
 
     expect(screen.getByText(mockCampaigns[0].name)).toBeInTheDocument()
     expect(screen.queryByText(mockCampaigns[0].description!)).not.toBeInTheDocument()
-  })
-
-  it('should render without game system name when not provided', () => {
-    const campaignWithoutSystem = { ...mockCampaigns[0], gameSystemName: undefined }
-    render(<CampaignCard {...defaultProps} campaign={campaignWithoutSystem} />)
-
-    expect(screen.getByText(mockCampaigns[0].name)).toBeInTheDocument()
-    expect(screen.queryByText(mockCampaigns[0].gameSystemName!)).not.toBeInTheDocument()
   })
 
   it('should call onEdit when edit button is clicked', async () => {

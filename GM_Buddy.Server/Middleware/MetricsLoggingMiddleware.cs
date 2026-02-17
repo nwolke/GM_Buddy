@@ -20,7 +20,7 @@ public class MetricsLoggingMiddleware
     public async Task InvokeAsync(HttpContext context)
     {
         var stopwatch = Stopwatch.StartNew();
-        
+
         try
         {
             // Continue processing the request
@@ -40,14 +40,14 @@ public class MetricsLoggingMiddleware
 
         // Build parameters string
         var parametersBuilder = new StringBuilder();
-        
+
         // Add query string parameters (sanitize sensitive keys)
         if (request.QueryString.HasValue && request.Query.Count > 0)
         {
             var sanitizedParams = request.Query
                 .Where(q => !IsSensitiveParameter(q.Key))
                 .Select(q => $"{q.Key}={q.Value}");
-            
+
             if (sanitizedParams.Any())
             {
                 parametersBuilder.Append($"QueryString: ?{string.Join("&", sanitizedParams)}");
@@ -59,11 +59,11 @@ public class MetricsLoggingMiddleware
         {
             if (parametersBuilder.Length > 0)
                 parametersBuilder.Append(", ");
-            
+
             var routeParams = string.Join(", ", request.RouteValues
                 .Where(rv => rv.Key != "controller" && rv.Key != "action")
                 .Select(rv => $"{rv.Key}={rv.Value ?? "null"}"));
-            
+
             if (!string.IsNullOrEmpty(routeParams))
             {
                 parametersBuilder.Append($"RouteParams: {routeParams}");

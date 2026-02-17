@@ -29,19 +29,16 @@ CREATE TABLE IF NOT EXISTS public.game_system (
 CREATE TABLE IF NOT EXISTS public.campaign (
     campaign_id     int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     account_id      int NOT NULL,
-    game_system_id  int NOT NULL,
     name            text NOT NULL,
     description     text,
     created_at      timestamptz NOT NULL DEFAULT now(),
     updated_at      timestamptz NOT NULL DEFAULT now(),
-    FOREIGN KEY (account_id) REFERENCES auth.account(id) ON DELETE CASCADE,
-    FOREIGN KEY (game_system_id) REFERENCES public.game_system(game_system_id)
+    FOREIGN KEY (account_id) REFERENCES auth.account(id) ON DELETE CASCADE
 );
 
 -- NPC table:
--- NPCs are now associated with campaigns, which in turn have game systems.
--- Keep a lightweight `stats` column for backward compatibility / quick reads,
--- and store strongly-typed or system-specific JSON in `npc_additional_data`.
+-- NPCs are associated with campaigns.
+-- The stats column stores NPC data including lineage as freeform text.
 CREATE TABLE IF NOT EXISTS public.npc (
     npc_id          int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     account_id      int NOT NULL,
@@ -60,13 +57,11 @@ CREATE TABLE IF NOT EXISTS public.npc (
 CREATE TABLE IF NOT EXISTS public.pc(
     pc_id           int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     account_id      int NOT NULL,
-    game_system_id  int NOT NULL,
     name            text NOT NULL,
     description     text,
     created_at      timestamptz NOT NULL DEFAULT now(),
     updated_at      timestamptz NOT NULL DEFAULT now(),
-    FOREIGN KEY (account_id) REFERENCES auth.account(id) ON DELETE CASCADE,
-    FOREIGN KEY (game_system_id) REFERENCES public.game_system(game_system_id)
+    FOREIGN KEY (account_id) REFERENCES auth.account(id) ON DELETE CASCADE
 );
 
 -- Organization table:
@@ -156,17 +151,15 @@ VALUES
 ON CONFLICT (game_system_name) DO NOTHING;
 
 -- Insert sample campaigns (generic fantasy content)
-INSERT INTO public.campaign (account_id, game_system_id, name, description)
+INSERT INTO public.campaign (account_id, name, description)
 VALUES
   (
     (SELECT id FROM auth.account WHERE username = 'gm_admin' LIMIT 1),
-    (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
     'Shadows Over Millhaven',
     'A mystery unfolds in the peaceful town of Millhaven as strange occurrences and disappearances plague the locals.'
   ),
   (
     (SELECT id FROM auth.account WHERE username = 'gm_admin' LIMIT 1),
-    (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
     'The Northern Frontier',
     'An exploration campaign in the untamed wilderness, where adventurers seek fortune and face the dangers of the wild.'
   )
@@ -228,29 +221,25 @@ VALUES
 ON CONFLICT DO NOTHING;
 
 -- Insert sample PCs
-INSERT INTO public.pc (account_id, game_system_id, name, description)
+INSERT INTO public.pc (account_id, name, description)
 VALUES
   (
     (SELECT id FROM auth.account WHERE username = 'gm_admin' LIMIT 1),
-    (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
     'Thorin Ironforge',
     'A dwarven cleric devoted to Moradin, god of creation and forging.'
   ),
   (
     (SELECT id FROM auth.account WHERE username = 'gm_admin' LIMIT 1),
-    (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
     'Lyra Shadowstep',
     'A half-elf rogue with a mysterious past and quick fingers.'
   ),
   (
     (SELECT id FROM auth.account WHERE username = 'gm_admin' LIMIT 1),
-    (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
     'Aldric the Brave',
     'A human paladin sworn to protect the innocent and vanquish evil.'
   ),
   (
     (SELECT id FROM auth.account WHERE username = 'gm_admin' LIMIT 1),
-    (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
     'Zephyr Windwhisper',
     'An elven ranger who tracks and hunts dangerous beasts in the wilderness.'
   )
@@ -474,209 +463,7 @@ VALUES
   )
 ON CONFLICT DO NOTHING;
 
--- Reference Data Tables for game systems (system-agnostic terminology)
-
--- Reference Lineage table (system-agnostic term for race/ancestry)
-CREATE TABLE IF NOT EXISTS public.reference_lineage (
-    lineage_id int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    game_system_id int NOT NULL,
-    account_id int,
-    campaign_id int,
-    name text NOT NULL,
-    description text,
-    is_active boolean NOT NULL DEFAULT true,
-    created_at timestamptz NOT NULL DEFAULT now(),
-    updated_at timestamptz NOT NULL DEFAULT now(),
-    FOREIGN KEY (game_system_id) REFERENCES public.game_system(game_system_id) ON DELETE CASCADE,
-    FOREIGN KEY (account_id) REFERENCES auth.account(id) ON DELETE CASCADE,
-    FOREIGN KEY (campaign_id) REFERENCES public.campaign(campaign_id) ON DELETE CASCADE,
-    UNIQUE (game_system_id, account_id, campaign_id, name),
-    -- Enforce that entries are either SRD (both NULL) or campaign-specific (both NOT NULL)
-    CHECK ((account_id IS NULL AND campaign_id IS NULL) OR (account_id IS NOT NULL AND campaign_id IS NOT NULL))
-);
-
--- Indexes for reference_lineage
-CREATE INDEX IF NOT EXISTS idx_reference_lineage_game_system ON public.reference_lineage(game_system_id);
-CREATE INDEX IF NOT EXISTS idx_reference_lineage_account ON public.reference_lineage(account_id);
-CREATE INDEX IF NOT EXISTS idx_reference_lineage_campaign ON public.reference_lineage(campaign_id);
-
--- Reference Occupation table (system-agnostic term for class/profession)
-CREATE TABLE IF NOT EXISTS public.reference_occupation (
-    occupation_id int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    game_system_id int NOT NULL,
-    account_id int,
-    campaign_id int,
-    name text NOT NULL,
-    description text,
-    is_active boolean NOT NULL DEFAULT true,
-    created_at timestamptz NOT NULL DEFAULT now(),
-    updated_at timestamptz NOT NULL DEFAULT now(),
-    FOREIGN KEY (game_system_id) REFERENCES public.game_system(game_system_id) ON DELETE CASCADE,
-    FOREIGN KEY (account_id) REFERENCES auth.account(id) ON DELETE CASCADE,
-    FOREIGN KEY (campaign_id) REFERENCES public.campaign(campaign_id) ON DELETE CASCADE,
-    UNIQUE (game_system_id, account_id, campaign_id, name),
-    -- Enforce that entries are either SRD (both NULL) or campaign-specific (both NOT NULL)
-    CHECK ((account_id IS NULL AND campaign_id IS NULL) OR (account_id IS NOT NULL AND campaign_id IS NOT NULL))
-);
-
--- Indexes for reference_occupation
-CREATE INDEX IF NOT EXISTS idx_reference_occupation_game_system ON public.reference_occupation(game_system_id);
-CREATE INDEX IF NOT EXISTS idx_reference_occupation_account ON public.reference_occupation(account_id);
-CREATE INDEX IF NOT EXISTS idx_reference_occupation_campaign ON public.reference_occupation(campaign_id);
-
--- Seed SRD Lineages for D&D 5e (account_id = NULL and campaign_id = NULL means SRD/global content)
-INSERT INTO public.reference_lineage (game_system_id, account_id, campaign_id, name, description)
-VALUES
-    (
-        (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
-        NULL,
-        NULL,
-        'Dragonborn',
-        'Dragonborn look very much like dragons standing erect in humanoid form, though they lack wings or a tail.'
-    ),
-    (
-        (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
-        NULL,
-        NULL,
-        'Dwarf',
-        'Bold and hardy, dwarves are known as skilled warriors, miners, and workers of stone and metal.'
-    ),
-    (
-        (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
-        NULL,
-        NULL,
-        'Elf',
-        'Elves are a magical people of otherworldly grace, living in the world but not entirely part of it.'
-    ),
-    (
-        (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
-        NULL,
-        NULL,
-        'Gnome',
-        'A gnome''s energy and enthusiasm for living shines through every inch of his or her tiny body.'
-    ),
-    (
-        (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
-        NULL,
-        NULL,
-        'Half-Elf',
-        'Walking in two worlds but truly belonging to neither, half-elves combine what some say are the best qualities of both races.'
-    ),
-    (
-        (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
-        NULL,
-        NULL,
-        'Half-Orc',
-        'Whether united under the leadership of a mighty warlock or having fought to a standstill after years of conflict, orc and human tribes sometimes form alliances.'
-    ),
-    (
-        (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
-        NULL,
-        NULL,
-        'Halfling',
-        'The diminutive halflings survive in a world full of larger creatures by avoiding notice or, barring that, avoiding offense.'
-    ),
-    (
-        (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
-        NULL,
-        NULL,
-        'Human',
-        'Humans are the most adaptable and ambitious people among the common races, with widely varying tastes, morals, and customs.'
-    ),
-    (
-        (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
-        NULL,
-        NULL,
-        'Tiefling',
-        'To be greeted with stares and whispers, to suffer violence and insult, to see mistrust and fear in every eye: this is the lot of the tiefling.'
-    )
-ON CONFLICT (game_system_id, account_id, campaign_id, name) DO NOTHING;
-
--- Seed SRD Occupations for D&D 5e (account_id = NULL and campaign_id = NULL means SRD/global content)
-INSERT INTO public.reference_occupation (game_system_id, account_id, campaign_id, name, description)
-VALUES
-    (
-        (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
-        NULL,
-        NULL,
-        'Barbarian',
-        'A fierce warrior of primitive background who can enter a battle rage.'
-    ),
-    (
-        (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
-        NULL,
-        NULL,
-        'Bard',
-        'An inspiring magician whose power echoes the music of creation.'
-    ),
-    (
-        (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
-        NULL,
-        NULL,
-        'Cleric',
-        'A priestly champion who wields divine magic in service of a higher power.'
-    ),
-    (
-        (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
-        NULL,
-        NULL,
-        'Druid',
-        'A priest of the Old Faith, wielding the powers of nature and adopting animal forms.'
-    ),
-    (
-        (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
-        NULL,
-        NULL,
-        'Fighter',
-        'A master of martial combat, skilled with a variety of weapons and armor.'
-    ),
-    (
-        (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
-        NULL,
-        NULL,
-        'Monk',
-        'A master of martial arts, harnessing the power of the body in pursuit of physical and spiritual perfection.'
-    ),
-    (
-        (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
-        NULL,
-        NULL,
-        'Paladin',
-        'A holy warrior bound to a sacred oath.'
-    ),
-    (
-        (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
-        NULL,
-        NULL,
-        'Ranger',
-        'A warrior who combats threats on the edges of civilization.'
-    ),
-    (
-        (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
-        NULL,
-        NULL,
-        'Rogue',
-        'A scoundrel who uses stealth and trickery to overcome obstacles and enemies.'
-    ),
-    (
-        (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
-        NULL,
-        NULL,
-        'Sorcerer',
-        'A spellcaster who draws on inherent magic from a gift or bloodline.'
-    ),
-    (
-        (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
-        NULL,
-        NULL,
-        'Warlock',
-        'A wielder of magic that is derived from a bargain with an extraplanar entity.'
-    ),
-    (
-        (SELECT game_system_id FROM public.game_system WHERE game_system_name = 'Dungeons & Dragons (5e)' LIMIT 1),
-        NULL,
-        NULL,
-        'Wizard',
-        'A scholarly magic-user capable of manipulating the structures of reality.'
-    )
-ON CONFLICT (game_system_id, account_id, campaign_id, name) DO NOTHING;
+-- Game System Table (Technical Debt)
+-- Note: Reference lineage and occupation tables removed as part of GM-108.
+-- Game systems table is retained for potential future use but is not currently
+-- referenced by campaigns, NPCs, PCs, or organizations.

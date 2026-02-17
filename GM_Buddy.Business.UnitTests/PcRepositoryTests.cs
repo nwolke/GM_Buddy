@@ -29,9 +29,9 @@ public class PcRepositoryTests
         // Arrange
         var pcs = new[]
         {
-            new Pc { pc_id = 1, account_id = 1, game_system_id = 1, name = "PC1" },
-            new Pc { pc_id = 2, account_id = 1, game_system_id = 1, name = "PC2" },
-            new Pc { pc_id = 3, account_id = 2, game_system_id = 1, name = "PC3" }
+            new Pc { pc_id = 1, account_id = 1, name = "PC1" },
+            new Pc { pc_id = 2, account_id = 1, name = "PC2" },
+            new Pc { pc_id = 3, account_id = 2, name = "PC3" }
         };
         var repo = new FakePcRepository(pcs);
 
@@ -65,7 +65,7 @@ public class PcRepositoryTests
     public async Task GetPcById_ReturnsPc_WhenPcExists()
     {
         // Arrange
-        var pc = new Pc { pc_id = 42, account_id = 1, game_system_id = 1, name = "Test PC" };
+        var pc = new Pc { pc_id = 42, account_id = 1, name = "Test PC" };
         var repo = new FakePcRepository(new[] { pc });
 
         // Act
@@ -79,51 +79,6 @@ public class PcRepositoryTests
 
     #endregion
 
-    #region GetPcsByGameSystemIdAsync Tests
-
-    [Fact]
-    public async Task GetPcsByGameSystemId_ReturnsFilteredPcs()
-    {
-        // Arrange
-        var pcs = new[]
-        {
-            new Pc { pc_id = 1, account_id = 1, game_system_id = 1, name = "D&D PC" },
-            new Pc { pc_id = 2, account_id = 1, game_system_id = 2, name = "Pathfinder PC" },
-            new Pc { pc_id = 3, account_id = 1, game_system_id = 1, name = "Another D&D PC" }
-        };
-        var repo = new FakePcRepository(pcs);
-
-        // Act
-        var result = await repo.GetPcsByGameSystemIdAsync(1, 1);
-
-        // Assert
-        var pcList = result.ToList();
-        Assert.Equal(2, pcList.Count);
-        Assert.All(pcList, pc => Assert.Equal(1, pc.game_system_id));
-    }
-
-    [Fact]
-    public async Task GetPcsByGameSystemId_RespectsAccountFilter()
-    {
-        // Arrange
-        var pcs = new[]
-        {
-            new Pc { pc_id = 1, account_id = 1, game_system_id = 1, name = "PC1" },
-            new Pc { pc_id = 2, account_id = 2, game_system_id = 1, name = "PC2" }
-        };
-        var repo = new FakePcRepository(pcs);
-
-        // Act
-        var result = await repo.GetPcsByGameSystemIdAsync(1, 1);
-
-        // Assert
-        var pcList = result.ToList();
-        Assert.Single(pcList);
-        Assert.Equal(1, pcList[0].account_id);
-    }
-
-    #endregion
-
     #region CreatePcAsync Tests
 
     [Fact]
@@ -131,7 +86,7 @@ public class PcRepositoryTests
     {
         // Arrange
         var repo = new FakePcRepository();
-        var pc = new Pc { account_id = 1, game_system_id = 1, name = "New PC" };
+        var pc = new Pc { account_id = 1, name = "New PC" };
 
         // Act
         var id = await repo.CreatePcAsync(pc);
@@ -146,7 +101,7 @@ public class PcRepositoryTests
     {
         // Arrange
         var repo = new FakePcRepository();
-        var pc = new Pc { account_id = 1, game_system_id = 1, name = "New PC" };
+        var pc = new Pc { account_id = 1, name = "New PC" };
         var beforeCreate = DateTime.UtcNow;
 
         // Act
@@ -162,7 +117,7 @@ public class PcRepositoryTests
     {
         // Arrange
         var repo = new FakePcRepository();
-        var pc = new Pc { account_id = 1, game_system_id = 1, name = "New PC" };
+        var pc = new Pc { account_id = 1, name = "New PC" };
 
         // Act
         var id = await repo.CreatePcAsync(pc);
@@ -181,14 +136,14 @@ public class PcRepositoryTests
     public async Task UpdatePc_ModifiesExistingPc()
     {
         // Arrange
-        var pc = new Pc { pc_id = 1, account_id = 1, game_system_id = 1, name = "Original Name" };
+        var pc = new Pc { pc_id = 1, account_id = 1, name = "Original Name" };
         var repo = new FakePcRepository(new[] { pc });
-        
+
         var updated = new Pc 
         { 
             pc_id = 1, 
             account_id = 1, 
-            game_system_id = 1, 
+
             name = "Updated Name",
             description = "New description"
         };
@@ -212,7 +167,7 @@ public class PcRepositoryTests
         { 
             pc_id = 1, 
             account_id = 1, 
-            game_system_id = 1, 
+
             name = "PC",
             updated_at = originalTime
         };
@@ -236,7 +191,7 @@ public class PcRepositoryTests
     public async Task DeletePc_RemovesPcFromRepository()
     {
         // Arrange
-        var pc = new Pc { pc_id = 1, account_id = 1, game_system_id = 1, name = "To Delete" };
+        var pc = new Pc { pc_id = 1, account_id = 1, name = "To Delete" };
         var repo = new FakePcRepository(new[] { pc });
 
         // Act
@@ -265,7 +220,7 @@ public class PcRepositoryTests
     public async Task PcExists_ReturnsTrue_WhenPcExists()
     {
         // Arrange
-        var pc = new Pc { pc_id = 1, account_id = 1, game_system_id = 1, name = "PC" };
+        var pc = new Pc { pc_id = 1, account_id = 1, name = "PC" };
         var repo = new FakePcRepository(new[] { pc });
 
         // Act

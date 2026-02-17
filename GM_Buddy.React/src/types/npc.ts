@@ -5,7 +5,6 @@ export interface NPC {
   class: string;
   description: string;
   campaignId?: number;
-  system?: string; // Game system name (read-only from campaign)
   faction?: string;
   notes?: string;
   accountId?: number;

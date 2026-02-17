@@ -9,6 +9,4 @@ public class Npc
     public required string name { get; set; }
     public string? description { get; set; }
     public required string stats { get; set; }
-    public int? game_system_id { get; set; }
-    public string? game_system_name { get; set; }
 }
