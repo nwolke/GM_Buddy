@@ -10,15 +10,14 @@ public class PcMapperTests
     public void MapToPcDto_MapsAllFields_Correctly()
     {
         // Arrange
-        var now = DateTime.UtcNow;
         var pc = new Pc
         {
             pc_id = 42,
             account_id = 7,
             name = "Thorin Ironforge",
             description = "A stout dwarven cleric",
-            created_at = now,
-            updated_at = now.AddHours(1)
+            created_at = DateTime.UtcNow,
+            updated_at = DateTime.UtcNow
         };
 
         // Act
@@ -28,8 +27,6 @@ public class PcMapperTests
         Assert.Equal(42, dto.Pc_Id);
         Assert.Equal("Thorin Ironforge", dto.Name);
         Assert.Equal("A stout dwarven cleric", dto.Description);
-        Assert.Equal(now, dto.Created_At);
-        Assert.Equal(now.AddHours(1), dto.Updated_At);
     }
 
     [Fact]
@@ -63,5 +60,17 @@ public class PcMapperTests
         Assert.Null(dtoType.GetProperty("account_id"));
         Assert.Null(dtoType.GetProperty("Account_Id"));
         Assert.Null(dtoType.GetProperty("AccountId"));
+    }
+
+    [Fact]
+    public void MapToPcDto_DoesNotIncludeTimestamps_InReturnType()
+    {
+        // Verify PcDto has no timestamp properties — they're intentionally excluded
+        var dtoType = typeof(PcDto);
+
+        Assert.Null(dtoType.GetProperty("Created_At"));
+        Assert.Null(dtoType.GetProperty("Updated_At"));
+        Assert.Null(dtoType.GetProperty("created_at"));
+        Assert.Null(dtoType.GetProperty("updated_at"));
     }
 }

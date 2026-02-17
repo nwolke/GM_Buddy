@@ -60,10 +60,4 @@ describe('PCCard', () => {
     expect(mockOnDelete).toHaveBeenCalledWith(mockPCs[0].id)
   })
 
-  it('should render created date when createdAt is present', () => {
-    render(<PCCard {...defaultProps} />)
-
-    // 2024-01-01 formatted date should appear
-    expect(screen.getByText(/Created/i)).toBeInTheDocument()
-  })
 })

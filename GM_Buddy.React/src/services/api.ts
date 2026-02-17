@@ -432,7 +432,7 @@ export const campaignApi = {
   },
 };
 
-// PC API response type (matches PcDto from backend — no account_id)
+// PC API response type (matches PcDto from backend — no account_id, no timestamps)
 export interface ApiPc {
   pc_id?: number;
   Pc_Id?: number;
@@ -440,10 +440,6 @@ export interface ApiPc {
   Name?: string;
   description?: string;
   Description?: string;
-  created_at?: string;
-  Created_At?: string;
-  updated_at?: string;
-  Updated_At?: string;
 }
 
 // Normalize API PC response to frontend PC type
@@ -451,8 +447,6 @@ const normalizeApiPc = (raw: ApiPc): PC => ({
   id: raw.pc_id ?? raw.Pc_Id ?? 0,
   name: raw.name ?? raw.Name ?? '',
   description: raw.description ?? raw.Description,
-  createdAt: raw.created_at ?? raw.Created_At,
-  updatedAt: raw.updated_at ?? raw.Updated_At,
 });
 
 // PC API calls
