@@ -16,14 +16,12 @@ public class NewAccountDataSeederTests
         // Arrange
         var npcRepo = new FakeNpcRepository();
         var campaignRepo = new FakeCampaignRepository();
-        var gameSystemRepo = new FakeGameSystemRepository();
         var relationshipRepo = new FakeRelationshipRepository();
 
         var seeder = new NewAccountDataSeeder(
             NullLogger<NewAccountDataSeeder>.Instance,
             npcRepo,
             campaignRepo,
-            gameSystemRepo,
             relationshipRepo
         );
 
@@ -41,9 +39,6 @@ public class NewAccountDataSeederTests
         Assert.Equal("A beginner-friendly adventure in the world of GM Buddy", campaignList[0].description);
         Assert.Equal(testAccountId, campaignList[0].account_id);
 
-        // Verify it uses Generic game system
-        var genericSystem = await gameSystemRepo.GetByNameAsync("Generic");
-        Assert.NotNull(genericSystem);
     }
 
     [Fact]
@@ -52,14 +47,12 @@ public class NewAccountDataSeederTests
         // Arrange
         var npcRepo = new FakeNpcRepository();
         var campaignRepo = new FakeCampaignRepository();
-        var gameSystemRepo = new FakeGameSystemRepository();
         var relationshipRepo = new FakeRelationshipRepository();
 
         var seeder = new NewAccountDataSeeder(
             NullLogger<NewAccountDataSeeder>.Instance,
             npcRepo,
             campaignRepo,
-            gameSystemRepo,
             relationshipRepo
         );
 
@@ -105,14 +98,12 @@ public class NewAccountDataSeederTests
         // Arrange
         var npcRepo = new FakeNpcRepository();
         var campaignRepo = new FakeCampaignRepository();
-        var gameSystemRepo = new FakeGameSystemRepository();
         var relationshipRepo = new FakeRelationshipRepository();
 
         var seeder = new NewAccountDataSeeder(
             NullLogger<NewAccountDataSeeder>.Instance,
             npcRepo,
             campaignRepo,
-            gameSystemRepo,
             relationshipRepo
         );
 
@@ -138,14 +129,12 @@ public class NewAccountDataSeederTests
         // Arrange
         var npcRepo = new FakeNpcRepository();
         var campaignRepo = new FakeCampaignRepository();
-        var gameSystemRepo = new FakeGameSystemRepository();
         var relationshipRepo = new FakeRelationshipRepository();
 
         var seeder = new NewAccountDataSeeder(
             NullLogger<NewAccountDataSeeder>.Instance,
             npcRepo,
             campaignRepo,
-            gameSystemRepo,
             relationshipRepo
         );
 
@@ -178,39 +167,11 @@ public class NewAccountDataSeederTests
     }
 
     [Fact]
-    public async Task SeedDefaultDataForNewAccountAsync_ThrowsExceptionWhenGenericGameSystemNotFound()
-    {
-        // Arrange
-        var npcRepo = new FakeNpcRepository();
-        var campaignRepo = new FakeCampaignRepository();
-        var emptyGameSystemRepo = new FakeGameSystemRepository(Array.Empty<Game_System>()); // No game systems
-        var relationshipRepo = new FakeRelationshipRepository();
-
-        var seeder = new NewAccountDataSeeder(
-            NullLogger<NewAccountDataSeeder>.Instance,
-            npcRepo,
-            campaignRepo,
-            emptyGameSystemRepo,
-            relationshipRepo
-        );
-
-        int testAccountId = 999;
-
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            async () => await seeder.SeedDefaultDataForNewAccountAsync(testAccountId)
-        );
-
-        Assert.Equal("Generic Game System not found.", exception.Message);
-    }
-
-    [Fact]
     public async Task SeedDefaultDataForNewAccountAsync_ThrowsExceptionWhenAllyRelationshipTypeNotFound()
     {
         // Arrange
         var npcRepo = new FakeNpcRepository();
         var campaignRepo = new FakeCampaignRepository();
-        var gameSystemRepo = new FakeGameSystemRepository();
         var emptyRelationshipRepo = new FakeRelationshipRepository(
             relationshipTypes: Array.Empty<RelationshipType>() // No relationship types
         );
@@ -219,7 +180,6 @@ public class NewAccountDataSeederTests
             NullLogger<NewAccountDataSeeder>.Instance,
             npcRepo,
             campaignRepo,
-            gameSystemRepo,
             emptyRelationshipRepo
         );
 
@@ -239,14 +199,12 @@ public class NewAccountDataSeederTests
         // Arrange
         var npcRepo = new FakeNpcRepository();
         var campaignRepo = new FakeCampaignRepository();
-        var gameSystemRepo = new FakeGameSystemRepository();
         var relationshipRepo = new FakeRelationshipRepository();
 
         var seeder = new NewAccountDataSeeder(
             NullLogger<NewAccountDataSeeder>.Instance,
             npcRepo,
             campaignRepo,
-            gameSystemRepo,
             relationshipRepo
         );
 
