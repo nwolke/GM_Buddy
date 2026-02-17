@@ -18,7 +18,7 @@ public class PcsController : ControllerBase
     }
 
     /// <summary>
-    /// Get all PCs, optionally filtered by account
+    /// Get all PCs for a specific account
     /// </summary>
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Pc>>> GetPcs(

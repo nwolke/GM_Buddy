@@ -7,5 +7,4 @@ public class BaseNpc
     public int Campaign_Id { get; set; }
     public required string Name { get; set; }
     public string? Description { get; set; }
-    public string? System { get; set; }
 }

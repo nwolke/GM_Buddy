@@ -100,14 +100,9 @@ export function useCampaignData(): UseCampaignDataReturn {
         // Create new campaign
         console.log('[useCampaignData] Creating new campaign:', campaignData);
         
-        if (!campaignData.gameSystemId) {
-          throw new Error('Game system is required for new campaigns');
-        }
-        
         const createRequest: CreateCampaignRequest = {
           name: campaignData.name,
           description: campaignData.description,
-          game_system_id: campaignData.gameSystemId,
         };
         const newCampaign = await campaignApi.createCampaign(createRequest);
         setCampaigns(prev => [...prev, newCampaign]);

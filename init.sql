@@ -463,7 +463,7 @@ VALUES
   )
 ON CONFLICT DO NOTHING;
 
--- Reference Data Tables for game systems (system-agnostic terminology)
--- Note: Reference lineage and occupation tables removed as part of GM-108
--- to simplify the MVP. Game systems are kept for technical debt but no longer
--- actively used in campaigns, NPCs, PCs, or organizations.
+-- Game System Table (Technical Debt)
+-- Note: Reference lineage and occupation tables removed as part of GM-108.
+-- Game systems table is retained for potential future use but is not currently
+-- referenced by campaigns, NPCs, PCs, or organizations.
