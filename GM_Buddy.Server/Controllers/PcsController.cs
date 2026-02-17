@@ -101,6 +101,10 @@ public class PcsController : ControllerBase
     /// <summary>
     /// Update an existing PC (must be owned by the authenticated user)
     /// </summary>
+    /// <remarks>
+    /// Note: ID mismatch validation is not needed since UpdatePcRequest does not contain pc_id.
+    /// The ID is validated via ownership check instead.
+    /// </remarks>
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdatePc(int id, [FromBody] UpdatePcRequest request)
     {

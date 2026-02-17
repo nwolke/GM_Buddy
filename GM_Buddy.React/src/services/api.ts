@@ -432,8 +432,8 @@ export const campaignApi = {
   },
 };
 
-// PC API Types (matching backend response - ASP.NET uses PascalCase for DTOs)
-interface ApiPc {
+// PC API Types (matching backend PcDto - ASP.NET uses camelCase in JSON by default)
+interface ApiPcDto {
   pcId: number;
   name: string;
   description?: string;
@@ -441,8 +441,8 @@ interface ApiPc {
   updatedAt: string;
 }
 
-// Transform API PC to frontend PC
-const transformApiPcToPc = (apiPc: ApiPc): PC => {
+// Transform API PC DTO to frontend PC
+const transformApiPcToPc = (apiPc: ApiPcDto): PC => {
   return {
     id: apiPc.pcId,
     name: apiPc.name,
@@ -466,19 +466,19 @@ export interface UpdatePcRequest {
 export const pcApi = {
   // Get all PCs for the authenticated user
   async getPcs(): Promise<PC[]> {
-    const response = await apiClient.get<ApiPc[]>('/Pcs');
+    const response = await apiClient.get<ApiPcDto[]>('/Pcs');
     return response.data.map(transformApiPcToPc);
   },
 
   // Get single PC by ID
   async getPc(id: number): Promise<PC> {
-    const response = await apiClient.get<ApiPc>(`/Pcs/${id}`);
+    const response = await apiClient.get<ApiPcDto>(`/Pcs/${id}`);
     return transformApiPcToPc(response.data);
   },
 
   // Create a new PC for the authenticated user
   async createPc(pc: CreatePcRequest): Promise<PC> {
-    const response = await apiClient.post<ApiPc>('/Pcs', pc);
+    const response = await apiClient.post<ApiPcDto>('/Pcs', pc);
     return transformApiPcToPc(response.data);
   },
 
