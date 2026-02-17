@@ -443,11 +443,31 @@ export interface ApiPc {
 }
 
 // Normalize API PC response to frontend PC type
-const normalizeApiPc = (raw: ApiPc): PC => ({
-  id: raw.pc_id ?? raw.Pc_Id ?? 0,
-  name: raw.name ?? raw.Name ?? '',
-  description: raw.description ?? raw.Description,
-});
+const normalizeApiPc = (raw: ApiPc): PC => {
+  const id = raw.pc_id ?? raw.Pc_Id;
+  const name = raw.name ?? raw.Name;
+  const description = raw.description ?? raw.Description;
+
+  if (id === undefined) {
+    console.warn(
+      'normalizeApiPc: missing pc_id/Pc_Id in API response, defaulting id to 0.',
+      raw
+    );
+  }
+
+  if (name === undefined) {
+    console.warn(
+      'normalizeApiPc: missing name/Name in API response, defaulting name to empty string.',
+      raw
+    );
+  }
+
+  return {
+    id: id ?? 0,
+    name: name ?? '',
+    description,
+  };
+};
 
 // PC API calls
 export const pcApi = {
