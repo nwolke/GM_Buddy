@@ -1,5 +1,5 @@
-using GM_Buddy.Contracts.DbEntities;
 using GM_Buddy.Contracts.Interfaces;
+using GM_Buddy.Contracts.Models.Pcs;
 using GM_Buddy.Server.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,16 +12,16 @@ namespace GM_Buddy.Server.Controllers;
 public class PcsController : ControllerBase
 {
     private readonly ILogger<PcsController> _logger;
-    private readonly IPcRepository _repository;
+    private readonly IPcLogic _logic;
     private readonly IAuthHelper _authHelper;
 
     public PcsController(
-        ILogger<PcsController> logger, 
-        IPcRepository repository,
+        ILogger<PcsController> logger,
+        IPcLogic logic,
         IAuthHelper authHelper)
     {
         _logger = logger;
-        _repository = repository;
+        _logic = logic;
         _authHelper = authHelper;
     }
 
@@ -29,11 +29,10 @@ public class PcsController : ControllerBase
     /// Get all PCs for the authenticated account
     /// </summary>
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Pc>>> GetPcs()
+    public async Task<ActionResult<IEnumerable<PcDto>>> GetPcs()
     {
         int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
-        IEnumerable<Pc> pcs = await _repository.GetPcsByAccountIdAsync(accountId);
-
+        IEnumerable<PcDto> pcs = await _logic.GetPcsAsync(accountId);
         return Ok(pcs);
     }
 
@@ -41,34 +40,33 @@ public class PcsController : ControllerBase
     /// Get a specific PC by ID (must be owned by the authenticated user)
     /// </summary>
     [HttpGet("{id}")]
-    public async Task<ActionResult<Pc>> GetPc(int id)
+    public async Task<ActionResult<PcDto>> GetPc(int id)
     {
         int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
         _logger.LogInformation("Getting PC {PcId} for account {AccountId}", id, accountId);
-        
-        Pc? pc = await _repository.GetPcByIdAsync(id);
 
-        if (pc == null)
+        try
         {
-            return NotFound($"PC with ID {id} not found");
+            PcDto? pc = await _logic.GetPcAsync(id, accountId);
+            if (pc == null)
+            {
+                return NotFound($"PC with ID {id} not found");
+            }
+            return Ok(pc);
         }
-
-        // Verify ownership
-        if (pc.account_id != accountId)
+        catch (UnauthorizedAccessException)
         {
-            _logger.LogWarning("Account {AccountId} attempted to access PC {PcId} owned by {OwnerId}", 
-                accountId, id, pc.account_id);
+            _logger.LogWarning("Account {AccountId} attempted to access PC {PcId} not owned by their account",
+                accountId, id);
             return Forbid();
         }
-
-        return Ok(pc);
     }
 
     /// <summary>
     /// Create a new PC for the authenticated user
     /// </summary>
     [HttpPost]
-    public async Task<ActionResult<int>> CreatePc([FromBody] Pc pc)
+    public async Task<ActionResult<PcDto>> CreatePc([FromBody] CreatePcRequest request)
     {
         int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
 
@@ -77,49 +75,41 @@ public class PcsController : ControllerBase
             return BadRequest(ModelState);
         }
 
-        // Ensure PC is tied to authenticated user
-        pc.account_id = accountId;
+        _logger.LogInformation("Creating new PC: {Name} for account {AccountId}", request.Name, accountId);
+        PcDto created = await _logic.CreatePcAsync(accountId, request);
 
-        _logger.LogInformation("Creating new PC: {Name} for account {AccountId}", pc.name, accountId);
-        int pcId = await _repository.CreatePcAsync(pc);
-
-        return CreatedAtAction(nameof(GetPc), new { id = pcId }, pcId);
+        return CreatedAtAction(nameof(GetPc), new { id = created.Pc_Id }, created);
     }
 
     /// <summary>
     /// Update an existing PC (must be owned by the authenticated user)
     /// </summary>
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdatePc(int id, [FromBody] Pc pc)
+    public async Task<IActionResult> UpdatePc(int id, [FromBody] UpdatePcRequest request)
     {
         int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
 
-        if (id != pc.pc_id)
+        if (!ModelState.IsValid)
         {
-            return BadRequest("PC ID mismatch");
+            return BadRequest(ModelState);
         }
 
-        Pc? existingPc = await _repository.GetPcByIdAsync(id);
-        if (existingPc == null)
+        try
         {
-            return NotFound($"PC with ID {id} not found");
+            bool found = await _logic.UpdatePcAsync(id, accountId, request);
+            if (!found)
+            {
+                return NotFound($"PC with ID {id} not found");
+            }
+            _logger.LogInformation("Updated PC {PcId} for account {AccountId}", id, accountId);
+            return NoContent();
         }
-
-        // Verify ownership
-        if (existingPc.account_id != accountId)
+        catch (UnauthorizedAccessException)
         {
-            _logger.LogWarning("Account {AccountId} attempted to update PC {PcId} owned by {OwnerId}", 
-                accountId, id, existingPc.account_id);
+            _logger.LogWarning("Account {AccountId} attempted to update PC {PcId} not owned by their account",
+                accountId, id);
             return Forbid();
         }
-
-        // Ensure account_id cannot be changed
-        pc.account_id = accountId;
-
-        _logger.LogInformation("Updating PC {PcId} for account {AccountId}", id, accountId);
-        await _repository.UpdatePcAsync(pc);
-
-        return NoContent();
     }
 
     /// <summary>
@@ -130,86 +120,124 @@ public class PcsController : ControllerBase
     {
         int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
 
-        Pc? pc = await _repository.GetPcByIdAsync(id);
-        if (pc == null)
+        try
         {
-            return NotFound($"PC with ID {id} not found");
+            bool found = await _logic.DeletePcAsync(id, accountId);
+            if (!found)
+            {
+                return NotFound($"PC with ID {id} not found");
+            }
+            _logger.LogInformation("Deleted PC {PcId} for account {AccountId}", id, accountId);
+            return NoContent();
         }
-
-        // Verify ownership
-        if (pc.account_id != accountId)
+        catch (UnauthorizedAccessException)
         {
-            _logger.LogWarning("Account {AccountId} attempted to delete PC {PcId} owned by {OwnerId}", 
-                accountId, id, pc.account_id);
+            _logger.LogWarning("Account {AccountId} attempted to delete PC {PcId} not owned by their account",
+                accountId, id);
             return Forbid();
         }
-
-        _logger.LogInformation("Deleting PC {PcId} for account {AccountId}", id, accountId);
-        await _repository.DeletePcAsync(id);
-
-        return NoContent();
     }
 
     /// <summary>
-    /// Get all PCs for a specific account
+    /// Get all PCs in a specific campaign (linked via entity_relationship)
+    /// User must own the campaign to access its PCs
     /// </summary>
-    [HttpGet("account/{accountId}")]
-    public async Task<ActionResult<IEnumerable<Pc>>> GetPcsByAccount(int accountId)
+    [HttpGet("campaign/{campaignId}")]
+    public async Task<ActionResult<IEnumerable<PcDto>>> GetPcsByCampaign(int campaignId)
     {
-        _logger.LogInformation("Getting PCs for account {AccountId}", accountId);
-        IEnumerable<Pc> pcs = await _repository.GetPcsByAccountIdAsync(accountId);
+        int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
+        _logger.LogInformation("Getting PCs for campaign {CampaignId} requested by account {AccountId}", 
+            campaignId, accountId);
+        
+        // TODO: Verify campaign ownership - for now we'll allow access
+        // In the future, add campaign ownership check here
+        IEnumerable<PcDto> pcs = await _logic.GetPcsByCampaignAsync(campaignId);
         return Ok(pcs);
     }
 
     /// <summary>
-    /// Get all PCs in a specific campaign
+    /// Get all PCs for a specific account
+    /// User must be querying their own account
     /// </summary>
-    [HttpGet("campaign/{campaignId}")]
-    public async Task<ActionResult<IEnumerable<Pc>>> GetPcsByCampaign(int campaignId)
+    [HttpGet("account/{accountId}")]
+    public async Task<ActionResult<IEnumerable<PcDto>>> GetPcsByAccount(int accountId)
     {
-        _logger.LogInformation("Getting PCs for campaign {CampaignId}", campaignId);
-        IEnumerable<Pc> pcs = await _repository.GetPcsByCampaignIdAsync(campaignId);
+        int authenticatedAccountId = await _authHelper.GetAuthenticatedAccountIdAsync();
+        
+        if (authenticatedAccountId != accountId)
+        {
+            _logger.LogWarning("Account {AuthAccountId} attempted to access PCs for account {AccountId}",
+                authenticatedAccountId, accountId);
+            return Forbid();
+        }
+        
+        _logger.LogInformation("Getting PCs for account {AccountId}", accountId);
+        IEnumerable<PcDto> pcs = await _logic.GetPcsAsync(accountId);
         return Ok(pcs);
     }
 
     /// <summary>
     /// Get all active PCs for an account
+    /// User must be querying their own account
     /// </summary>
     [HttpGet("active")]
-    public async Task<ActionResult<IEnumerable<Pc>>> GetActivePcs([FromQuery] int accountId)
+    public async Task<ActionResult<IEnumerable<PcDto>>> GetActivePcs([FromQuery] int accountId)
     {
+        int authenticatedAccountId = await _authHelper.GetAuthenticatedAccountIdAsync();
+        
+        if (authenticatedAccountId != accountId)
+        {
+            _logger.LogWarning("Account {AuthAccountId} attempted to access active PCs for account {AccountId}",
+                authenticatedAccountId, accountId);
+            return Forbid();
+        }
+        
         _logger.LogInformation("Getting active PCs for account {AccountId}", accountId);
-        // For now, return all PCs for the account
         // TODO: Filter to only PCs currently in active campaigns
-        IEnumerable<Pc> pcs = await _repository.GetPcsByAccountIdAsync(accountId);
+        IEnumerable<PcDto> pcs = await _logic.GetPcsAsync(accountId);
         return Ok(pcs);
     }
 
     /// <summary>
     /// Get the party (all PCs) for a campaign
+    /// User must own the campaign to access its party
     /// </summary>
     [HttpGet("party/{campaignId}")]
-    public async Task<ActionResult<IEnumerable<Pc>>> GetParty(int campaignId)
+    public async Task<ActionResult<IEnumerable<PcDto>>> GetParty(int campaignId)
     {
-        _logger.LogInformation("Getting party for campaign {CampaignId}", campaignId);
-        IEnumerable<Pc> pcs = await _repository.GetPcsByCampaignIdAsync(campaignId);
+        int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
+        _logger.LogInformation("Getting party for campaign {CampaignId} requested by account {AccountId}", 
+            campaignId, accountId);
+        
+        // TODO: Verify campaign ownership - for now we'll allow access
+        // In the future, add campaign ownership check here
+        IEnumerable<PcDto> pcs = await _logic.GetPcsByCampaignAsync(campaignId);
         return Ok(pcs);
     }
 
     /// <summary>
     /// Export PCs in specified format
+    /// User must be exporting their own account's PCs
     /// </summary>
     [HttpGet("export")]
     public async Task<IActionResult> ExportPcs(
         [FromQuery] int accountId,
         [FromQuery] string format = "json")
     {
+        int authenticatedAccountId = await _authHelper.GetAuthenticatedAccountIdAsync();
+        
+        if (authenticatedAccountId != accountId)
+        {
+            _logger.LogWarning("Account {AuthAccountId} attempted to export PCs for account {AccountId}",
+                authenticatedAccountId, accountId);
+            return Forbid();
+        }
+        
         _logger.LogInformation("Exporting PCs for account {AccountId} in {Format} format",
             accountId, format);
 
-        IEnumerable<Pc> pcs = await _repository.GetPcsByAccountIdAsync(accountId);
+        IEnumerable<PcDto> pcs = await _logic.GetPcsAsync(accountId);
 
-        // For now, just return JSON
         // TODO: Add support for other formats (CSV, XML, etc.)
         return Ok(pcs);
     }

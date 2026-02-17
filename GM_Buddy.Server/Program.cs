@@ -106,6 +106,7 @@ builder.Services.AddScoped<INpcRepository, NpcRepository>();
 builder.Services.AddScoped<ICampaignRepository, CampaignRepository>();
 builder.Services.AddScoped<IRelationshipRepository, RelationshipRepository>();
 builder.Services.AddScoped<IPcRepository, PcRepository>();
+builder.Services.AddScoped<IPcLogic, PcLogic>();
 builder.Services.AddScoped<IOrganizationRepository, OrganizationRepository>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAuthHelper, AuthHelper>();

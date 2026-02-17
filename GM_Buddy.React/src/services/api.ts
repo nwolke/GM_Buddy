@@ -1,6 +1,7 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { toast } from 'sonner';
 import { NPC } from '@/types/npc';
+import { PC } from '@/types/pc';
 import { Campaign } from '@/types/campaign';
 import { getIdToken, refreshTokens, clearTokens } from './cognito';
 import { extractApiError } from './apiError';
@@ -428,6 +429,80 @@ export const campaignApi = {
   // Delete a campaign
   async deleteCampaign(id: number): Promise<void> {
     await apiClient.delete(`/Campaigns/${id}`);
+  },
+};
+
+// PC API response type (matches PcDto from backend — no account_id, no timestamps)
+export interface ApiPc {
+  pc_id?: number;
+  Pc_Id?: number;
+  name?: string;
+  Name?: string;
+  description?: string;
+  Description?: string;
+}
+
+// Normalize API PC response to frontend PC type
+const normalizeApiPc = (raw: ApiPc): PC => {
+  const id = raw.pc_id ?? raw.Pc_Id;
+  const name = raw.name ?? raw.Name;
+  const description = raw.description ?? raw.Description;
+
+  if (id === undefined) {
+    console.warn(
+      'normalizeApiPc: missing pc_id/Pc_Id in API response, defaulting id to 0.',
+      raw
+    );
+  }
+
+  if (name === undefined) {
+    console.warn(
+      'normalizeApiPc: missing name/Name in API response, defaulting name to empty string.',
+      raw
+    );
+  }
+
+  return {
+    id: id ?? 0,
+    name: name ?? '',
+    description,
+  };
+};
+
+// PC API calls
+export const pcApi = {
+  // Get all PCs for the authenticated user
+  async getPcs(): Promise<PC[]> {
+    const response = await apiClient.get<ApiPc[]>('/Pcs');
+    return response.data.map(normalizeApiPc);
+  },
+
+  // Get PCs linked to a campaign (via entity_relationship)
+  async getPcsByCampaign(campaignId: number): Promise<PC[]> {
+    const response = await apiClient.get<ApiPc[]>(`/Pcs/campaign/${campaignId}`);
+    return response.data.map(normalizeApiPc);
+  },
+
+  // Get a single PC by ID
+  async getPc(id: number): Promise<PC> {
+    const response = await apiClient.get<ApiPc>(`/Pcs/${id}`);
+    return normalizeApiPc(response.data);
+  },
+
+  // Create a new PC for the authenticated user
+  async createPc(data: { name: string; description?: string }): Promise<PC> {
+    const response = await apiClient.post<ApiPc>('/Pcs', data);
+    return normalizeApiPc(response.data);
+  },
+
+  // Update an existing PC
+  async updatePc(id: number, data: { name: string; description?: string }): Promise<void> {
+    await apiClient.put(`/Pcs/${id}`, data);
+  },
+
+  // Delete a PC
+  async deletePc(id: number): Promise<void> {
+    await apiClient.delete(`/Pcs/${id}`);
   },
 };
 
