@@ -123,8 +123,6 @@ export interface ApiNpc {
   Name?: string;        // Alternative casing
   description?: string; // From BaseNpc.Description
   Description?: string; // Alternative casing
-  system?: string;      // From BaseNpc.System
-  System?: string;      // Alternative casing
   stats?: {             // Stats object from DndNpc (supporting legacy and current shapes)
     // Legacy fields (older API shape)
     race?: string;
@@ -154,7 +152,6 @@ const normalizeApiNpc = (apiNpc: ApiNpc): {
   campaignId?: number;
   name: string; 
   description?: string; 
-  system?: string;
   race?: string;
   class?: string;
   faction?: string;
@@ -167,7 +164,6 @@ const normalizeApiNpc = (apiNpc: ApiNpc): {
     campaignId: apiNpc.campaign_Id ?? apiNpc.Campaign_Id,
     name: apiNpc.name ?? apiNpc.Name ?? '',
     description: apiNpc.description ?? apiNpc.Description,
-    system: apiNpc.system ?? apiNpc.System,
     // Support both legacy shape (race/class) and current DnDStats shape (lineage/occupation)
     race: stats?.race ?? stats?.lineage,
     class: stats?.class ?? stats?.occupation,
