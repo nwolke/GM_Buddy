@@ -1,5 +1,7 @@
 using GM_Buddy.Contracts.DbEntities;
 using GM_Buddy.Contracts.Interfaces;
+using GM_Buddy.Contracts.Models.Pcs;
+using GM_Buddy.Business.Mappers;
 using GM_Buddy.Server.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -29,19 +31,20 @@ public class PcsController : ControllerBase
     /// Get all PCs for the authenticated account
     /// </summary>
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Pc>>> GetPcs()
+    public async Task<ActionResult<IEnumerable<PcDto>>> GetPcs()
     {
         int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
         IEnumerable<Pc> pcs = await _repository.GetPcsByAccountIdAsync(accountId);
+        IEnumerable<PcDto> pcDtos = pcs.Select(PcMapper.MapToPcDto);
 
-        return Ok(pcs);
+        return Ok(pcDtos);
     }
 
     /// <summary>
     /// Get a specific PC by ID (must be owned by the authenticated user)
     /// </summary>
     [HttpGet("{id}")]
-    public async Task<ActionResult<Pc>> GetPc(int id)
+    public async Task<ActionResult<PcDto>> GetPc(int id)
     {
         int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
         _logger.LogInformation("Getting PC {PcId} for account {AccountId}", id, accountId);
@@ -61,14 +64,15 @@ public class PcsController : ControllerBase
             return Forbid();
         }
 
-        return Ok(pc);
+        PcDto pcDto = PcMapper.MapToPcDto(pc);
+        return Ok(pcDto);
     }
 
     /// <summary>
     /// Create a new PC for the authenticated user
     /// </summary>
     [HttpPost]
-    public async Task<ActionResult<int>> CreatePc([FromBody] Pc pc)
+    public async Task<ActionResult<PcDto>> CreatePc([FromBody] CreatePcRequest request)
     {
         int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
 
@@ -77,27 +81,30 @@ public class PcsController : ControllerBase
             return BadRequest(ModelState);
         }
 
-        // Ensure PC is tied to authenticated user
-        pc.account_id = accountId;
+        // Map request to entity
+        Pc pc = PcMapper.MapToEntity(request, accountId);
 
         _logger.LogInformation("Creating new PC: {Name} for account {AccountId}", pc.name, accountId);
         int pcId = await _repository.CreatePcAsync(pc);
 
-        return CreatedAtAction(nameof(GetPc), new { id = pcId }, pcId);
+        // Get the created PC to return as DTO
+        Pc? createdPc = await _repository.GetPcByIdAsync(pcId);
+        if (createdPc == null)
+        {
+            return StatusCode(500, "Failed to retrieve created PC");
+        }
+
+        PcDto pcDto = PcMapper.MapToPcDto(createdPc);
+        return CreatedAtAction(nameof(GetPc), new { id = pcId }, pcDto);
     }
 
     /// <summary>
     /// Update an existing PC (must be owned by the authenticated user)
     /// </summary>
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdatePc(int id, [FromBody] Pc pc)
+    public async Task<IActionResult> UpdatePc(int id, [FromBody] UpdatePcRequest request)
     {
         int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
-
-        if (id != pc.pc_id)
-        {
-            return BadRequest("PC ID mismatch");
-        }
 
         Pc? existingPc = await _repository.GetPcByIdAsync(id);
         if (existingPc == null)
@@ -113,11 +120,11 @@ public class PcsController : ControllerBase
             return Forbid();
         }
 
-        // Ensure account_id cannot be changed
-        pc.account_id = accountId;
+        // Map request to entity
+        PcMapper.MapToEntity(request, existingPc);
 
         _logger.LogInformation("Updating PC {PcId} for account {AccountId}", id, accountId);
-        await _repository.UpdatePcAsync(pc);
+        await _repository.UpdatePcAsync(existingPc);
 
         return NoContent();
     }
@@ -154,46 +161,50 @@ public class PcsController : ControllerBase
     /// Get all PCs for a specific account
     /// </summary>
     [HttpGet("account/{accountId}")]
-    public async Task<ActionResult<IEnumerable<Pc>>> GetPcsByAccount(int accountId)
+    public async Task<ActionResult<IEnumerable<PcDto>>> GetPcsByAccount(int accountId)
     {
         _logger.LogInformation("Getting PCs for account {AccountId}", accountId);
         IEnumerable<Pc> pcs = await _repository.GetPcsByAccountIdAsync(accountId);
-        return Ok(pcs);
+        IEnumerable<PcDto> pcDtos = pcs.Select(PcMapper.MapToPcDto);
+        return Ok(pcDtos);
     }
 
     /// <summary>
     /// Get all PCs in a specific campaign
     /// </summary>
     [HttpGet("campaign/{campaignId}")]
-    public async Task<ActionResult<IEnumerable<Pc>>> GetPcsByCampaign(int campaignId)
+    public async Task<ActionResult<IEnumerable<PcDto>>> GetPcsByCampaign(int campaignId)
     {
         _logger.LogInformation("Getting PCs for campaign {CampaignId}", campaignId);
         IEnumerable<Pc> pcs = await _repository.GetPcsByCampaignIdAsync(campaignId);
-        return Ok(pcs);
+        IEnumerable<PcDto> pcDtos = pcs.Select(PcMapper.MapToPcDto);
+        return Ok(pcDtos);
     }
 
     /// <summary>
     /// Get all active PCs for an account
     /// </summary>
     [HttpGet("active")]
-    public async Task<ActionResult<IEnumerable<Pc>>> GetActivePcs([FromQuery] int accountId)
+    public async Task<ActionResult<IEnumerable<PcDto>>> GetActivePcs([FromQuery] int accountId)
     {
         _logger.LogInformation("Getting active PCs for account {AccountId}", accountId);
         // For now, return all PCs for the account
         // TODO: Filter to only PCs currently in active campaigns
         IEnumerable<Pc> pcs = await _repository.GetPcsByAccountIdAsync(accountId);
-        return Ok(pcs);
+        IEnumerable<PcDto> pcDtos = pcs.Select(PcMapper.MapToPcDto);
+        return Ok(pcDtos);
     }
 
     /// <summary>
     /// Get the party (all PCs) for a campaign
     /// </summary>
     [HttpGet("party/{campaignId}")]
-    public async Task<ActionResult<IEnumerable<Pc>>> GetParty(int campaignId)
+    public async Task<ActionResult<IEnumerable<PcDto>>> GetParty(int campaignId)
     {
         _logger.LogInformation("Getting party for campaign {CampaignId}", campaignId);
         IEnumerable<Pc> pcs = await _repository.GetPcsByCampaignIdAsync(campaignId);
-        return Ok(pcs);
+        IEnumerable<PcDto> pcDtos = pcs.Select(PcMapper.MapToPcDto);
+        return Ok(pcDtos);
     }
 
     /// <summary>
@@ -208,9 +219,10 @@ public class PcsController : ControllerBase
             accountId, format);
 
         IEnumerable<Pc> pcs = await _repository.GetPcsByAccountIdAsync(accountId);
+        IEnumerable<PcDto> pcDtos = pcs.Select(PcMapper.MapToPcDto);
 
         // For now, just return JSON
         // TODO: Add support for other formats (CSV, XML, etc.)
-        return Ok(pcs);
+        return Ok(pcDtos);
     }
 }
