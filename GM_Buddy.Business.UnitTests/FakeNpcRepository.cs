@@ -108,7 +108,7 @@ internal class FakeCampaignRepository : ICampaignRepository
         // Verify account ownership
         if (existing.account_id != campaign.account_id) return Task.FromResult(false);
 
-        // Only update name and description - game_system_id cannot be changed
+        // Only update name and description; other fields remain unchanged
         existing.name = campaign.name;
         existing.description = campaign.description;
         return Task.FromResult(true);
