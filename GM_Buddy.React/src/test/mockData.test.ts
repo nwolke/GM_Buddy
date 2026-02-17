@@ -7,7 +7,6 @@ describe('Mock Data', () => {
       expect(mockCampaigns).toHaveLength(2)
       expect(mockCampaigns[0]).toHaveProperty('id')
       expect(mockCampaigns[0]).toHaveProperty('name')
-      expect(mockCampaigns[0]).toHaveProperty('gameSystemId')
     })
 
     it('should have unique IDs', () => {

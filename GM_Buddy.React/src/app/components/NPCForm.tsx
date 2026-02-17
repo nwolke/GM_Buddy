@@ -29,7 +29,6 @@ const [formData, setFormData] = useState({
 
 const [campaigns, setCampaigns] = useState<Campaign[]>([]);
 const [loadingCampaigns, setLoadingCampaigns] = useState(false);
-const [selectedCampaignSystem, setSelectedCampaignSystem] = useState<string>("");
 const [originalCampaignId, setOriginalCampaignId] = useState<number | undefined>(undefined);
 const [showCampaignChangeWarning, setShowCampaignChangeWarning] = useState(false);
 
@@ -64,14 +63,6 @@ const [showCampaignChangeWarning, setShowCampaignChangeWarning] = useState(false
         notes: editingNPC.notes || ""
       });
       setOriginalCampaignId(editingNPC.campaignId);
-      
-      // Set the game system label for the selected campaign
-      if (editingNPC.campaignId) {
-        const campaign = campaigns.find(c => c.id === editingNPC.campaignId);
-        setSelectedCampaignSystem(campaign?.gameSystemName || editingNPC.system || "");
-      } else if (editingNPC.system) {
-        setSelectedCampaignSystem(editingNPC.system);
-      }
     } else {
       setFormData({
         name: "",
@@ -83,7 +74,6 @@ const [showCampaignChangeWarning, setShowCampaignChangeWarning] = useState(false
         notes: ""
       });
       setOriginalCampaignId(undefined);
-      setSelectedCampaignSystem("");
     }
   }, [editingNPC, open, campaigns]);
 
@@ -118,10 +108,6 @@ const [showCampaignChangeWarning, setShowCampaignChangeWarning] = useState(false
   const handleCampaignChange = (campaignId: string) => {
     const numericId = parseInt(campaignId);
     setFormData({ ...formData, campaignId: numericId });
-    
-    // Update the game system label
-    const campaign = campaigns.find(c => c.id === numericId);
-    setSelectedCampaignSystem(campaign?.gameSystemName || "");
   };
 
   return (
@@ -163,11 +149,6 @@ const [showCampaignChangeWarning, setShowCampaignChangeWarning] = useState(false
                   ))}
                 </SelectContent>
               </Select>
-              {selectedCampaignSystem && (
-                <p className="text-sm text-muted-foreground">
-                  Game System: {selectedCampaignSystem}
-                </p>
-              )}
               {editingNPC && originalCampaignId !== formData.campaignId && formData.campaignId && (
                 <div className="flex items-start gap-2 p-3 bg-yellow-500/10 border border-yellow-500/50 rounded-md">
                   <AlertTriangle className="size-5 text-yellow-600 mt-0.5 flex-shrink-0" />
