@@ -41,7 +41,7 @@ internal class FakeNpcRepository : INpcRepository
     {
         var existing = _npcs.FirstOrDefault(n => n.npc_id == npc.npc_id);
         if (existing == null) return Task.FromResult(false);
-        
+
         existing.name = npc.name;
         existing.description = npc.description;
         existing.stats = npc.stats;
@@ -52,7 +52,7 @@ internal class FakeNpcRepository : INpcRepository
     {
         var npc = _npcs.FirstOrDefault(n => n.npc_id == npcId);
         if (npc == null) return Task.FromResult(false);
-        
+
         _npcs.Remove(npc);
         return Task.FromResult(true);
     }
@@ -134,10 +134,10 @@ internal class FakeCampaignRepository : ICampaignRepository
     {
         var existing = _campaigns.FirstOrDefault(c => c.campaign_id == campaign.campaign_id);
         if (existing == null) return Task.FromResult(false);
-        
+
         // Verify account ownership
         if (existing.account_id != campaign.account_id) return Task.FromResult(false);
-        
+
         // Only update name and description - game_system_id cannot be changed
         existing.name = campaign.name;
         existing.description = campaign.description;

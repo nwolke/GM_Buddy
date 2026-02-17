@@ -110,16 +110,16 @@ public class AccountLogicTests
 
         // Assert
         Assert.NotNull(result);
-        
+
         // Serialize to JSON and deserialize to verify structure
         var json = JsonSerializer.Serialize(result);
         var doc = JsonDocument.Parse(json);
-        
+
         // Verify metadata
         Assert.True(doc.RootElement.TryGetProperty("ExportMetadata", out var metadata));
         Assert.Equal(1, metadata.GetProperty("AccountId").GetInt32());
         Assert.Equal("1.0", metadata.GetProperty("Version").GetString());
-        
+
         // Verify account data
         Assert.True(doc.RootElement.TryGetProperty("Account", out var accountData));
         Assert.Equal("test@example.com", accountData.GetProperty("email").GetString());
@@ -187,21 +187,21 @@ public class AccountLogicTests
 
         // Assert
         Assert.NotNull(result);
-        
+
         // Serialize to JSON and verify structure
         var json = JsonSerializer.Serialize(result);
         var doc = JsonDocument.Parse(json);
-        
+
         // Verify campaigns array exists and has data
         Assert.True(doc.RootElement.TryGetProperty("Campaigns", out var campaigns));
         Assert.Equal(JsonValueKind.Array, campaigns.ValueKind);
         Assert.True(campaigns.GetArrayLength() > 0, "Should have at least one campaign");
-        
+
         // Verify NPCs array exists and has data
         Assert.True(doc.RootElement.TryGetProperty("NPCs", out var npcs));
         Assert.Equal(JsonValueKind.Array, npcs.ValueKind);
         Assert.True(npcs.GetArrayLength() > 0, "Should have at least one NPC");
-        
+
         // Verify other entity arrays exist
         Assert.True(doc.RootElement.TryGetProperty("PCs", out _));
         Assert.True(doc.RootElement.TryGetProperty("Organizations", out _));

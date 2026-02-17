@@ -37,7 +37,7 @@ public class GameSystemHelper
                     requestedSystemName, gameSystem.game_system_id);
                 return gameSystem.game_system_id;
             }
-            
+
             _logger.LogWarning("Game system '{SystemName}' not found, using default", requestedSystemName);
         }
 

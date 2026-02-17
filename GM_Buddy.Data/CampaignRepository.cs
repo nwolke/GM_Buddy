@@ -8,7 +8,7 @@ namespace GM_Buddy.Data;
 public class CampaignRepository : ICampaignRepository
 {
     private readonly IDbConnector _dbConnector;
-    
+
     private const string CampaignSelectClause = @"
             SELECT c.campaign_id,
                    c.account_id, 
@@ -17,7 +17,7 @@ public class CampaignRepository : ICampaignRepository
                    c.created_at,
                    c.updated_at
             FROM campaign c";
-    
+
     public CampaignRepository(IDbConnector dbConnector)
     {
         _dbConnector = dbConnector;

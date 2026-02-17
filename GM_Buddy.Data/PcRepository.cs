@@ -57,7 +57,7 @@ public class PcRepository : IPcRepository
     public async Task<IEnumerable<Pc>> GetPcsByCampaignIdAsync(int campaignId, CancellationToken ct = default)
     {
         using IDbConnection dbConnection = _dbConnector.CreateConnection();
-        
+
         // Get PCs that have relationships with this campaign
         // This assumes PCs are linked to campaigns via entity_relationship table
         const string sql = @"

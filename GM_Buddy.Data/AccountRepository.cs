@@ -53,10 +53,10 @@ public class AccountRepository : IAccountRepository
     public async Task<Account> CreateAsync(string cognitoSub, string? email = null)
     {
         await using var connection = new NpgsqlConnection(_connectionString);
-        
+
         // Use cognitoSub as email placeholder if email not provided
         var emailValue = email ?? $"{cognitoSub}@cognito.user";
-        
+
         var accountId = await connection.QuerySingleAsync<int>(
             @"INSERT INTO auth.account (cognito_sub, email, subscription_tier, created_at)
               VALUES (@cognitoSub, @emailValue, 'free', NOW())
@@ -102,7 +102,7 @@ public class AccountRepository : IAccountRepository
     public async Task DeleteAsync(int accountId)
     {
         await using var connection = new NpgsqlConnection(_connectionString);
-        
+
         // The database CASCADE constraints will automatically delete:
         // - user_roles (via account_id FK)
         // - campaigns (via account_id FK) → which CASCADE to npcs
@@ -110,7 +110,7 @@ public class AccountRepository : IAccountRepository
         // - pcs (via account_id FK)
         // - organizations (via account_id FK)
         // - entity_relationships are handled indirectly through entity deletions
-        
+
         await connection.ExecuteAsync(
             @"DELETE FROM auth.account WHERE id = @accountId",
             new { accountId });

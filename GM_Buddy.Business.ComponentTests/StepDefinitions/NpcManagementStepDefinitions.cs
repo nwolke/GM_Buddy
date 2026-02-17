@@ -15,7 +15,7 @@ public class NpcManagementStepDefinitions
     private readonly FakeNpcRepository _npcRepository;
     private readonly FakeCampaignRepository _campaignRepository;
     private readonly NpcLogic _npcLogic;
-    
+
     private int _currentAccountId;
     private int _currentCampaignId;
     private int _createdNpcId;
@@ -40,7 +40,7 @@ public class NpcManagementStepDefinitions
     {
         _currentAccountId = accountId;
         _currentCampaignId = campaignId;
-        
+
         var campaign = new Campaign
         {
             campaign_id = campaignId,
@@ -62,7 +62,7 @@ public class NpcManagementStepDefinitions
     public void GivenIHaveACampaignWithIdBelongingToAccount(int campaignId, int accountId)
     {
         _currentCampaignId = campaignId;
-        
+
         var campaign = new Campaign
         {
             campaign_id = campaignId,
@@ -79,7 +79,7 @@ public class NpcManagementStepDefinitions
         _currentAccountId = accountId;
         var campaignId = 1;
         _currentCampaignId = campaignId;
-        
+
         // Ensure campaign exists
         var campaign = new Campaign
         {
@@ -121,7 +121,7 @@ public class NpcManagementStepDefinitions
     {
         var accountId = 100;
         var campaignId = 1;
-        
+
         var campaign = new Campaign
         {
             campaign_id = campaignId,
@@ -156,7 +156,7 @@ public class NpcManagementStepDefinitions
     {
         _currentAccountId = accountId;
         _currentCampaignId = campaignId;
-        
+
         var campaign = new Campaign
         {
             campaign_id = campaignId,

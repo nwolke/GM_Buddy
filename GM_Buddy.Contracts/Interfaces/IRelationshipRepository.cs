@@ -8,7 +8,7 @@ namespace GM_Buddy.Contracts.Interfaces;
 public interface IRelationshipRepository
 {
     // Relationship Type Methods
-    
+
     /// <summary>
     /// Get all relationship types
     /// </summary>

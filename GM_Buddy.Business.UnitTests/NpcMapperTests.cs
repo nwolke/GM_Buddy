@@ -22,10 +22,10 @@ public class NpcMapperTests
             npc_id = 1,
             account_id = 2,
             campaign_id = 1,
-            
+
             name = "GoblinBoy",
             stats = statsJson,
-            
+
         };
 
         // Act
@@ -51,7 +51,7 @@ public class NpcMapperTests
             campaign_id = 1,
             stats = "not a json",
             name = "OrcWarriorGuy",
-            
+
         };
 
         // Act

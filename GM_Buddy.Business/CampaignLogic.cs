@@ -98,7 +98,7 @@ public class CampaignLogic : ICampaignLogic
             {
                 _logger.LogWarning("Campaign {CampaignId} not found or not owned by account {AccountId}", campaignDto.Campaign_id, accountId);
             }
-            
+
             return success;
         }
         catch (Exception ex)
@@ -121,7 +121,7 @@ public class CampaignLogic : ICampaignLogic
             {
                 _logger.LogWarning("Campaign {CampaignId} not found or not owned by account {AccountId}", campaignId, accountId);
             }
-            
+
             return success;
         }
         catch (Exception ex)

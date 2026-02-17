@@ -138,12 +138,12 @@ public class PcRepositoryTests
         // Arrange
         var pc = new Pc { pc_id = 1, account_id = 1, name = "Original Name" };
         var repo = new FakePcRepository(new[] { pc });
-        
+
         var updated = new Pc 
         { 
             pc_id = 1, 
             account_id = 1, 
-             
+
             name = "Updated Name",
             description = "New description"
         };
@@ -167,7 +167,7 @@ public class PcRepositoryTests
         { 
             pc_id = 1, 
             account_id = 1, 
-             
+
             name = "PC",
             updated_at = originalTime
         };
