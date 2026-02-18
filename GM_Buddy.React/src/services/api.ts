@@ -212,20 +212,24 @@ const relationshipTypeMap = new Map<number, string>();
 const relationshipTypeNameToIdMap = new Map<string, number>();
 
 // Transform API EntityRelationship to frontend Relationship
-const transformApiRelationshipToRelationship = (apiRel: ApiEntityRelationship): { 
+const transformApiRelationshipToRelationship = (apiRel: ApiEntityRelationship): {
   id: number;
   npcId1: number;
   npcId2: number;
+  entityType1: 'npc' | 'pc';
+  entityType2: 'npc' | 'pc';
   type: string;
   description?: string;
 } => {
   const id = (apiRel.entity_relationship_id ?? apiRel.relationship_id) || 0;
   const typeName = relationshipTypeMap.get(apiRel.relationship_type_id) || 'neutral';
-  
+
   return {
     id,
     npcId1: apiRel.source_entity_id,
     npcId2: apiRel.target_entity_id,
+    entityType1: (apiRel.source_entity_type?.toLowerCase() === 'pc' ? 'pc' : 'npc') as 'npc' | 'pc',
+    entityType2: (apiRel.target_entity_type?.toLowerCase() === 'pc' ? 'pc' : 'npc') as 'npc' | 'pc',
     type: typeName,
     description: apiRel.description,
   };

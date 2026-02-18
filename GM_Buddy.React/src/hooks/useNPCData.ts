@@ -215,9 +215,9 @@ useEffect(() => {
       // Create relationship on backend
       const relationshipTypeId = getRelationshipTypeId(relationshipData.type);
       const apiRelationship = {
-        source_entity_type: 'npc',
+        source_entity_type: relationshipData.entityType1 ?? 'npc',
         source_entity_id: relationshipData.npcId1,
-        target_entity_type: 'npc',
+        target_entity_type: relationshipData.entityType2 ?? 'npc',
         target_entity_id: relationshipData.npcId2,
         relationship_type_id: relationshipTypeId,
         description: relationshipData.description,
