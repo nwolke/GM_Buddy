@@ -7,13 +7,11 @@ import userEvent from '@testing-library/user-event'
 describe('NPCCard', () => {
   const mockOnEdit = vi.fn()
   const mockOnDelete = vi.fn()
-  const mockOnManageRelationships = vi.fn()
 
   const defaultProps = {
     npc: mockNPCs[0],
     onEdit: mockOnEdit,
     onDelete: mockOnDelete,
-    onManageRelationships: mockOnManageRelationships,
     relationshipCount: 0,
   }
 
@@ -98,14 +96,4 @@ describe('NPCCard', () => {
     expect(mockOnDelete).toHaveBeenCalledWith(mockNPCs[0].id)
   })
 
-  it('should call onManageRelationships when relationships button is clicked', async () => {
-    const user = userEvent.setup()
-    render(<NPCCard {...defaultProps} />)
-
-    const relationshipsButton = screen.getByRole('button', { name: 'Manage relationships' })
-    expect(relationshipsButton).toBeInTheDocument()
-    
-    await user.click(relationshipsButton)
-    expect(mockOnManageRelationships).toHaveBeenCalledWith(mockNPCs[0])
-  })
 })

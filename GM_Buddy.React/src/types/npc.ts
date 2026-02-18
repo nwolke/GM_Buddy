@@ -14,6 +14,8 @@ export interface Relationship {
   id: number;
   npcId1: number;
   npcId2: number;
+  entityType1: 'npc' | 'pc';
+  entityType2: 'npc' | 'pc';
   type: RelationshipType;
   description?: string;
 }
