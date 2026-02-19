@@ -1,4 +1,4 @@
-import { Scroll, RefreshCw, LogIn, LogOut, Users, UserCircle, Settings, Info, User } from "lucide-react";
+import { Scroll, RefreshCw, LogIn, LogOut, Users, UserCircle, Settings, Info, User, Network } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import {
   DropdownMenu,
@@ -26,6 +26,7 @@ export function Header({ showRefresh = false, onRefresh, loading = false, error 
   const isOnNPCManager = location.pathname === '/npc-manager';
   const isOnPCManager = location.pathname === '/pc-manager';
   const isOnCampaignManager = location.pathname === '/campaign-manager';
+  const isOnRelationships = location.pathname === '/relationships';
 
   return (
     <div className="flex items-center justify-between mb-8">
@@ -50,7 +51,7 @@ export function Header({ showRefresh = false, onRefresh, loading = false, error 
         </div>
       </div>
       <div className="flex items-center gap-3">
-        {isAuthenticated && (isOnNPCManager || isOnPCManager || isOnCampaignManager) && (
+        {isAuthenticated && (isOnNPCManager || isOnPCManager || isOnCampaignManager || isOnRelationships) && (
           <div className="flex gap-2 mr-4">
             <Button
               variant={isOnNPCManager ? "default" : "outline"}
@@ -75,6 +76,14 @@ export function Header({ showRefresh = false, onRefresh, loading = false, error 
             >
               <Scroll className="size-4 mr-2" />
               Campaigns
+            </Button>
+            <Button
+              variant={isOnRelationships ? "default" : "outline"}
+              size="sm"
+              onClick={() => navigate('/relationships')}
+            >
+              <Network className="size-4 mr-2" />
+              Relationships
             </Button>
           </div>
         )}

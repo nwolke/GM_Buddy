@@ -5,6 +5,7 @@ import { LandingPage } from "@/app/pages/LandingPage";
 import { NPCManagerPage } from "@/app/pages/NPCManagerPage";
 import { PCManagerPage } from "@/app/pages/PCManagerPage";
 import { CampaignManagerPage } from "@/app/pages/CampaignManagerPage";
+import { RelationshipsPage } from "@/app/pages/RelationshipsPage";
 import { AccountPage } from "@/app/pages/AccountPage";
 import { AboutPage } from "@/app/pages/AboutPage";
 import { ProtectedRoute } from "@/app/components/ProtectedRoute";
@@ -37,6 +38,14 @@ export default function App() {
           <Route
             path="/campaign-manager"
             element={<CampaignManagerPage />}
+          />
+          <Route
+            path="/relationships"
+            element={
+              <ProtectedRoute>
+                <RelationshipsPage />
+              </ProtectedRoute>
+            }
           />
           <Route 
             path="/account" 
