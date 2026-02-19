@@ -17,7 +17,9 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: process.env.VITE_API_URL || 'http://localhost:5000',
+        // Aspire injects the server URL via services__gm-buddy-server__http__0
+        // Fall back to localhost:5112 (launchSettings default) for non-Aspire runs
+        target: process.env['services__gm-buddy-server__http__0'] || process.env.VITE_API_URL || 'http://localhost:5112',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },

@@ -14,6 +14,8 @@ using System.Net.Security;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
+builder.AddServiceDefaults();
+
 // Load Cognito settings
 var cognitoSettings = builder.Configuration.GetSection("Cognito").Get<CognitoSettings>();
 
@@ -173,6 +175,8 @@ builder.Services.AddCors(options =>
 });
 
 WebApplication app = builder.Build();
+
+app.MapDefaultEndpoints();
 
 app.UseDefaultFiles();
 app.UseStaticFiles();
