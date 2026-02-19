@@ -119,6 +119,9 @@ export function EntityGraph({
           </div>
         `}
         nodeCanvasObject={(node: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
+          // Guard against non-finite coordinates during early simulation ticks
+          if (!Number.isFinite(node.x) || !Number.isFinite(node.y)) return;
+
           const isNpc = node.entityType === 'npc';
           const selected = isSelected(node);
           const innerColor = isNpc ? NPC_NODE_COLOR_INNER : PC_NODE_COLOR_INNER;
