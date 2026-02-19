@@ -7,17 +7,16 @@ interface NPCCardProps {
   npc: NPC;
   onEdit: (npc: NPC) => void;
   onDelete: (id: number) => void;
-  onManageRelationships: (npc: NPC) => void;
   relationshipCount: number;
 }
 
-export function NPCCard({ npc, onEdit, onDelete, onManageRelationships, relationshipCount }: NPCCardProps) {
+export function NPCCard({ npc, onEdit, onDelete, relationshipCount }: NPCCardProps) {
   return (
     <Card className="hover:shadow-2xl hover:shadow-primary/20 transition-all hover:scale-[1.02] bg-gradient-to-br from-card to-card/80 border-primary/30 relative overflow-hidden group">
       {/* Decorative corner accent */}
       <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-primary/20 to-transparent rounded-bl-full" />
       <div className="absolute bottom-0 left-0 w-16 h-16 bg-gradient-to-tr from-accent/10 to-transparent rounded-tr-full" />
-      
+
       <CardHeader className="relative">
         <div className="flex items-start justify-between">
           <div className="flex-1">
@@ -33,16 +32,6 @@ export function NPCCard({ npc, onEdit, onDelete, onManageRelationships, relation
             </CardDescription>
           </div>
           <div className="flex gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onManageRelationships(npc)}
-              title="Manage relationships"
-              aria-label="Manage relationships"
-              className="hover:bg-primary/20 hover:text-primary"
-            >
-              <Users className="size-4" />
-            </Button>
             <Button
               variant="ghost"
               size="icon"

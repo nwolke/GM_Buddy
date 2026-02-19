@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
-import { NPC, Relationship } from "@/types/npc";
+import { NPC } from "@/types/npc";
 import { NPCCard } from "@/app/components/NPCCard";
 import { NPCForm } from "@/app/components/NPCForm";
-import { RelationshipManager } from "@/app/components/RelationshipManager";
 import { Button } from "@/app/components/ui/button";
 import { Plus, RefreshCw, LogIn, Shield, Filter } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
@@ -30,14 +29,10 @@ const {
   refreshNpcs,
   saveNPC,
   deleteNPC,
-  addRelationship,
-  deleteRelationship,
 } = useNPCData(selectedCampaignId);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingNPC, setEditingNPC] = useState<NPC | null>(null);
-  const [isRelationshipManagerOpen, setIsRelationshipManagerOpen] = useState(false);
-  const [currentNPC, setCurrentNPC] = useState<NPC | null>(null);
 
   useEffect(() => {
     console.log('[NPCManagerPage] Auth/loading state changed or component mounted. authLoading:', authLoading, 'loading:', loading);
@@ -57,19 +52,6 @@ const {
     if (confirm('Are you sure you want to delete this NPC? This will also remove all their relationships.')) {
       await deleteNPC(id);
     }
-  };
-
-  const handleOpenRelationshipManager = (npc: NPC) => {
-    setCurrentNPC(npc);
-    setIsRelationshipManagerOpen(true);
-  };
-
-  const handleAddRelationship = (relationshipData: Omit<Relationship, 'id'>) => {
-    addRelationship(relationshipData);
-  };
-
-  const handleDeleteRelationship = (id: number) => {
-    deleteRelationship(id);
   };
 
   const getRelationshipCount = (npcId: number) => {
@@ -100,7 +82,7 @@ const {
       </div>
 
       <div className="container mx-auto py-8 px-4 relative">
-        <Header 
+        <Header
           showRefresh={true}
           onRefresh={refreshNpcs}
           loading={loading}
@@ -111,7 +93,7 @@ const {
           <div className="flex items-center justify-between mb-6 gap-4">
             <div className="flex items-center gap-4">
               <TabsList className="bg-card/50 border border-primary/20 p-1">
-                <TabsTrigger 
+                <TabsTrigger
                   value="npcs"
                   className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent data-[state=active]:text-primary-foreground"
                 >
@@ -119,7 +101,7 @@ const {
                   Characters ({npcs.length})
                 </TabsTrigger>
               </TabsList>
-              
+
               {isAuthenticated && !campaignsLoading && campaigns.length > 0 && (
                 <Select
                   value={selectedCampaignId?.toString() ?? "all"}
@@ -149,11 +131,11 @@ const {
               )}
             </div>
             {isAuthenticated && (
-              <Button 
+              <Button
                 onClick={() => {
                   setEditingNPC(null);
                   setIsFormOpen(true);
-                }} 
+                }}
                 size="lg"
                 className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 shadow-lg shadow-primary/30"
               >
@@ -174,7 +156,7 @@ const {
                   <p className="text-muted-foreground mb-6 leading-relaxed">
                     Sign in to manage your campaign's characters and relationships
                   </p>
-                  <Button 
+                  <Button
                     onClick={loginWithCognito}
                     size="lg"
                     className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 shadow-lg"
@@ -199,7 +181,7 @@ const {
                   <p className="text-muted-foreground mb-6 leading-relaxed">
                     Begin your epic tale by recruiting your first NPC to the compendium
                   </p>
-                  <Button 
+                  <Button
                     onClick={() => {
                       setEditingNPC(null);
                       setIsFormOpen(true);
@@ -220,7 +202,6 @@ const {
                     npc={npc}
                     onEdit={handleEditNPC}
                     onDelete={handleDeleteNPC}
-                    onManageRelationships={handleOpenRelationshipManager}
                     relationshipCount={getRelationshipCount(npc.id)}
                   />
                 ))}
@@ -235,16 +216,6 @@ const {
         onOpenChange={setIsFormOpen}
         onSave={handleSaveNPC}
         editingNPC={editingNPC}
-      />
-
-      <RelationshipManager
-        open={isRelationshipManagerOpen}
-        onOpenChange={setIsRelationshipManagerOpen}
-        currentNPC={currentNPC}
-        allNPCs={npcs}
-        relationships={relationships}
-        onAddRelationship={handleAddRelationship}
-        onDeleteRelationship={handleDeleteRelationship}
       />
     </div>
   );
