@@ -118,7 +118,11 @@ export function EntityGraph({
             <span style="color: #a099b8; font-size: 12px;">${node.subtitle}</span>
           </div>
         `}
-        nodeCanvasObject={(node: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
+        nodeCanvasObject={(node: any, ctx: CanvasRenderingContext2D, globalScale: number) => { try {
+          // Guard against non-finite values during early simulation ticks
+          if (!Number.isFinite(node.x) || !Number.isFinite(node.y)) return;
+          if (!Number.isFinite(globalScale) || globalScale === 0) return;
+
           const isNpc = node.entityType === 'npc';
           const selected = isSelected(node);
           const innerColor = isNpc ? NPC_NODE_COLOR_INNER : PC_NODE_COLOR_INNER;
@@ -195,7 +199,7 @@ export function EntityGraph({
           ctx.fillStyle = labelColor;
           ctx.fillText(label, node.x, labelY + bckgDimensions[1] / 2);
           ctx.shadowBlur = 0;
-        }}
+        } catch { /* skip frame if canvas values are invalid */ }}}
         linkColor={(link: any) => link.color}
         linkWidth={3}
         linkDirectionalParticles={3}
