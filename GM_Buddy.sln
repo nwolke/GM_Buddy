@@ -27,8 +27,6 @@ Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "GM_Buddy.React", "GM_Buddy.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GM_Buddy.Business.ComponentTests", "GM_Buddy.Business.ComponentTests\GM_Buddy.Business.ComponentTests.csproj", "{2DCA26FE-C95D-4644-9DE1-845D79B8F3C1}"
 EndProject
-Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{A2BD13A6-DD0D-484C-B209-F9F08B2F238C}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -117,12 +115,6 @@ Global
 		{2DCA26FE-C95D-4644-9DE1-845D79B8F3C1}.Release|x64.Build.0 = Release|Any CPU
 		{2DCA26FE-C95D-4644-9DE1-845D79B8F3C1}.Release|x86.ActiveCfg = Release|Any CPU
 		{2DCA26FE-C95D-4644-9DE1-845D79B8F3C1}.Release|x86.Build.0 = Release|Any CPU
-		{A2BD13A6-DD0D-484C-B209-F9F08B2F238C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A2BD13A6-DD0D-484C-B209-F9F08B2F238C}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{A2BD13A6-DD0D-484C-B209-F9F08B2F238C}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{A2BD13A6-DD0D-484C-B209-F9F08B2F238C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A2BD13A6-DD0D-484C-B209-F9F08B2F238C}.Release|x64.ActiveCfg = Release|Any CPU
-		{A2BD13A6-DD0D-484C-B209-F9F08B2F238C}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
