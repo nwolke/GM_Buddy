@@ -34,6 +34,7 @@
   <ItemGroup>
     <ProjectReference Include="..\GM_Buddy.Business\GM_Buddy.Business.csproj" />
     <ProjectReference Include="..\GM_Buddy.Contracts\GM_Buddy.Contracts.csproj" />
+    <ProjectReference Include="..\GM_Buddy.ServiceDefaults\GM_Buddy.ServiceDefaults.csproj" />
   </ItemGroup>
 
   <ItemGroup>
