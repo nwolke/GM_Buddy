@@ -1,0 +1,21 @@
+<Project Sdk="Aspire.AppHost.Sdk/13.1.0">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UserSecretsId>e746139a-62fe-444b-96a9-732db3c96fd8</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.NodeJS" Version="9.1.0" />
+    <PackageReference Include="Aspire.Hosting.PostgreSQL" Version="9.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GM_Buddy.React\GM_Buddy.React.esproj" />
+    <ProjectReference Include="..\GM_Buddy.Server\GM_Buddy.Server.csproj" />
+  </ItemGroup>
+
+</Project>
