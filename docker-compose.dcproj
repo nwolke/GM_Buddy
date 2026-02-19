@@ -6,6 +6,7 @@
     <DockerLaunchAction>LaunchBrowser</DockerLaunchAction>
     <DockerServiceUrl>{Scheme}://localhost:{ServicePort}/swagger</DockerServiceUrl>
     <DockerServiceName>gm_buddy_server</DockerServiceName>
+    <DockerComposeUpOnDebug>true</DockerComposeUpOnDebug>
   </PropertyGroup>
   <PropertyGroup>
     <!-- This project is for local development only -->
