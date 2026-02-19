@@ -43,7 +43,6 @@ services:
   gm_buddy_server:
     image: ${DOCKER_REGISTRY}gmbuddyserver
     container_name: gm_buddy_server
-    restart: unless-stopped
     build:
       context: .
       dockerfile: GM_Buddy.Server/Dockerfile
@@ -71,7 +70,6 @@ services:
   gm_buddy_web:
     image: ${DOCKER_REGISTRY-}gmbuddyreact
     container_name: gm_buddy_web
-    restart: unless-stopped
     build:
       context: ./GM_Buddy.React
       dockerfile: Dockerfile
