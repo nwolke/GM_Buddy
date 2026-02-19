@@ -45,6 +45,7 @@ export function RelationshipAddModal({
   const [relationshipType, setRelationshipType] = useState<RelationshipType>("ally");
   const [description, setDescription] = useState("");
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // IDs already related to source (in either direction)
   const relatedKeys = new Set(
@@ -74,6 +75,7 @@ export function RelationshipAddModal({
     if (Number.isNaN(numericTargetId)) return;
 
     setSaving(true);
+    setError(null);
     try {
       await onAdd({
         npcId1: sourceEntity.id,
@@ -83,10 +85,13 @@ export function RelationshipAddModal({
         type: relationshipType,
         description: description || undefined,
       });
+      // Only clear and close on success
       setTargetId("");
       setRelationshipType("ally");
       setDescription("");
       onOpenChange(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to add relationship. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -176,6 +181,9 @@ export function RelationshipAddModal({
           </div>
         </div>
 
+        {error && (
+          <p className="text-sm text-destructive px-1">{error}</p>
+        )}
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
             Cancel

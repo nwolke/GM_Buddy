@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { NPC, Relationship } from '@/types/npc';
 import { PC } from '@/types/pc';
 import { useNPCData } from './useNPCData';
@@ -58,7 +58,7 @@ export function useRelationshipPageData(): UseRelationshipPageDataReturn {
   const loading = npcLoading || pcLoading;
   const error = npcError ?? pcError;
 
-  const entities: EntityItem[] = [
+  const entities = useMemo<EntityItem[]>(() => [
     ...npcs.map((npc): EntityItem => ({
       id: npc.id,
       name: npc.name,
@@ -76,7 +76,7 @@ export function useRelationshipPageData(): UseRelationshipPageDataReturn {
       entityType: 'pc',
       description: pc.description,
     })),
-  ];
+  ], [npcs, pcs]);
 
   const refresh = useCallback(async () => {
     await Promise.all([refreshNpcs(), refreshPcs()]);

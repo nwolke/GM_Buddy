@@ -228,8 +228,16 @@ const transformApiRelationshipToRelationship = (apiRel: ApiEntityRelationship): 
     id,
     npcId1: apiRel.source_entity_id,
     npcId2: apiRel.target_entity_id,
-    entityType1: (apiRel.source_entity_type?.toLowerCase() === 'pc' ? 'pc' : 'npc') as 'npc' | 'pc',
-    entityType2: (apiRel.target_entity_type?.toLowerCase() === 'pc' ? 'pc' : 'npc') as 'npc' | 'pc',
+    entityType1: (() => {
+      const t = apiRel.source_entity_type?.toLowerCase();
+      if (t !== 'npc' && t !== 'pc') console.warn(`[transformApiRelationship] Unexpected source_entity_type: "${apiRel.source_entity_type}", defaulting to 'npc'`);
+      return (t === 'pc' ? 'pc' : 'npc') as 'npc' | 'pc';
+    })(),
+    entityType2: (() => {
+      const t = apiRel.target_entity_type?.toLowerCase();
+      if (t !== 'npc' && t !== 'pc') console.warn(`[transformApiRelationship] Unexpected target_entity_type: "${apiRel.target_entity_type}", defaulting to 'npc'`);
+      return (t === 'pc' ? 'pc' : 'npc') as 'npc' | 'pc';
+    })(),
     type: typeName,
     description: apiRel.description,
   };
