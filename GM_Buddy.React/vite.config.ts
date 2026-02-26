@@ -14,7 +14,7 @@ export default defineConfig({
     },
   },
   server: {
-    port: parseInt(process.env.PORT || '3000'),
+    port: 3000,
     // Don't use strictPort - let Aspire manage the port allocation
     proxy: {
       '/api': {

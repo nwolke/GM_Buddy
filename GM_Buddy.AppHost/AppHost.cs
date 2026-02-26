@@ -44,5 +44,3 @@ var web = builder.AddNpmApp("gm-buddy-react", "../GM_Buddy.React", "dev")
     .WaitFor(server);
 
 builder.Build().Run();
-
-
