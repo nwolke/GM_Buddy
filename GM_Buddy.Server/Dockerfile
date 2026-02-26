@@ -19,6 +19,7 @@ COPY ["GM_Buddy.Server/GM_Buddy.Server.csproj", "GM_Buddy.Server/"]
 COPY ["GM_Buddy.Business/GM_Buddy.Business.csproj", "GM_Buddy.Business/"]
 COPY ["GM_Buddy.Data/GM_Buddy.Data.csproj", "GM_Buddy.Data/"]
 COPY ["GM_Buddy.Contracts/GM_Buddy.Contracts.csproj", "GM_Buddy.Contracts/"]
+COPY ["GM_Buddy.ServiceDefaults/GM_Buddy.ServiceDefaults.csproj", "GM_Buddy.ServiceDefaults/"]
 
 # Restore dependencies
 RUN dotnet restore "GM_Buddy.Server/GM_Buddy.Server.csproj"
