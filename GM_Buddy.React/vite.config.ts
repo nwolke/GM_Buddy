@@ -15,6 +15,7 @@ export default defineConfig({
   },
   server: {
     port: 3000,
+    // Don't use strictPort - let Aspire manage the port allocation
     proxy: {
       '/api': {
         // Aspire injects the server URL via services__gm-buddy-server__http__0

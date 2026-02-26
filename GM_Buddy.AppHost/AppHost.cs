@@ -14,7 +14,7 @@ var db = postgres.AddDatabase("gm-buddy-db", "gm_buddy");
 
 // pgAdmin (Database Management Tool on port 15435)
 var pgadmin = builder.AddContainer("pgadmin", "dpage/pgadmin4", "latest")
-    .WithHttpEndpoint(targetPort: 80, port: 15435)
+    .WithHttpEndpoint(targetPort: 80, port: 15435, name: "pgadminport")
     .WithEnvironment("PGADMIN_DEFAULT_EMAIL", builder.Configuration["PGADMIN_DEFAULT_EMAIL"] ?? "admin@example.com")
     .WithEnvironment("PGADMIN_DEFAULT_PASSWORD", builder.Configuration["PGADMIN_DEFAULT_PASSWORD"] ?? "admin")
     .WithBindMount("./servers.json", "/pgadmin4/servers.json", isReadOnly: true)
@@ -32,12 +32,10 @@ var server = builder.AddProject<Projects.GM_Buddy_Server>("gm-buddy-server")
     .WithEnvironment("Cognito__Domain", builder.Configuration["COGNITO_DOMAIN"] ?? "")
     .WaitFor(postgres);
 
-// React Frontend (on port 3000)
-// WithReference(server) injects services__gm-buddy-server__http__0 into the npm process,
-// which vite.config.ts uses as the proxy target — no hardcoded VITE_API_URL needed.
+// Use AddNpmApp
 var web = builder.AddNpmApp("gm-buddy-react", "../GM_Buddy.React", "dev")
     .WithReference(server)
-    .WithHttpEndpoint(port: 3000, env: "PORT")
+    //.WithHttpEndpoint(port: 3000, name: "http") -- Vite dev server runs on 3000, but explicitly setting here will conflict.
     .WithEnvironment("VITE_USE_COGNITO", builder.Configuration["VITE_USE_COGNITO"] ?? "false")
     .WithEnvironment("VITE_COGNITO_DOMAIN", builder.Configuration["VITE_COGNITO_DOMAIN"] ?? "")
     .WithEnvironment("VITE_COGNITO_CLIENT_ID", builder.Configuration["VITE_COGNITO_CLIENT_ID"] ?? "")
