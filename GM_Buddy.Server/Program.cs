@@ -10,7 +10,6 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.IO.Compression;
 using System.Net;
-using System.Net.Security;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
