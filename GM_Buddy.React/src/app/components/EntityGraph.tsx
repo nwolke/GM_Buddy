@@ -202,9 +202,7 @@ export function EntityGraph({
         } catch { /* skip frame if canvas values are invalid */ }}}
         linkColor={(link: any) => link.color}
         linkWidth={3}
-        linkDirectionalParticles={3}
-        linkDirectionalParticleWidth={3}
-        linkDirectionalParticleSpeed={0.005}
+
         onNodeClick={(node: any) => {
           if (onNodeClick && node.entity) {
             onNodeClick(node.entity);
