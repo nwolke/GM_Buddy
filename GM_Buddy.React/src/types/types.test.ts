@@ -31,7 +31,7 @@ describe('Type Definitions', () => {
       const npc: NPC = {
         id: 1,
         name: 'Test NPC',
-        race: 'Human',
+        lineage: 'Human',
         class: 'Fighter',
         description: 'A brave warrior',
         campaignId: 1,
@@ -41,7 +41,7 @@ describe('Type Definitions', () => {
 
       expect(npc.id).toBe(1)
       expect(npc.name).toBe('Test NPC')
-      expect(npc.race).toBe('Human')
+      expect(npc.lineage).toBe('Human')
       expect(npc.class).toBe('Fighter')
     })
 
@@ -49,7 +49,7 @@ describe('Type Definitions', () => {
       const npc: NPC = {
         id: 1,
         name: 'Minimal NPC',
-        race: 'Elf',
+        lineage: 'Elf',
         class: 'Wizard',
         description: 'A wise mage',
       }
