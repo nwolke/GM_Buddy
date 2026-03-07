@@ -166,7 +166,7 @@ public class NpcManagementStepDefinitions
                 campaign_id = _currentCampaignId,
                 name = row["Name"],
                 description = "",
-                lineage = row["Race"],
+                lineage = row["Lineage"],
                 @class = row["Class"],
                 faction = "",
                 notes = ""
@@ -186,7 +186,7 @@ public class NpcManagementStepDefinitions
                 CampaignId = _currentCampaignId,
                 Name = data.Name,
                 Description = data.Description,
-                Lineage = data.Race,
+                Lineage = data.Lineage,
                 Class = data.Class,
                 Faction = data.Faction
             };
@@ -260,7 +260,7 @@ public class NpcManagementStepDefinitions
                 CampaignId = _currentCampaignId,
                 Name = data.Name,
                 Description = data.Description,
-                Lineage = data.Race,
+                Lineage = data.Lineage,
                 Class = data.Class,
                 Faction = data.Faction
             };
@@ -329,12 +329,12 @@ public class NpcManagementStepDefinitions
         Assert.Equal(expectedName, npc.Name);
     }
 
-    [Then(@"the NPC should have race ""(.*)""")]
-    public async Task ThenTheNpcShouldHaveRace(string expectedRace)
+    [Then(@"the NPC should have lineage ""(.*)""")]
+    public async Task ThenTheNpcShouldHaveLineage(string expectedLineage)
     {
         var npc = await _npcLogic.GetNpc(_createdNpcId != 0 ? _createdNpcId : 1);
         Assert.NotNull(npc);
-        Assert.Equal(expectedRace, npc.Lineage);
+        Assert.Equal(expectedLineage, npc.Lineage);
     }
 
     [Then(@"the NPC should have class ""(.*)""")]
@@ -398,7 +398,7 @@ public class NpcManagementStepDefinitions
     {
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
-        public string Race { get; set; } = string.Empty;
+        public string Lineage { get; set; } = string.Empty;
         public string Class { get; set; } = string.Empty;
         public string? Faction { get; set; }
     }
