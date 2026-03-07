@@ -147,7 +147,7 @@ useEffect(() => {
         name: npcData.name,
         description: npcData.description,
         campaignId: npcData.campaignId,
-        race: npcData.race,
+        lineage: npcData.lineage,
         class: npcData.class,
         faction: npcData.faction,
         notes: npcData.notes,
