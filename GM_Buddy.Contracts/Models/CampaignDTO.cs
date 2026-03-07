@@ -1,4 +1,4 @@
-﻿namespace GM_Buddy.Contracts.DTOs;
+﻿namespace GM_Buddy.Contracts.Models;
 
 public class CampaignDTO
 {

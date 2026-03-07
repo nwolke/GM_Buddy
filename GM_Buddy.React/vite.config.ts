@@ -22,7 +22,7 @@ export default defineConfig({
         // Fall back to localhost:5112 (launchSettings default) for non-Aspire runs
         target: process.env['services__gm-buddy-server__http__0'] || process.env.VITE_API_URL || 'http://localhost:5112',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
+        // Don't rewrite - backend routes already include /api prefix
       },
     },
   },

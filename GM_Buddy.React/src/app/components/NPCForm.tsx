@@ -19,7 +19,7 @@ interface NPCFormProps {
 export function NPCForm({ open, onOpenChange, onSave, editingNPC }: NPCFormProps) {
 const [formData, setFormData] = useState({
   name: "",
-  race: "",
+  lineage: "",
   class: "",
   description: "",
   campaignId: undefined as number | undefined,
@@ -55,7 +55,7 @@ const [showCampaignChangeWarning, setShowCampaignChangeWarning] = useState(false
     if (editingNPC) {
       setFormData({
         name: editingNPC.name,
-        race: editingNPC.race,
+        lineage: editingNPC.lineage,
         class: editingNPC.class,
         description: editingNPC.description,
         campaignId: editingNPC.campaignId,
@@ -66,7 +66,7 @@ const [showCampaignChangeWarning, setShowCampaignChangeWarning] = useState(false
     } else {
       setFormData({
         name: "",
-        race: "",
+        lineage: "",
         class: "",
         description: "",
         campaignId: undefined,
@@ -160,11 +160,11 @@ const [showCampaignChangeWarning, setShowCampaignChangeWarning] = useState(false
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="race">Race *</Label>
+                <Label htmlFor="lineage">Lineage *</Label>
                 <Input
-                  id="race"
-                  value={formData.race}
-                  onChange={(e) => setFormData({ ...formData, race: e.target.value })}
+                  id="lineage"
+                  value={formData.lineage}
+                  onChange={(e) => setFormData({ ...formData, lineage: e.target.value })}
                   placeholder="e.g., Human, Elf, Dwarf"
                   required
                 />

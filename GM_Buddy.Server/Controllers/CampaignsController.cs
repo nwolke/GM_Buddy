@@ -1,5 +1,5 @@
-using GM_Buddy.Contracts.DTOs;
 using GM_Buddy.Contracts.Interfaces;
+using GM_Buddy.Contracts.Models;
 using GM_Buddy.Server.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

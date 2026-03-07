@@ -257,8 +257,8 @@ internal class FakeNpcRepositoryForAccountTests : INpcRepository
 {
     private readonly List<Npc> _npcs = new()
     {
-        new Npc { npc_id = 1, account_id = 10, campaign_id = 1, name = "Test NPC 1", stats = "{}" },
-        new Npc { npc_id = 2, account_id = 10, campaign_id = 1, name = "Test NPC 2", stats = "{}" },
+        new Npc { npc_id = 1, account_id = 10, campaign_id = 1, name = "Test NPC 1" },
+        new Npc { npc_id = 2, account_id = 10, campaign_id = 1, name = "Test NPC 2" },
     };
 
     public Task<IEnumerable<Npc>> GetNpcs(int accountId, int? campaignId, CancellationToken ct = default)

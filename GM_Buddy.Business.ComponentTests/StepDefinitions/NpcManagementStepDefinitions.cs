@@ -1,9 +1,7 @@
 using GM_Buddy.Business.ComponentTests.Fakes;
 using GM_Buddy.Contracts.DbEntities;
 using GM_Buddy.Contracts.Models.Npcs;
-using GM_Buddy.Contracts.Models.Npcs.Dnd;
 using Microsoft.Extensions.Logging.Abstractions;
-using System.Text.Json;
 using TechTalk.SpecFlow;
 using TechTalk.SpecFlow.Assist;
 
@@ -21,8 +19,8 @@ public class NpcManagementStepDefinitions
     private int _createdNpcId;
     private bool _operationSuccess;
     private Exception? _caughtException;
-    private IEnumerable<DndNpc>? _retrievedNpcs;
-    private DndNpc? _retrievedNpc;
+    private IEnumerable<NpcDto>? _retrievedNpcs;
+    private NpcDto? _retrievedNpc;
 
     public NpcManagementStepDefinitions()
     {
@@ -90,14 +88,6 @@ public class NpcManagementStepDefinitions
         };
         _campaignRepository.AddCampaign(campaign);
 
-        var stats = new
-        {
-            lineage = "Dwarf",
-            occupation = "Warrior",
-            faction = "Lonely Mountain",
-            notes = ""
-        };
-
         var npc = new Npc
         {
             npc_id = npcId,
@@ -105,7 +95,10 @@ public class NpcManagementStepDefinitions
             campaign_id = campaignId,
             name = "Test NPC",
             description = "An existing NPC",
-            stats = JsonSerializer.Serialize(stats)
+            lineage = "Dwarf",
+            @class = "Warrior",
+            faction = "Lonely Mountain",
+            notes = ""
         };
         _npcRepository.AddNpc(npc);
     }
@@ -131,14 +124,6 @@ public class NpcManagementStepDefinitions
         };
         _campaignRepository.AddCampaign(campaign);
 
-        var stats = new
-        {
-            lineage = "Dwarf",
-            occupation = "Warrior",
-            faction = "",
-            notes = ""
-        };
-
         var npc = new Npc
         {
             npc_id = npcId,
@@ -146,7 +131,10 @@ public class NpcManagementStepDefinitions
             campaign_id = campaignId,
             name = name,
             description = "Test NPC",
-            stats = JsonSerializer.Serialize(stats)
+            lineage = "Dwarf",
+            @class = "Warrior",
+            faction = "",
+            notes = ""
         };
         _npcRepository.AddNpc(npc);
     }
@@ -172,21 +160,16 @@ public class NpcManagementStepDefinitions
     {
         foreach (var row in table.Rows)
         {
-            var stats = new
-            {
-                lineage = row["Race"],
-                occupation = row["Class"],
-                faction = "",
-                notes = ""
-            };
-
             var npc = new Npc
             {
                 account_id = _currentAccountId,
                 campaign_id = _currentCampaignId,
                 name = row["Name"],
                 description = "",
-                stats = JsonSerializer.Serialize(stats)
+                lineage = row["Race"],
+                @class = row["Class"],
+                faction = "",
+                notes = ""
             };
             _npcRepository.AddNpc(npc);
         }
@@ -203,7 +186,7 @@ public class NpcManagementStepDefinitions
                 CampaignId = _currentCampaignId,
                 Name = data.Name,
                 Description = data.Description,
-                Race = data.Race,
+                Lineage = data.Race,
                 Class = data.Class,
                 Faction = data.Faction
             };
@@ -228,7 +211,7 @@ public class NpcManagementStepDefinitions
                 CampaignId = campaignId,
                 Name = "Test NPC",
                 Description = "Test",
-                Race = "Human",
+                Lineage = "Human",
                 Class = "Fighter"
             };
 
@@ -252,7 +235,7 @@ public class NpcManagementStepDefinitions
                 CampaignId = campaignId,
                 Name = "Test NPC",
                 Description = "Test",
-                Race = "Human",
+                Lineage = "Human",
                 Class = "Fighter"
             };
 
@@ -277,7 +260,7 @@ public class NpcManagementStepDefinitions
                 CampaignId = _currentCampaignId,
                 Name = data.Name,
                 Description = data.Description,
-                Race = data.Race,
+                Lineage = data.Race,
                 Class = data.Class,
                 Faction = data.Faction
             };
@@ -351,7 +334,7 @@ public class NpcManagementStepDefinitions
     {
         var npc = await _npcLogic.GetNpc(_createdNpcId != 0 ? _createdNpcId : 1);
         Assert.NotNull(npc);
-        Assert.Equal(expectedRace, npc.Stats?.Lineage);
+        Assert.Equal(expectedRace, npc.Lineage);
     }
 
     [Then(@"the NPC should have class ""(.*)""")]
@@ -359,7 +342,7 @@ public class NpcManagementStepDefinitions
     {
         var npc = await _npcLogic.GetNpc(_createdNpcId != 0 ? _createdNpcId : 1);
         Assert.NotNull(npc);
-        Assert.Equal(expectedClass, npc.Stats?.Occupation);
+        Assert.Equal(expectedClass, npc.Class);
     }
 
     [Then(@"the creation should fail with ""(.*)""")]

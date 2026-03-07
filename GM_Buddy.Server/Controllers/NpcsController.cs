@@ -35,13 +35,13 @@ public class NpcsController : ControllerBase
     /// Account must exist (call /account/sync first).
     /// </summary>
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<BaseNpc>>> GetNpcs(
+    public async Task<ActionResult<IEnumerable<NpcDto>>> GetNpcs(
         [FromQuery] int? campaignId = null)
     {
         int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
 
         _logger.LogInformation("Getting NPCs for account {AccountId}", accountId);
-        IEnumerable<BaseNpc> result = await _logic.GetNpcList(accountId, campaignId);
+        IEnumerable<NpcDto> result = await _logic.GetNpcList(accountId, campaignId);
         _logger.LogInformation("Retrieved {Count} NPCs", result.Count());
         return Ok(result);
     }
@@ -51,11 +51,11 @@ public class NpcsController : ControllerBase
     /// </summary>
     [HttpGet("{id}")]
     [OutputCache(PolicyName = "ShortCache")]
-    public async Task<ActionResult<BaseNpc>> GetNpc(int id)
+    public async Task<ActionResult<NpcDto>> GetNpc(int id)
     {
         int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
 
-        BaseNpc? npc = await _logic.GetNpc(id);
+        NpcDto? npc = await _logic.GetNpc(id);
         if (npc == null)
         {
             return NotFound($"NPC with ID {id} not found");
@@ -75,7 +75,7 @@ public class NpcsController : ControllerBase
     /// Create a new NPC for the authenticated user's account
     /// </summary>
     [HttpPost]
-    public async Task<ActionResult<BaseNpc>> CreateNpc([FromBody] CreateNpcRequest request)
+    public async Task<ActionResult<NpcDto>> CreateNpc([FromBody] CreateNpcRequest request)
     {
         int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
 

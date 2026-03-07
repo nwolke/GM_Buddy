@@ -8,7 +8,7 @@ public class CreateNpcRequest
     public required string Name { get; set; }
     public string? Description { get; set; }
     public required int CampaignId { get; set; }
-    public string? Race { get; set; }
+    public string? Lineage { get; set; }
     public string? Class { get; set; }
     public string? Faction { get; set; }
     public string? Notes { get; set; }
@@ -22,7 +22,7 @@ public class UpdateNpcRequest
     public required string Name { get; set; }
     public string? Description { get; set; }
     public required int CampaignId { get; set; }
-    public string? Race { get; set; }
+    public string? Lineage { get; set; }
     public string? Class { get; set; }
     public string? Faction { get; set; }
     public string? Notes { get; set; }

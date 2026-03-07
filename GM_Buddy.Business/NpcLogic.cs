@@ -1,9 +1,7 @@
 ﻿using GM_Buddy.Contracts.DbEntities;
 using GM_Buddy.Contracts.Interfaces;
 using GM_Buddy.Contracts.Models.Npcs;
-using GM_Buddy.Contracts.Models.Npcs.Dnd;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 
 namespace GM_Buddy.Business;
 
@@ -23,13 +21,13 @@ public class NpcLogic : INpcLogic
         _logger = logger;
     }
 
-    public async Task<IEnumerable<DndNpc>> GetNpcList(int account_id, int? campaignId, CancellationToken ct = default)
+    public async Task<IEnumerable<NpcDto>> GetNpcList(int account_id, int? campaignId, CancellationToken ct = default)
     {
         var allNpcs = await _npcRepository.GetNpcs(account_id, campaignId, ct);
         return allNpcs?.Select(Mappers.NpcMapper.MapToNpcDto) ?? [];
     }
 
-    public async Task<DndNpc?> GetNpc(int npc_id, CancellationToken ct = default)
+    public async Task<NpcDto?> GetNpc(int npc_id, CancellationToken ct = default)
     {
         try
         {
@@ -60,22 +58,16 @@ public class NpcLogic : INpcLogic
                 throw new UnauthorizedAccessException($"Campaign {request.CampaignId} does not belong to account {accountId}");
             }
 
-            // Build a simple stats JSON from the request
-            var stats = new
-            {
-                lineage = request.Race ?? "Unknown",
-                occupation = request.Class ?? "Adventurer",
-                faction = request.Faction,
-                notes = request.Notes
-            };
-
             var npc = new Npc
             {
                 account_id = accountId,
                 campaign_id = request.CampaignId,
                 name = request.Name,
                 description = request.Description,
-                stats = JsonSerializer.Serialize(stats)
+                lineage = request.Lineage,
+                @class = request.Class,
+                faction = request.Faction,
+                notes = request.Notes
             };
 
             int npcId = await _npcRepository.CreateNpcAsync(npc, ct);
@@ -105,15 +97,6 @@ public class NpcLogic : INpcLogic
                 throw new UnauthorizedAccessException($"Campaign {request.CampaignId} does not belong to account {accountId}");
             }
 
-            // Build a simple stats JSON from the request
-            var stats = new
-            {
-                lineage = request.Race ?? "Unknown",
-                occupation = request.Class ?? "Adventurer",
-                faction = request.Faction,
-                notes = request.Notes
-            };
-
             var npc = new Npc
             {
                 npc_id = npcId,
@@ -121,7 +104,10 @@ public class NpcLogic : INpcLogic
                 campaign_id = request.CampaignId,
                 name = request.Name,
                 description = request.Description,
-                stats = JsonSerializer.Serialize(stats)
+                lineage = request.Lineage,
+                @class = request.Class,
+                faction = request.Faction,
+                notes = request.Notes
             };
 
             bool success = await _npcRepository.UpdateNpcAsync(npc, ct);

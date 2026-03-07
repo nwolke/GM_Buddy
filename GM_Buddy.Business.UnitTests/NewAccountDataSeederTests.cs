@@ -1,7 +1,6 @@
 using GM_Buddy.Contracts.Constants;
 using GM_Buddy.Contracts.DbEntities;
 using Microsoft.Extensions.Logging.Abstractions;
-using System.Text.Json;
 
 namespace GM_Buddy.Business.UnitTests;
 
@@ -72,24 +71,16 @@ public class NewAccountDataSeederTests
         Assert.NotNull(gorath);
         Assert.Equal("A fearless warrior from the northern tribes", gorath.description);
         Assert.Equal(testAccountId, gorath.account_id);
-
-        // Verify Gorath's stats are valid JSON
-        var gorathStats = JsonSerializer.Deserialize<Dictionary<string, string>>(gorath.stats);
-        Assert.NotNull(gorathStats);
-        Assert.Equal("Human", gorathStats["lineage"]);
-        Assert.Equal("Fighter", gorathStats["occupation"]);
+        Assert.Equal("Human", gorath.lineage);
+        Assert.Equal("Warrior", gorath.@class);
 
         // Verify second NPC (Lathel Spellbinder)
         var lathel = npcList.FirstOrDefault(n => n.name == "Lathel Spellbinder");
         Assert.NotNull(lathel);
         Assert.Equal("An intelligent elf wizard from the forests of Eldoria", lathel.description);
         Assert.Equal(testAccountId, lathel.account_id);
-
-        // Verify Lathel's stats are valid JSON
-        var lathelStats = JsonSerializer.Deserialize<Dictionary<string, string>>(lathel.stats);
-        Assert.NotNull(lathelStats);
-        Assert.Equal("Elf", lathelStats["lineage"]);
-        Assert.Equal("Wizard", lathelStats["occupation"]);
+        Assert.Equal("Elf", lathel.lineage);
+        Assert.Equal("Wizard", lathel.@class);
     }
 
     [Fact]
