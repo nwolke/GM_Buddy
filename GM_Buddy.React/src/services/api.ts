@@ -112,38 +112,25 @@ apiClient.interceptors.response.use(
 );
 
 // NPC API Types (matching backend response - ASP.NET uses camelCase by default)
-// The property names might vary based on JSON serialization settings
 export interface ApiNpc {
-  npc_Id?: number;      // From BaseNpc.Npc_Id
-  Npc_Id?: number;      // Alternative casing
-  account_Id?: number;  // From BaseNpc.Account_Id  
-  Account_Id?: number;  // Alternative casing
-  campaign_Id?: number; // From BaseNpc.Campaign_Id
-  Campaign_Id?: number; // Alternative casing
-  name?: string;        // From BaseNpc.Name
-  Name?: string;        // Alternative casing
-  description?: string; // From BaseNpc.Description
-  Description?: string; // Alternative casing
-  stats?: {             // Stats object from DndNpc (supporting legacy and current shapes)
-    // Legacy fields (older API shape)
-    race?: string;
-    class?: string;
-    faction?: string;
-    notes?: string;
-    // Current DnDStats fields (backend shape)
-    lineage?: string;
-    occupation?: string;
-  };
-  Stats?: {             // Alternative casing (supporting legacy and current shapes)
-    // Legacy fields (older API shape)
-    race?: string;
-    class?: string;
-    faction?: string;
-    notes?: string;
-    // Current DnDStats fields (backend shape)
-    lineage?: string;
-    occupation?: string;
-  };
+  npc_Id?: number;
+  Npc_Id?: number;
+  account_Id?: number;
+  Account_Id?: number;
+  campaign_Id?: number;
+  Campaign_Id?: number;
+  name?: string;
+  Name?: string;
+  description?: string;
+  Description?: string;
+  lineage?: string;
+  Lineage?: string;
+  class?: string;
+  Class?: string;
+  faction?: string;
+  Faction?: string;
+  notes?: string;
+  Notes?: string;
 }
 
 // Helper to normalize API response
@@ -153,23 +140,21 @@ const normalizeApiNpc = (apiNpc: ApiNpc): {
   campaignId?: number;
   name: string; 
   description?: string; 
-  race?: string;
+  lineage?: string;
   class?: string;
   faction?: string;
   notes?: string;
 } => {
-  const stats = apiNpc.stats ?? apiNpc.Stats;
   return {
     npcId: apiNpc.npc_Id ?? apiNpc.Npc_Id,
     accountId: apiNpc.account_Id ?? apiNpc.Account_Id,
     campaignId: apiNpc.campaign_Id ?? apiNpc.Campaign_Id,
     name: apiNpc.name ?? apiNpc.Name ?? '',
     description: apiNpc.description ?? apiNpc.Description,
-    // Support both legacy shape (race/class) and current DnDStats shape (lineage/occupation)
-    race: stats?.race ?? stats?.lineage,
-    class: stats?.class ?? stats?.occupation,
-    faction: stats?.faction,
-    notes: stats?.notes,
+    lineage: apiNpc.lineage ?? apiNpc.Lineage,
+    class: apiNpc.class ?? apiNpc.Class,
+    faction: apiNpc.faction ?? apiNpc.Faction,
+    notes: apiNpc.notes ?? apiNpc.Notes,
   };
 };
 
@@ -197,7 +182,7 @@ const transformApiNpcToNpc = (apiNpc: ApiNpc): NPC => {
   return {
     id: normalized.npcId || 0,
     name: normalized.name,
-    race: normalized.race || 'Unknown',
+    lineage: normalized.lineage || 'Unknown',
     class: normalized.class || 'Adventurer',
     description: normalized.description || '',
     campaignId: normalized.campaignId,
@@ -253,7 +238,7 @@ export interface CreateNpcRequest {
   name: string;
   description?: string;
   campaignId: number;
-  race?: string;
+  lineage?: string;
   class?: string;
   faction?: string;
   notes?: string;

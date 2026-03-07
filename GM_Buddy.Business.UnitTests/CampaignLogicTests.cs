@@ -1,5 +1,5 @@
 using GM_Buddy.Contracts.DbEntities;
-using GM_Buddy.Contracts.DTOs;
+using GM_Buddy.Contracts.Models;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace GM_Buddy.Business.UnitTests;

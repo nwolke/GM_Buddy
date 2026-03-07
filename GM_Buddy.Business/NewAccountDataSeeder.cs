@@ -1,9 +1,7 @@
 using GM_Buddy.Contracts.Constants;
 using GM_Buddy.Contracts.DbEntities;
 using GM_Buddy.Contracts.Interfaces;
-using GM_Buddy.Contracts.Models.Npcs.Dnd;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 
 namespace GM_Buddy.Business;
 
@@ -45,11 +43,8 @@ public class NewAccountDataSeeder : INewAccountDataSeeder
             account_id = accountId,
             name = "Gorath the Brave",
             description = "A fearless warrior from the northern tribes",
-            stats = JsonSerializer.Serialize(new DnDStats
-            {
-                Lineage = "Human",
-                Occupation = "Fighter"
-            })
+            lineage = "Human",
+            @class = "Warrior"
         };
         var npcId1 = await _npcRepository.CreateNpcAsync(defaultNpc1);
 
@@ -60,11 +55,8 @@ public class NewAccountDataSeeder : INewAccountDataSeeder
             account_id = accountId,
             name = "Lathel Spellbinder",
             description = "An intelligent elf wizard from the forests of Eldoria",
-            stats = JsonSerializer.Serialize(new DnDStats
-            {
-                Lineage = "Elf",
-                Occupation = "Wizard"
-            })
+            lineage = "Elf",
+            @class = "Wizard"
         };
         var npcId2 = await _npcRepository.CreateNpcAsync(defaultNpc2);
 

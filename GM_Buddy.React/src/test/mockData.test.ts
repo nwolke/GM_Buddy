@@ -22,7 +22,7 @@ describe('Mock Data', () => {
       mockNPCs.forEach(npc => {
         expect(npc).toHaveProperty('id')
         expect(npc).toHaveProperty('name')
-        expect(npc).toHaveProperty('race')
+        expect(npc).toHaveProperty('lineage')
         expect(npc).toHaveProperty('class')
         expect(npc).toHaveProperty('description')
       })
