@@ -26,7 +26,7 @@ export function NPCNetwork({ npcs, relationships, onNodeClick }: NPCNetworkProps
     const nodes = npcs.map(npc => ({
       id: npc.id,
       name: npc.name,
-      race: npc.race,
+      lineage: npc.lineage,
       class: npc.class,
       npc: npc
     }));
@@ -81,7 +81,7 @@ export function NPCNetwork({ npcs, relationships, onNodeClick }: NPCNetworkProps
         nodeLabel={(node: any) => `
           <div style="background: linear-gradient(135deg, #1a1333 0%, #2d1b4e 100%); padding: 12px; border-radius: 8px; box-shadow: 0 4px 12px rgba(157, 78, 221, 0.3); border: 1px solid rgba(157, 78, 221, 0.3);">
             <strong style="color: #9d4edd; font-size: 14px;">${node.name}</strong><br/>
-            <span style="color: #c77dff; font-size: 12px;">${node.race}</span>
+            <span style="color: #c77dff; font-size: 12px;">${node.lineage}</span>
             <span style="color: #a099b8;"> • </span>
             <span style="color: #e0aaff; font-size: 12px;">${node.class}</span>
           </div>

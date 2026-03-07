@@ -26,7 +26,7 @@ export function NPCCard({ npc, onEdit, onDelete, relationshipCount }: NPCCardPro
             </CardTitle>
             <CardDescription className="flex items-center gap-2 mt-1">
               <Sparkles className="size-3 text-accent" />
-              <span className="text-primary font-semibold">{npc.race}</span>
+              <span className="text-primary font-semibold">{npc.lineage}</span>
               <span className="text-muted-foreground">•</span>
               <span className="text-accent font-semibold">{npc.class}</span>
             </CardDescription>

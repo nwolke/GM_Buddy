@@ -8,5 +8,9 @@ public class Npc
     // Core fields
     public required string name { get; set; }
     public string? description { get; set; }
-    public required string stats { get; set; }
+    // Flattened properties (moved from stats object)
+    public string? lineage { get; set; }
+    public string? @class { get; set; }
+    public string? faction { get; set; }
+    public string? notes { get; set; }
 }

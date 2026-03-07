@@ -6,7 +6,7 @@ var postgresPassword = builder.AddParameter("postgres-password");
 
 var postgres = builder.AddPostgres("postgres", userName: postgresUsername, password: postgresPassword, port: 15432)
     .WithImage("postgres", "17-alpine")
-    .WithDataVolume("gm_buddy_postgres_data")
+    .WithBindMount("./db-data/", "/gm_buddy_postgres_data")
     .WithBindMount("./init.sql/init.sql", "/docker-entrypoint-initdb.d/init.sql", isReadOnly: true)
     .WithEnvironment("POSTGRES_DB", builder.Configuration["POSTGRES_DB"] ?? "gm_buddy");
 
