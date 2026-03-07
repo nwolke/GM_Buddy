@@ -23,7 +23,7 @@ describe('NPCCard', () => {
     render(<NPCCard {...defaultProps} />)
 
     expect(screen.getByText(mockNPCs[0].name)).toBeInTheDocument()
-    expect(screen.getByText(mockNPCs[0].race)).toBeInTheDocument()
+    expect(screen.getByText(mockNPCs[0].lineage)).toBeInTheDocument()
     expect(screen.getByText(mockNPCs[0].class)).toBeInTheDocument()
     expect(screen.getByText(mockNPCs[0].description)).toBeInTheDocument()
   })
