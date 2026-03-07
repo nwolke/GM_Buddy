@@ -435,3 +435,4 @@ appsettings.Development.json
 scripts/
 # Claude AI local settings
 .claude/settings.local.json
+/GM_Buddy.AppHost/db-data
