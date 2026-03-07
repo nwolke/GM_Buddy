@@ -1,7 +1,7 @@
 export interface NPC {
   id: number;
   name: string;
-  race: string;
+  lineage: string;
   class: string;
   description: string;
   campaignId?: number;

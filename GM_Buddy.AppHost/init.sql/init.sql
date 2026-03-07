@@ -38,15 +38,17 @@ CREATE TABLE IF NOT EXISTS public.campaign (
 
 -- NPC table:
 -- NPCs are associated with campaigns.
--- The stats column stores NPC data including lineage as freeform text.
+-- Lineage, class, and faction are stored as direct columns for easier querying.
 CREATE TABLE IF NOT EXISTS public.npc (
     npc_id          int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     account_id      int NOT NULL,
     campaign_id     int NOT NULL,
     name            text NOT NULL,
     description     text,
-    -- Use jsonb for the stats blob to enable JSON queries/indexing.
-    stats  jsonb NOT NULL DEFAULT '{}'::jsonb,
+    lineage         text,
+    class           text,
+    faction         text,
+    notes           text,
     created_at      timestamptz NOT NULL DEFAULT now(),
     updated_at      timestamptz NOT NULL DEFAULT now(),
     FOREIGN KEY (account_id) REFERENCES auth.account(id) ON DELETE CASCADE,
@@ -166,57 +168,57 @@ VALUES
 ON CONFLICT DO NOTHING;
 
 -- Insert sample NPCs (generic fantasy characters)
-INSERT INTO public.npc (account_id, campaign_id, name, description, stats)
+INSERT INTO public.npc (account_id, campaign_id, name, description, lineage, class, faction, notes)
 VALUES
   (
     (SELECT id FROM auth.account WHERE username = 'gm_admin' LIMIT 1),
     (SELECT campaign_id FROM public.campaign WHERE name = 'Shadows Over Millhaven' LIMIT 1),
     'Marcus Blackwood',
     'The town magistrate who oversees law and order in Millhaven. Known for his fair judgment and dedication to the community.',
-    jsonb_build_object(
-      'lineage', 'Human',
-      'occupation', 'Magistrate'
-    )
+    'Human',
+    'Magistrate',
+    NULL,
+    NULL
   ),
   (
     (SELECT id FROM auth.account WHERE username = 'gm_admin' LIMIT 1),
     (SELECT campaign_id FROM public.campaign WHERE name = 'Shadows Over Millhaven' LIMIT 1),
     'Lyanna Swift',
     'A traveling merchant who deals in rare herbs and alchemical components. She has connections throughout the region.',
-    jsonb_build_object(
-      'lineage', 'Half-Elf',
-      'occupation', 'Merchant'
-    )
+    'Half-Elf',
+    'Merchant',
+    NULL,
+    NULL
   ),
   (
     (SELECT id FROM auth.account WHERE username = 'gm_admin' LIMIT 1),
     (SELECT campaign_id FROM public.campaign WHERE name = 'The Northern Frontier' LIMIT 1),
     'Thorgar Stonefist',
     'A seasoned explorer and guide who knows the northern mountains better than anyone.',
-    jsonb_build_object(
-      'lineage', 'Dwarf',
-      'occupation', 'Guide'
-    )
+    'Dwarf',
+    'Guide',
+    NULL,
+    NULL
   ),
   (
     (SELECT id FROM auth.account WHERE username = 'gm_admin' LIMIT 1),
     (SELECT campaign_id FROM public.campaign WHERE name = 'The Northern Frontier' LIMIT 1),
     'Kael Windrunner',
     'A skilled tracker and hunter who makes a living by trapping and guiding hunting expeditions.',
-    jsonb_build_object(
-      'lineage', 'Elf',
-      'occupation', 'Tracker'
-    )
+    'Elf',
+    'Tracker',
+    NULL,
+    NULL
   ),
   (
     (SELECT id FROM auth.account WHERE username = 'gm_admin' LIMIT 1),
     (SELECT campaign_id FROM public.campaign WHERE name = 'The Northern Frontier' LIMIT 1),
     'Red Scar',
     'A notorious bandit leader who controls the mountain passes and demands tribute from travelers.',
-    jsonb_build_object(
-      'lineage', 'Half-Orc',
-      'occupation', 'Bandit Chief'
-    )
+    'Half-Orc',
+    'Bandit Chief',
+    NULL,
+    NULL
   )
 ON CONFLICT DO NOTHING;
 

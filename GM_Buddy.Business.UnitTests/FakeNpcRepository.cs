@@ -44,7 +44,10 @@ internal class FakeNpcRepository : INpcRepository
 
         existing.name = npc.name;
         existing.description = npc.description;
-        existing.stats = npc.stats;
+        existing.lineage = npc.lineage;
+        existing.@class = npc.@class;
+        existing.faction = npc.faction;
+        existing.notes = npc.notes;
         return Task.FromResult(true);
     }
 
@@ -123,8 +126,8 @@ public class NpcLogicTests
         // Arrange
         var npcs = new[]
         {
-            new Npc { name="test", npc_id = 1, account_id = 10, campaign_id = 1, stats = string.Empty},
-            new Npc { name="test2",npc_id = 2, account_id = 10, campaign_id = 1, stats = string.Empty }
+            new Npc { name="test", npc_id = 1, account_id = 10, campaign_id = 1},
+            new Npc { name="test2",npc_id = 2, account_id = 10, campaign_id = 1}
         };
         var repo = new FakeNpcRepository(npcs);
         var campaignRepo = new FakeCampaignRepository();
@@ -145,9 +148,9 @@ public class NpcLogicTests
         // Arrange
         var npcs = new[]
         {
-            new Npc { name="Campaign1NPC", npc_id = 1, account_id = 10, campaign_id = 1, stats = string.Empty},
-            new Npc { name="Campaign2NPC", npc_id = 2, account_id = 10, campaign_id = 2, stats = string.Empty },
-            new Npc { name="Campaign1NPC2", npc_id = 3, account_id = 10, campaign_id = 1, stats = string.Empty }
+            new Npc { name="Campaign1NPC", npc_id = 1, account_id = 10, campaign_id = 1},
+            new Npc { name="Campaign2NPC", npc_id = 2, account_id = 10, campaign_id = 2},
+            new Npc { name="Campaign1NPC2", npc_id = 3, account_id = 10, campaign_id = 1}
         };
         var repo = new FakeNpcRepository(npcs);
         var campaignRepo = new FakeCampaignRepository();
@@ -182,7 +185,7 @@ public class NpcLogicTests
     public async Task GetNpc_ReturnsMappedNpc_WhenFound()
     {
         // Arrange
-        var npc = new Npc { name = "SupGirl", npc_id = 42, account_id = 5, campaign_id = 3, stats = string.Empty };
+        var npc = new Npc { name = "SupGirl", npc_id = 42, account_id = 5, campaign_id = 3 };
         var repo = new FakeNpcRepository(new[] { npc });
         var campaignRepo = new FakeCampaignRepository();
         var logic = new NpcLogic(repo, campaignRepo, NullLogger<NpcLogic>.Instance);
@@ -199,7 +202,7 @@ public class NpcLogicTests
     public async Task UpdateNpcAsync_ThrowsInvalidOperationException_WhenCampaignDoesNotExist()
     {
         // Arrange
-        var npc = new Npc { name = "TestNpc", npc_id = 1, account_id = 10, campaign_id = 1, stats = string.Empty };
+        var npc = new Npc { name = "TestNpc", npc_id = 1, account_id = 10, campaign_id = 1 };
         var repo = new FakeNpcRepository(new[] { npc });
         var campaignRepo = new FakeCampaignRepository();
         var logic = new NpcLogic(repo, campaignRepo, NullLogger<NpcLogic>.Instance);
@@ -209,7 +212,7 @@ public class NpcLogicTests
             Name = "Updated NPC",
             CampaignId = 999, // Campaign that doesn't exist
             Description = "Test description",
-            Race = "Elf",
+            Lineage = "Elf",
             Class = "Wizard"
         };
 
@@ -224,7 +227,7 @@ public class NpcLogicTests
     public async Task UpdateNpcAsync_ThrowsUnauthorizedAccessException_WhenCampaignBelongsToDifferentAccount()
     {
         // Arrange
-        var npc = new Npc { name = "TestNpc", npc_id = 1, account_id = 10, campaign_id = 1, stats = string.Empty };
+        var npc = new Npc { name = "TestNpc", npc_id = 1, account_id = 10, campaign_id = 1 };
         var repo = new FakeNpcRepository(new[] { npc });
         var campaignRepo = new FakeCampaignRepository(); // Campaign 3 belongs to account 5
         var logic = new NpcLogic(repo, campaignRepo, NullLogger<NpcLogic>.Instance);
@@ -234,7 +237,7 @@ public class NpcLogicTests
             Name = "Updated NPC",
             CampaignId = 3, // Campaign belongs to account 5, not 10
             Description = "Test description",
-            Race = "Dwarf",
+            Lineage = "Dwarf",
             Class = "Fighter"
         };
 
@@ -249,7 +252,7 @@ public class NpcLogicTests
     public async Task UpdateNpcAsync_ReturnsTrue_WhenCampaignIsValidAndBelongsToAccount()
     {
         // Arrange
-        var npc = new Npc { name = "TestNpc", npc_id = 1, account_id = 10, campaign_id = 1, stats = string.Empty };
+        var npc = new Npc { name = "TestNpc", npc_id = 1, account_id = 10, campaign_id = 1 };
         var repo = new FakeNpcRepository(new[] { npc });
         var campaignRepo = new FakeCampaignRepository(); // Campaign 1 belongs to account 10
         var logic = new NpcLogic(repo, campaignRepo, NullLogger<NpcLogic>.Instance);
@@ -259,7 +262,7 @@ public class NpcLogicTests
             Name = "Updated NPC",
             CampaignId = 1, // Valid campaign that belongs to account 10
             Description = "Test description",
-            Race = "Human",
+            Lineage = "Human",
             Class = "Paladin"
         };
 

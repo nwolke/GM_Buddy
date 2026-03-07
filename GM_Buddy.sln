@@ -17,8 +17,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C056A72B-6137-44F7-9307-55F628A65C90}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
-		init.sql = init.sql
-		servers.json = servers.json
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GM_Buddy.Business.UnitTests", "GM_Buddy.Business.UnitTests\GM_Buddy.Business.UnitTests.csproj", "{60983E56-D238-419D-9FF0-7DFF67232221}"

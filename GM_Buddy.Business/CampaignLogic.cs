@@ -1,6 +1,6 @@
 using GM_Buddy.Business.Mappers;
-using GM_Buddy.Contracts.DTOs;
 using GM_Buddy.Contracts.Interfaces;
+using GM_Buddy.Contracts.Models;
 using Microsoft.Extensions.Logging;
 
 namespace GM_Buddy.Business;

@@ -20,7 +20,7 @@ export const mockNPCs: NPC[] = [
   {
     id: 1,
     name: 'Test NPC 1',
-    race: 'Human',
+    lineage: 'Human',
     class: 'Fighter',
     description: 'A brave warrior',
     campaignId: 1,
@@ -30,7 +30,7 @@ export const mockNPCs: NPC[] = [
   {
     id: 2,
     name: 'Test NPC 2',
-    race: 'Elf',
+    lineage: 'Elf',
     class: 'Wizard',
     description: 'A wise mage',
     campaignId: 1,
@@ -40,7 +40,7 @@ export const mockNPCs: NPC[] = [
   {
     id: 3,
     name: 'Test NPC 3',
-    race: 'Dwarf',
+    lineage: 'Dwarf',
     class: 'Cleric',
     description: 'A holy dwarf',
     campaignId: 2,

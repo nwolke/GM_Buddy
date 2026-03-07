@@ -1,6 +1,6 @@
 using GM_Buddy.Business.Mappers;
 using GM_Buddy.Contracts.DbEntities;
-using GM_Buddy.Contracts.DTOs;
+using GM_Buddy.Contracts.Models;
 
 namespace GM_Buddy.Business.UnitTests;
 
