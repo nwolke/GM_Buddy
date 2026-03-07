@@ -3,8 +3,8 @@
     "gm_buddy_postgres": {
       "Name": "gm_buddy_postgres",
       "Group": "Servers",
-      "Host": "localhost",
-      "Port": 15432,
+      "Host": "postgres",
+      "Port": 5432,
       "MaintenanceDB": "gm_buddy",
       "Username": "postgres",
       "SSLMode": "prefer"
