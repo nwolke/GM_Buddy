@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Network, Lock, ArrowRight, LogIn } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import { Card, CardContent } from "@/app/components/ui/card";
@@ -11,19 +11,19 @@ interface ToolCardProps {
   icon: React.ReactNode;
   gradientFrom: string;
   gradientTo: string;
-  onClick?: () => void;
+  to?: string;
   disabled?: boolean;
 }
 
-function ToolCard({ title, description, icon, gradientFrom, gradientTo, onClick, disabled }: ToolCardProps) {
+function ToolCardContent({ title, description, icon, gradientFrom, gradientTo, disabled }: Omit<ToolCardProps, 'to'>) {
   return (
     <Card
       className={`group transition-all duration-300 border-primary/30 overflow-hidden ${
         disabled
           ? 'opacity-50 cursor-not-allowed'
-          : 'hover:shadow-xl hover:shadow-primary/20 hover:border-primary/50 cursor-pointer hover:scale-[1.02]'
+          : 'hover:shadow-xl hover:shadow-primary/20 hover:border-primary/50 hover:scale-[1.02]'
       }`}
-      onClick={disabled ? undefined : onClick}
+      aria-disabled={disabled || undefined}
     >
       {/* Placeholder image area with gradient + icon */}
       <div
@@ -71,8 +71,21 @@ function ToolCard({ title, description, icon, gradientFrom, gradientTo, onClick,
   );
 }
 
+function ToolCard(props: ToolCardProps) {
+  const { to, disabled, ...cardProps } = props;
+
+  if (to && !disabled) {
+    return (
+      <Link to={to} className="block no-underline rounded-2xl focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2">
+        <ToolCardContent {...cardProps} disabled={false} />
+      </Link>
+    );
+  }
+
+  return <ToolCardContent {...cardProps} disabled={disabled} />;
+}
+
 export function HomePage() {
-  const navigate = useNavigate();
   const { isAuthenticated, loginWithCognito } = useAuth();
 
   return (
@@ -128,7 +141,7 @@ export function HomePage() {
               icon={<Network className="size-16 text-white" />}
               gradientFrom="hsl(270, 70%, 45%)"
               gradientTo="hsl(330, 70%, 50%)"
-              onClick={() => navigate('/relationship-manager')}
+              to="/relationship-manager"
             />
 
             <ToolCard
