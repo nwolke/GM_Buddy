@@ -45,7 +45,7 @@ export function RelationshipAddModal({
   const [targetId, setTargetId] = useState<string>("");
   const [relationshipType, setRelationshipType] = useState<RelationshipType>("ally");
   const [description, setDescription] = useState("");
-  const [disposition, setDisposition] = useState<number>(0);
+  const [disposition, setDisposition] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -92,7 +92,7 @@ export function RelationshipAddModal({
       setTargetId("");
       setRelationshipType("ally");
       setDescription("");
-      setDisposition(0);
+      setDisposition(null);
       onOpenChange(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to add relationship. Please try again.');

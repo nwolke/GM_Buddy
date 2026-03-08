@@ -1,33 +1,46 @@
 import { Slider } from "@/app/components/ui/slider";
 import { Label } from "@/app/components/ui/label";
+import { Checkbox } from "@/app/components/ui/checkbox";
 import { DISPOSITION_MIN, DISPOSITION_MAX, getDispositionLabel, getDispositionColor } from "@/types/npc";
 
 interface DispositionSliderProps {
-  value: number;
-  onChange: (value: number) => void;
+  value: number | null;
+  onChange: (value: number | null) => void;
   id?: string;
 }
 
 export function DispositionSlider({ value, onChange, id = 'disposition-slider' }: DispositionSliderProps) {
+  const enabled = value !== null;
+  const displayValue = value ?? 0;
   const label = getDispositionLabel(value);
   const textColor = getDispositionColor(value);
-  const scoreText = `${value > 0 ? '+' : ''}${value}`;
+  const scoreText = enabled ? `${displayValue > 0 ? '+' : ''}${displayValue}` : '';
+  const labelId = `${id}-label`;
 
   return (
     <div className="grid gap-2">
       <div className="flex items-center justify-between">
-        <Label htmlFor={id}>Disposition</Label>
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id={`${id}-toggle`}
+            checked={enabled}
+            onCheckedChange={(checked) => onChange(checked ? 0 : null)}
+          />
+          <Label id={labelId} htmlFor={`${id}-toggle`}>Disposition</Label>
+        </div>
         <span className={`text-sm font-medium ${textColor}`}>
           {scoreText} {label}
         </span>
       </div>
       <Slider
         id={id}
+        aria-labelledby={labelId}
         min={DISPOSITION_MIN}
         max={DISPOSITION_MAX}
         step={1}
-        value={[value]}
+        value={[displayValue]}
         onValueChange={([v]) => onChange(v)}
+        disabled={!enabled}
         className="w-full"
       />
       <div className="flex justify-between text-xs text-muted-foreground">
