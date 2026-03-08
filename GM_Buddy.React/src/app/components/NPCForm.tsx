@@ -12,7 +12,7 @@ import { AlertTriangle } from "lucide-react";
 interface NPCFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (npc: Omit<NPC, 'id'> | NPC) => void;
+  onSave: (npc: Omit<NPC, 'id'> | NPC) => Promise<void>;
   editingNPC?: NPC | null;
 }
 
@@ -31,6 +31,7 @@ const [campaigns, setCampaigns] = useState<Campaign[]>([]);
 const [loadingCampaigns, setLoadingCampaigns] = useState(false);
 const [originalCampaignId, setOriginalCampaignId] = useState<number | undefined>(undefined);
 const [showCampaignChangeWarning, setShowCampaignChangeWarning] = useState(false);
+const [saving, setSaving] = useState(false);
 
   // Load campaigns when the dialog is opened
   useEffect(() => {
@@ -94,15 +95,23 @@ const [showCampaignChangeWarning, setShowCampaignChangeWarning] = useState(false
     submitForm();
   };
 
-  const submitForm = () => {
-    if (editingNPC) {
-      onSave({ ...editingNPC, ...formData });
-    } else {
-      onSave(formData as Omit<NPC, 'id'>);
+  const submitForm = async () => {
+    setSaving(true);
+    try {
+      if (editingNPC) {
+        await onSave({ ...editingNPC, ...formData });
+      } else {
+        await onSave(formData as Omit<NPC, 'id'>);
+      }
+      setShowCampaignChangeWarning(false);
+      onOpenChange(false);
+    } catch (err) {
+      console.error('[NPCForm] Failed to save NPC:', err);
+      setShowCampaignChangeWarning(false);
+      // Keep dialog open so user can retry
+    } finally {
+      setSaving(false);
     }
-    
-    setShowCampaignChangeWarning(false);
-    onOpenChange(false);
   };
 
   const handleCampaignChange = (campaignId: string) => {
@@ -212,11 +221,11 @@ const [showCampaignChangeWarning, setShowCampaignChangeWarning] = useState(false
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
               Cancel
             </Button>
-            <Button type="submit">
-              {editingNPC ? "Update" : "Create"} NPC
+            <Button type="submit" disabled={saving}>
+              {saving ? "Saving..." : `${editingNPC ? "Update" : "Create"} NPC`}
             </Button>
           </DialogFooter>
         </form>
@@ -243,19 +252,21 @@ const [showCampaignChangeWarning, setShowCampaignChangeWarning] = useState(false
             </p>
           </div>
           <DialogFooter>
-            <Button 
-              type="button" 
-              variant="outline" 
+            <Button
+              type="button"
+              variant="outline"
               onClick={() => setShowCampaignChangeWarning(false)}
+              disabled={saving}
             >
               Cancel
             </Button>
-            <Button 
-              type="button" 
+            <Button
+              type="button"
               variant="destructive"
               onClick={submitForm}
+              disabled={saving}
             >
-              Confirm & Move NPC
+              {saving ? "Saving..." : "Confirm & Move NPC"}
             </Button>
           </DialogFooter>
         </DialogContent>

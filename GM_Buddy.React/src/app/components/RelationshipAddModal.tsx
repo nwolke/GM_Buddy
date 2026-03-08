@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from "@/app/components/ui/select";
 import { Input } from "@/app/components/ui/input";
-import { EntityItem } from "@/hooks/useRelationshipPageData";
+import { EntityItem } from "@/types/entity";
 
 interface RelationshipAddModalProps {
   open: boolean;
@@ -123,8 +123,8 @@ export function RelationshipAddModal({
                     {npcsAvailable.map(e => (
                       <SelectItem key={`npc-${e.id}`} value={`npc-${e.id}`}>
                         {e.name}
-                        {e.race && e.class && (
-                          <span className="text-muted-foreground"> ({e.race} {e.class})</span>
+                        {e.lineage && e.class && (
+                          <span className="text-muted-foreground"> ({e.lineage} {e.class})</span>
                         )}
                       </SelectItem>
                     ))}

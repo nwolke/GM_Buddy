@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Campaign } from "@/types/campaign";
 import { CampaignForm } from "@/app/components/CampaignForm";
 import { Button } from "@/app/components/ui/button";
@@ -16,7 +16,6 @@ function truncateDescription(text: string | undefined, maxLength: number = 500):
 }
 
 export function RelationshipManagerPage() {
-  const navigate = useNavigate();
   const { isAuthenticated, loginWithCognito, loading: authLoading } = useAuth();
   const {
     campaigns,
@@ -170,49 +169,53 @@ export function RelationshipManagerPage() {
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {campaigns.map(campaign => (
-              <Card
+              <Link
                 key={campaign.id}
-                className="group hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-card to-secondary/30 border-primary/30 hover:border-primary/50 cursor-pointer hover:scale-[1.01]"
-                onClick={() => navigate(`/campaign/${campaign.id}`)}
+                to={`/campaign/${campaign.id}`}
+                className="block no-underline rounded-2xl focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
               >
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between gap-4">
-                    <CardTitle className="text-2xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                      {campaign.name}
-                    </CardTitle>
-                    <ArrowRight className="size-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all shrink-0 mt-1" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {campaign.description && (
-                    <p className="text-muted-foreground text-sm mb-4 leading-relaxed">
-                      {truncateDescription(campaign.description)}
-                    </p>
-                  )}
+                <Card
+                  className="group hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-card to-secondary/30 border-primary/30 hover:border-primary/50 cursor-pointer hover:scale-[1.01]"
+                >
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between gap-4">
+                      <CardTitle className="text-2xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                        {campaign.name}
+                      </CardTitle>
+                      <ArrowRight className="size-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all shrink-0 mt-1" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {campaign.description && (
+                      <p className="text-muted-foreground text-sm mb-4 leading-relaxed">
+                        {truncateDescription(campaign.description)}
+                      </p>
+                    )}
 
-                  <div className="flex gap-2 mt-4 pt-4 border-t border-primary/20">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={(e) => handleEditCampaign(e, campaign)}
-                      className="flex-1 hover:bg-primary/10 hover:border-primary/50"
-                    >
-                      <Pencil className="size-4 mr-2" />
-                      Edit
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={(e) => handleDeleteCampaign(e, campaign.id)}
-                      className="hover:bg-destructive/10 hover:border-destructive/50 hover:text-destructive"
-                      aria-label="Delete campaign"
-                      title="Delete campaign"
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+                    <div className="flex gap-2 mt-4 pt-4 border-t border-primary/20">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => handleEditCampaign(e, campaign)}
+                        className="flex-1 hover:bg-primary/10 hover:border-primary/50"
+                      >
+                        <Pencil className="size-4 mr-2" />
+                        Edit
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => handleDeleteCampaign(e, campaign.id)}
+                        className="hover:bg-destructive/10 hover:border-destructive/50 hover:text-destructive"
+                        aria-label="Delete campaign"
+                        title="Delete campaign"
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
         )}
