@@ -10,6 +10,8 @@ public class CreatePcRequest
     [Required]
     public required string Name { get; set; }
     public string? Description { get; set; }
+    [Required]
+    public required int CampaignId { get; set; }
 }
 
 /// <summary>
@@ -20,4 +22,6 @@ public class UpdatePcRequest
     [Required]
     public required string Name { get; set; }
     public string? Description { get; set; }
+    [Required]
+    public required int CampaignId { get; set; }
 }

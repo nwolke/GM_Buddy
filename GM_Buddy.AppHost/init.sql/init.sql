@@ -59,11 +59,13 @@ CREATE TABLE IF NOT EXISTS public.npc (
 CREATE TABLE IF NOT EXISTS public.pc(
     pc_id           int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     account_id      int NOT NULL,
+    campaign_id     int NOT NULL,
     name            text NOT NULL,
     description     text,
     created_at      timestamptz NOT NULL DEFAULT now(),
     updated_at      timestamptz NOT NULL DEFAULT now(),
-    FOREIGN KEY (account_id) REFERENCES auth.account(id) ON DELETE CASCADE
+    FOREIGN KEY (account_id) REFERENCES auth.account(id) ON DELETE CASCADE,
+    FOREIGN KEY (campaign_id) REFERENCES public.campaign(campaign_id) ON DELETE RESTRICT
 );
 
 -- Organization table:
@@ -223,25 +225,29 @@ VALUES
 ON CONFLICT DO NOTHING;
 
 -- Insert sample PCs
-INSERT INTO public.pc (account_id, name, description)
+INSERT INTO public.pc (account_id, campaign_id, name, description)
 VALUES
   (
     (SELECT id FROM auth.account WHERE username = 'gm_admin' LIMIT 1),
+    (SELECT campaign_id FROM public.campaign WHERE name = 'Shadows Over Millhaven' LIMIT 1),
     'Thorin Ironforge',
     'A dwarven cleric devoted to Moradin, god of creation and forging.'
   ),
   (
     (SELECT id FROM auth.account WHERE username = 'gm_admin' LIMIT 1),
+    (SELECT campaign_id FROM public.campaign WHERE name = 'Shadows Over Millhaven' LIMIT 1),
     'Lyra Shadowstep',
     'A half-elf rogue with a mysterious past and quick fingers.'
   ),
   (
     (SELECT id FROM auth.account WHERE username = 'gm_admin' LIMIT 1),
+    (SELECT campaign_id FROM public.campaign WHERE name = 'The Northern Frontier' LIMIT 1),
     'Aldric the Brave',
     'A human paladin sworn to protect the innocent and vanquish evil.'
   ),
   (
     (SELECT id FROM auth.account WHERE username = 'gm_admin' LIMIT 1),
+    (SELECT campaign_id FROM public.campaign WHERE name = 'The Northern Frontier' LIMIT 1),
     'Zephyr Windwhisper',
     'An elven ranger who tracks and hunts dangerous beasts in the wilderness.'
   )

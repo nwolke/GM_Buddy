@@ -7,6 +7,7 @@ namespace GM_Buddy.Contracts.Models.Pcs;
 public class PcDto
 {
     public int Pc_Id { get; set; }
+    public int Campaign_Id { get; set; }
     public required string Name { get; set; }
     public string? Description { get; set; }
 }

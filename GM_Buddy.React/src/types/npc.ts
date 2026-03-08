@@ -18,6 +18,7 @@ export interface Relationship {
   entityType2: 'npc' | 'pc';
   type: RelationshipType;
   description?: string;
+  campaignId?: number;
 }
 
 export type RelationshipType = 'ally' | 'enemy' | 'family' | 'rival' | 'mentor' | 'student' | 'neutral';

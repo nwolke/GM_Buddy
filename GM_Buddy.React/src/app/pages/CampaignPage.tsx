@@ -1,28 +1,28 @@
-import { useState, useRef, useEffect } from "react";
-import { EntityItem, useRelationshipPageData } from "@/hooks/useRelationshipPageData";
+import { useState, useRef, useEffect, useMemo } from "react";
+import { useParams, Navigate } from "react-router-dom";
+import { NPC, RelationshipType } from "@/types/npc";
+import { PC } from "@/types/pc";
+import { EntityItem } from "@/types/entity";
+import { useNPCData } from "@/hooks/useNPCData";
+import { usePCData } from "@/hooks/usePCData";
 import { useCampaignData } from "@/hooks/useCampaignData";
 import { EntityGraph } from "@/app/components/EntityGraph";
 import { EntityDetailPanel } from "@/app/components/EntityDetailPanel";
+import { NPCForm } from "@/app/components/NPCForm";
+import { PCForm } from "@/app/components/PCForm";
 import { Header } from "@/app/components/Header";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { ScrollArea } from "@/app/components/ui/scroll-area";
-import { Badge } from "@/app/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/app/components/ui/select";
-import { RelationshipType } from "@/types/npc";
 import {
   RefreshCw,
   LogIn,
-  Filter,
   Search,
   Shield,
   User,
+  Plus,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -36,35 +36,82 @@ const relationshipLegend: { type: RelationshipType; color: string; label: string
   { type: 'neutral', color: '#6b7280', label: 'Neutral' },
 ];
 
-export function RelationshipsPage() {
+export function CampaignPage() {
+  const { id } = useParams<{ id: string }>();
+  const campaignId = id ? Number(id) : undefined;
   const { isAuthenticated, loginWithCognito, loading: authLoading } = useAuth();
-  const { campaigns, loading: campaignsLoading } = useCampaignData();
 
+  // Fetch campaign info for breadcrumb
+  const { campaigns } = useCampaignData();
+  const campaign = campaigns.find(c => c.id === campaignId);
+
+  // Data hooks scoped to this campaign
   const {
-    entities,
+    npcs,
     relationships,
-    loading,
-    error,
-    selectedCampaignId,
-    setSelectedCampaignId,
-    refresh,
+    loading: npcLoading,
+    error: npcError,
+    refreshNpcs,
+    saveNPC,
+    deleteNPC,
     addRelationship,
     deleteRelationship,
-  } = useRelationshipPageData();
+  } = useNPCData(campaignId);
+
+  const {
+    pcs,
+    loading: pcLoading,
+    error: pcError,
+    refreshPcs,
+    savePc,
+    deletePc,
+  } = usePCData(campaignId);
+
+  const loading = npcLoading || pcLoading;
+  const error = [npcError, pcError].filter(Boolean).join('; ') || null;
+
+  // Entity list combining NPCs and PCs
+  const entities = useMemo<EntityItem[]>(() => [
+    ...npcs.map((npc): EntityItem => ({
+      id: npc.id,
+      name: npc.name,
+      entityType: 'npc',
+      lineage: npc.lineage,
+      class: npc.class,
+      description: npc.description,
+      faction: npc.faction,
+      notes: npc.notes,
+      campaignId: npc.campaignId,
+    })),
+    ...pcs.map((pc): EntityItem => ({
+      id: pc.id,
+      name: pc.name,
+      entityType: 'pc',
+      description: pc.description,
+      campaignId: pc.campaignId,
+    })),
+  ], [npcs, pcs]);
 
   const [selectedEntity, setSelectedEntity] = useState<EntityItem | null>(null);
   const [search, setSearch] = useState("");
   const [showNPCs, setShowNPCs] = useState(true);
   const [showPCs, setShowPCs] = useState(true);
 
-  // Track canvas container dimensions for responsive graph
+  // NPC form state
+  const [npcFormOpen, setNpcFormOpen] = useState(false);
+  const [editingNPC, setEditingNPC] = useState<NPC | null>(null);
+
+  // PC form state
+  const [pcFormOpen, setPcFormOpen] = useState(false);
+  const [editingPC, setEditingPC] = useState<PC | null>(null);
+
+  // Canvas sizing
   const canvasContainerRef = useRef<HTMLDivElement>(null);
   const [canvasSize, setCanvasSize] = useState({ width: 800, height: 600 });
 
   useEffect(() => {
     const container = canvasContainerRef.current;
     if (!container) return;
-
     const observer = new ResizeObserver(entries => {
       for (const entry of entries) {
         const { width, height } = entry.contentRect;
@@ -75,7 +122,7 @@ export function RelationshipsPage() {
     return () => observer.disconnect();
   }, []);
 
-  // Filter entities by type toggle and search
+  // Filter entities
   const filteredEntities = entities.filter(e => {
     if (e.entityType === 'npc' && !showNPCs) return false;
     if (e.entityType === 'pc' && !showPCs) return false;
@@ -85,13 +132,78 @@ export function RelationshipsPage() {
     return true;
   });
 
-  // Filter relationships to only those between visible entities
+  // Filter relationships to visible entities
   const visibleEntityKeys = new Set(filteredEntities.map(e => `${e.entityType}-${e.id}`));
   const filteredRelationships = relationships.filter(rel => {
     const k1 = `${rel.entityType1}-${rel.npcId1}`;
     const k2 = `${rel.entityType2}-${rel.npcId2}`;
     return visibleEntityKeys.has(k1) && visibleEntityKeys.has(k2);
   });
+
+  const handleRefresh = async () => {
+    await Promise.all([refreshNpcs(), refreshPcs()]);
+  };
+
+  // NPC CRUD handlers
+  const handleAddNPC = () => {
+    setEditingNPC(null);
+    setNpcFormOpen(true);
+  };
+
+  const handleEditNPC = (npc: NPC) => {
+    setEditingNPC(npc);
+    setNpcFormOpen(true);
+  };
+
+  const handleDeleteNPC = async (id: number) => {
+    if (confirm('Are you sure you want to delete this NPC? All their relationships will also be removed.')) {
+      await deleteNPC(id);
+      if (selectedEntity?.entityType === 'npc' && selectedEntity?.id === id) {
+        setSelectedEntity(null);
+      }
+    }
+  };
+
+  // PC CRUD handlers
+  const handleAddPC = () => {
+    setEditingPC(null);
+    setPcFormOpen(true);
+  };
+
+  const handleEditPC = (pc: PC) => {
+    setEditingPC(pc);
+    setPcFormOpen(true);
+  };
+
+  const handleDeletePC = async (id: number) => {
+    if (confirm('Are you sure you want to delete this character?')) {
+      await deletePc(id);
+      if (selectedEntity?.entityType === 'pc' && selectedEntity?.id === id) {
+        setSelectedEntity(null);
+      }
+    }
+  };
+
+  // Handle edit/delete from the detail panel
+  const handleEditEntity = () => {
+    if (!selectedEntity) return;
+    if (selectedEntity.entityType === 'npc') {
+      const npc = npcs.find(n => n.id === selectedEntity.id);
+      if (npc) handleEditNPC(npc);
+    } else {
+      const pc = pcs.find(p => p.id === selectedEntity.id);
+      if (pc) handleEditPC(pc);
+    }
+  };
+
+  const handleDeleteEntity = () => {
+    if (!selectedEntity) return;
+    if (selectedEntity.entityType === 'npc') {
+      handleDeleteNPC(selectedEntity.id);
+    } else {
+      handleDeletePC(selectedEntity.id);
+    }
+  };
 
   if (authLoading) {
     return (
@@ -102,6 +214,10 @@ export function RelationshipsPage() {
         </div>
       </div>
     );
+  }
+
+  if (!campaignId) {
+    return <Navigate to="/relationship-manager" replace />;
   }
 
   return (
@@ -119,19 +235,36 @@ export function RelationshipsPage() {
 
       <div className="container mx-auto py-8 px-4 relative flex flex-col flex-1 min-h-0">
         <Header
-          showRefresh={true}
-          onRefresh={refresh}
-          loading={loading}
-          error={error}
+          breadcrumbs={[
+            { label: "Relationship Manager", to: "/relationship-manager" },
+            { label: campaign?.name || "Campaign" },
+          ]}
         />
 
         {/* Top controls bar */}
         <div className="flex items-center justify-between mb-4 gap-4 flex-wrap">
           <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            Relationship Web
+            {campaign?.name || "Campaign"}
           </h2>
 
           <div className="flex items-center gap-3 flex-wrap">
+            {error && (
+              <span className="text-sm text-destructive">{error}</span>
+            )}
+            {loading && (
+              <RefreshCw className="size-4 animate-spin text-muted-foreground" />
+            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleRefresh}
+              disabled={loading}
+              title="Refresh"
+              aria-label="Refresh"
+            >
+              <RefreshCw className={`size-4 ${loading ? 'animate-spin' : ''}`} />
+            </Button>
+
             {/* Entity type toggles */}
             <div className="flex gap-2">
               <Button
@@ -159,29 +292,6 @@ export function RelationshipsPage() {
                 PCs
               </Button>
             </div>
-
-            {/* Campaign filter */}
-            {isAuthenticated && !campaignsLoading && campaigns.length > 0 && (
-              <Select
-                value={selectedCampaignId?.toString() ?? "all"}
-                onValueChange={(value) => {
-                  setSelectedCampaignId(value === "all" ? undefined : Number(value) || undefined);
-                }}
-              >
-                <SelectTrigger className="w-[220px] bg-card/50 border-primary/20">
-                  <Filter className="size-4 mr-2" />
-                  <SelectValue placeholder="All Campaigns" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Campaigns</SelectItem>
-                  {campaigns.map(c => (
-                    <SelectItem key={c.id} value={c.id.toString()}>
-                      {c.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
           </div>
         </div>
 
@@ -194,7 +304,7 @@ export function RelationshipsPage() {
               </div>
               <h3 className="text-2xl font-bold mb-3 text-primary">Sign In Required</h3>
               <p className="text-muted-foreground mb-6 leading-relaxed">
-                Sign in to view and manage your campaign's relationship web
+                Sign in to view and manage this campaign
               </p>
               <Button
                 onClick={loginWithCognito}
@@ -202,7 +312,7 @@ export function RelationshipsPage() {
                 className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 shadow-lg"
               >
                 <LogIn className="size-4 mr-2" />
-                Sign In with Cognito
+                Sign In
               </Button>
             </div>
           </div>
@@ -229,7 +339,7 @@ export function RelationshipsPage() {
                     </div>
                   ) : filteredEntities.length === 0 ? (
                     <p className="text-xs text-muted-foreground text-center py-6 px-2">
-                      {search ? 'No entities match your search.' : 'No entities visible.'}
+                      {search ? 'No entities match your search.' : 'No entities yet. Add NPCs or PCs to get started.'}
                     </p>
                   ) : (
                     filteredEntities.map(entity => {
@@ -258,11 +368,34 @@ export function RelationshipsPage() {
                   )}
                 </div>
               </ScrollArea>
-              {/* Entity counts */}
-              <div className="p-2 border-t border-primary/20 flex gap-2 text-xs text-muted-foreground">
-                <span>{entities.filter(e => e.entityType === 'npc').length} NPCs</span>
-                <span>·</span>
-                <span>{entities.filter(e => e.entityType === 'pc').length} PCs</span>
+
+              {/* Add buttons + counts */}
+              <div className="p-2 border-t border-primary/20 space-y-2">
+                <div className="flex gap-1">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleAddNPC}
+                    className="flex-1 h-7 text-xs border-primary/30 hover:bg-primary/10"
+                  >
+                    <Plus className="size-3 mr-1" />
+                    NPC
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleAddPC}
+                    className="flex-1 h-7 text-xs border-green-500/30 hover:bg-green-500/10 text-green-400"
+                  >
+                    <Plus className="size-3 mr-1" />
+                    PC
+                  </Button>
+                </div>
+                <div className="flex gap-2 text-xs text-muted-foreground px-1">
+                  <span>{npcs.length} NPCs</span>
+                  <span>·</span>
+                  <span>{pcs.length} PCs</span>
+                </div>
               </div>
             </div>
 
@@ -285,7 +418,7 @@ export function RelationshipsPage() {
               {/* Legend */}
               <div className="flex items-center gap-3 flex-wrap px-2 py-1.5 bg-card/40 border border-primary/20 rounded-xl">
                 <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Relationship types:
+                  Relationships:
                 </span>
                 {relationshipLegend.map(({ type, color, label }) => (
                   <div key={type} className="flex items-center gap-1.5">
@@ -307,8 +440,8 @@ export function RelationshipsPage() {
               </div>
             </div>
 
-            {/* RIGHT SIDEBAR — entity detail */}
-            <div className="w-64 shrink-0 bg-card/50 border border-primary/20 rounded-2xl overflow-hidden">
+            {/* RIGHT SIDEBAR — entity detail + actions */}
+            <div className="w-64 shrink-0 bg-card/50 border border-primary/20 rounded-2xl overflow-hidden flex flex-col">
               <EntityDetailPanel
                 entity={selectedEntity}
                 relationships={relationships}
@@ -316,10 +449,48 @@ export function RelationshipsPage() {
                 onAddRelationship={addRelationship}
                 onDeleteRelationship={deleteRelationship}
               />
+              {/* Edit/Delete actions for selected entity */}
+              {selectedEntity && (
+                <div className="p-3 border-t border-primary/20 flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleEditEntity}
+                    className="flex-1 hover:bg-primary/10 hover:border-primary/50"
+                  >
+                    <Pencil className="size-3 mr-1" />
+                    Edit
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleDeleteEntity}
+                    className="hover:bg-destructive/10 hover:border-destructive/50 hover:text-destructive"
+                    aria-label="Delete entity"
+                  >
+                    <Trash2 className="size-3" />
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         )}
       </div>
+
+      {/* Form Modals */}
+      <NPCForm
+        open={npcFormOpen}
+        onOpenChange={setNpcFormOpen}
+        onSave={saveNPC}
+        editingNPC={editingNPC}
+      />
+      <PCForm
+        open={pcFormOpen}
+        onOpenChange={setPcFormOpen}
+        onSave={savePc}
+        editingPC={editingPC}
+        campaignId={campaignId}
+      />
     </div>
   );
 }

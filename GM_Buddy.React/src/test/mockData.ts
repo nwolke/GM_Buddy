@@ -69,16 +69,19 @@ export const mockRelationships: Relationship[] = [
 export const mockPCs: PC[] = [
   {
     id: 1,
+    campaignId: 1,
     name: 'Thorin Ironforge',
     description: 'A stout dwarven cleric',
   },
   {
     id: 2,
+    campaignId: 1,
     name: 'Lyra Shadowstep',
     description: 'A nimble half-elf rogue',
   },
   {
     id: 3,
+    campaignId: 2,
     name: 'Silent Scout',
     description: undefined,
   },

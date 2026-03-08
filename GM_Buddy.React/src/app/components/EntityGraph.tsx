@@ -1,7 +1,7 @@
 import { useEffect, useRef, useMemo } from "react";
 import ForceGraph2D from "react-force-graph-2d";
 import { Relationship, RelationshipType } from "@/types/npc";
-import { EntityItem } from "@/hooks/useRelationshipPageData";
+import { EntityItem } from "@/types/entity";
 import { Users } from "lucide-react";
 
 interface EntityGraphProps {
@@ -55,7 +55,7 @@ export function EntityGraph({
       entityType: entity.entityType,
       name: entity.name,
       subtitle: entity.entityType === 'npc'
-        ? [entity.race, entity.class].filter(Boolean).join(' • ')
+        ? [entity.lineage, entity.class].filter(Boolean).join(' • ')
         : 'Player Character',
       entity,
     }));

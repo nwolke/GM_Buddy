@@ -9,15 +9,17 @@ import { Textarea } from "@/app/components/ui/textarea";
 interface PCFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (pc: Omit<PC, 'id'> | PC) => void;
+  onSave: (pc: Omit<PC, 'id'> | PC) => Promise<void>;
   editingPC?: PC | null;
+  campaignId: number;
 }
 
-export function PCForm({ open, onOpenChange, onSave, editingPC }: PCFormProps) {
+export function PCForm({ open, onOpenChange, onSave, editingPC, campaignId }: PCFormProps) {
   const [formData, setFormData] = useState({
     name: "",
     description: "",
   });
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (editingPC) {
@@ -30,7 +32,7 @@ export function PCForm({ open, onOpenChange, onSave, editingPC }: PCFormProps) {
     }
   }, [editingPC, open]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const trimmedName = formData.name.trim();
@@ -38,18 +40,31 @@ export function PCForm({ open, onOpenChange, onSave, editingPC }: PCFormProps) {
       return;
     }
 
+    if (!campaignId) {
+      console.error('[PCForm] Cannot save PC: campaignId is required');
+      return;
+    }
+
     const pcData = {
       name: trimmedName,
       description: formData.description || undefined,
+      campaignId,
     };
 
-    if (editingPC) {
-      onSave({ ...editingPC, ...pcData });
-    } else {
-      onSave(pcData as Omit<PC, 'id'>);
+    setSaving(true);
+    try {
+      if (editingPC) {
+        await onSave({ ...editingPC, ...pcData });
+      } else {
+        await onSave(pcData as Omit<PC, 'id'>);
+      }
+      onOpenChange(false);
+    } catch (err) {
+      console.error('[PCForm] Failed to save PC:', err);
+      // Keep dialog open so user can retry
+    } finally {
+      setSaving(false);
     }
-
-    onOpenChange(false);
   };
 
   return (
@@ -87,11 +102,11 @@ export function PCForm({ open, onOpenChange, onSave, editingPC }: PCFormProps) {
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
               Cancel
             </Button>
-            <Button type="submit">
-              {editingPC ? "Update" : "Add"} Character
+            <Button type="submit" disabled={saving}>
+              {saving ? "Saving..." : `${editingPC ? "Update" : "Add"} Character`}
             </Button>
           </DialogFooter>
         </form>
