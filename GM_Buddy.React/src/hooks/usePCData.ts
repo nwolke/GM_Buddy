@@ -51,12 +51,20 @@ export function usePCData(selectedCampaignId?: number): UsePCDataReturn {
 
   const savePc = useCallback(async (pcData: Omit<PC, 'id'> | PC) => {
     try {
-      const request = { name: pcData.name, description: pcData.description };
+      if (!pcData.campaignId) {
+        setError('Campaign is required to save a PC.');
+        return;
+      }
+
+      const request = { name: pcData.name, description: pcData.description, campaignId: pcData.campaignId };
 
       if ('id' in pcData && pcData.id) {
         await pcApi.updatePc(pcData.id, request);
+        console.log('[usePCData] Updated PC:', pcData.id);
       } else {
-        await pcApi.createPc(request);
+        console.log('[usePCData] Creating new PC for campaign:', pcData.campaignId);
+        const createdPc = await pcApi.createPc(request);
+        console.log('[usePCData] Created PC:', createdPc);
       }
 
       await loadPcs();

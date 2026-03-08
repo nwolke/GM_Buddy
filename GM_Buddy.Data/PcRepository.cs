@@ -21,9 +21,10 @@ public class PcRepository : IPcRepository
     {
         using IDbConnection dbConnection = _dbConnector.CreateConnection();
         const string sql = @"
-            SELECT 
+            SELECT
                 p.pc_id,
                 p.account_id,
+                p.campaign_id,
                 p.name,
                 p.description,
                 p.created_at,
@@ -40,9 +41,10 @@ public class PcRepository : IPcRepository
     {
         using IDbConnection dbConnection = _dbConnector.CreateConnection();
         const string sql = @"
-            SELECT 
+            SELECT
                 p.pc_id,
                 p.account_id,
+                p.campaign_id,
                 p.name,
                 p.description,
                 p.created_at,
@@ -58,22 +60,17 @@ public class PcRepository : IPcRepository
     {
         using IDbConnection dbConnection = _dbConnector.CreateConnection();
 
-        // Get PCs that have relationships with this campaign
-        // This assumes PCs are linked to campaigns via entity_relationship table
         const string sql = @"
-            SELECT DISTINCT
+            SELECT
                 p.pc_id,
                 p.account_id,
+                p.campaign_id,
                 p.name,
                 p.description,
                 p.created_at,
                 p.updated_at
             FROM public.pc p
-            INNER JOIN public.entity_relationship er 
-                ON er.source_entity_type = 'pc' 
-                AND er.source_entity_id = p.pc_id
-                AND er.campaign_id = @CampaignId
-            WHERE er.is_active = true
+            WHERE p.campaign_id = @CampaignId
             ORDER BY p.created_at DESC";
 
         CommandDefinition cmd = new(sql, new { CampaignId = campaignId }, cancellationToken: ct);
@@ -86,11 +83,13 @@ public class PcRepository : IPcRepository
         const string sql = @"
             INSERT INTO public.pc (
                 account_id,
+                campaign_id,
                 name,
                 description
             )
             VALUES (
                 @account_id,
+                @campaign_id,
                 @name,
                 @description
             )
@@ -107,6 +106,7 @@ public class PcRepository : IPcRepository
             UPDATE public.pc
             SET name = @name,
                 description = @description,
+                campaign_id = @campaign_id,
                 updated_at = NOW()
             WHERE pc_id = @pc_id";
 

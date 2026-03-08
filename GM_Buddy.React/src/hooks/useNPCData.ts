@@ -221,6 +221,7 @@ useEffect(() => {
         target_entity_id: relationshipData.npcId2,
         relationship_type_id: relationshipTypeId,
         description: relationshipData.description,
+        campaign_id: selectedCampaignId,
       };
 
       console.log('[useNPCData] Creating relationship:', apiRelationship);
@@ -238,7 +239,7 @@ useEffect(() => {
       // Toast is shown automatically by the axios interceptor
       throw err;
     }
-  }, []);
+  }, [selectedCampaignId]);
 
   const deleteRelationship = useCallback(async (id: number) => {
     try {
