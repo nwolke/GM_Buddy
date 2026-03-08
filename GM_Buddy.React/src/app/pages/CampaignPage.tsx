@@ -490,6 +490,7 @@ export function CampaignPage() {
         onOpenChange={setPcFormOpen}
         onSave={savePc}
         editingPC={editingPC}
+        campaignId={campaignId}
       />
     </div>
   );

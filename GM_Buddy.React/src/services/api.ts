@@ -173,6 +173,7 @@ export interface ApiEntityRelationship {
   target_entity_id: number;
   relationship_type_id: number;
   description?: string;
+  campaign_id?: number;
 }
 
 // Transform API NPC to frontend NPC
@@ -433,6 +434,8 @@ export const campaignApi = {
 export interface ApiPc {
   pc_id?: number;
   Pc_Id?: number;
+  campaign_id?: number;
+  Campaign_Id?: number;
   name?: string;
   Name?: string;
   description?: string;
@@ -442,6 +445,7 @@ export interface ApiPc {
 // Normalize API PC response to frontend PC type
 const normalizeApiPc = (raw: ApiPc): PC => {
   const id = raw.pc_id ?? raw.Pc_Id;
+  const campaignId = raw.campaign_id ?? raw.Campaign_Id;
   const name = raw.name ?? raw.Name;
   const description = raw.description ?? raw.Description;
 
@@ -461,6 +465,7 @@ const normalizeApiPc = (raw: ApiPc): PC => {
 
   return {
     id: id ?? 0,
+    campaignId: campaignId ?? 0,
     name: name ?? '',
     description,
   };
@@ -474,7 +479,7 @@ export const pcApi = {
     return response.data.map(normalizeApiPc);
   },
 
-  // Get PCs linked to a campaign (via entity_relationship)
+  // Get PCs linked to a campaign
   async getPcsByCampaign(campaignId: number): Promise<PC[]> {
     const response = await apiClient.get<ApiPc[]>(`/Pcs/campaign/${campaignId}`);
     return response.data.map(normalizeApiPc);
@@ -487,13 +492,13 @@ export const pcApi = {
   },
 
   // Create a new PC for the authenticated user
-  async createPc(data: { name: string; description?: string }): Promise<PC> {
+  async createPc(data: { name: string; description?: string; campaignId: number }): Promise<PC> {
     const response = await apiClient.post<ApiPc>('/Pcs', data);
     return normalizeApiPc(response.data);
   },
 
   // Update an existing PC
-  async updatePc(id: number, data: { name: string; description?: string }): Promise<void> {
+  async updatePc(id: number, data: { name: string; description?: string; campaignId: number }): Promise<void> {
     await apiClient.put(`/Pcs/${id}`, data);
   },
 

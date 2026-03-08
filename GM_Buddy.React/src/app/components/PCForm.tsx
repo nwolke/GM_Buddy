@@ -11,9 +11,10 @@ interface PCFormProps {
   onOpenChange: (open: boolean) => void;
   onSave: (pc: Omit<PC, 'id'> | PC) => void;
   editingPC?: PC | null;
+  campaignId?: number;
 }
 
-export function PCForm({ open, onOpenChange, onSave, editingPC }: PCFormProps) {
+export function PCForm({ open, onOpenChange, onSave, editingPC, campaignId }: PCFormProps) {
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -41,6 +42,7 @@ export function PCForm({ open, onOpenChange, onSave, editingPC }: PCFormProps) {
     const pcData = {
       name: trimmedName,
       description: formData.description || undefined,
+      campaignId: campaignId ?? 0,
     };
 
     if (editingPC) {

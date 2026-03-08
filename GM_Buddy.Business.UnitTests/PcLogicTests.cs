@@ -7,11 +7,12 @@ namespace GM_Buddy.Business.UnitTests;
 
 public class PcLogicTests
 {
-    private static Pc MakePc(int pcId, int accountId, string name = "Test PC", string? description = null) =>
+    private static Pc MakePc(int pcId, int accountId, string name = "Test PC", string? description = null, int campaignId = 1) =>
         new Pc
         {
             pc_id = pcId,
             account_id = accountId,
+            campaign_id = campaignId,
             name = name,
             description = description,
             created_at = DateTime.UtcNow,
@@ -95,12 +96,13 @@ public class PcLogicTests
     {
         var repo = new FakePcRepository();
         var logic = CreateLogic(repo);
-        var request = new CreatePcRequest { Name = "New Hero", Description = "The chosen one" };
+        var request = new CreatePcRequest { Name = "New Hero", Description = "The chosen one", CampaignId = 1 };
 
         PcDto dto = await logic.CreatePcAsync(accountId: 10, request);
 
         Assert.Equal("New Hero", dto.Name);
         Assert.Equal("The chosen one", dto.Description);
+        Assert.Equal(1, dto.Campaign_Id);
         Assert.True(dto.Pc_Id > 0);
     }
 
@@ -109,14 +111,15 @@ public class PcLogicTests
     {
         var repo = new FakePcRepository();
         var logic = CreateLogic(repo);
-        var request = new CreatePcRequest { Name = "Hero" };
+        var request = new CreatePcRequest { Name = "Hero", CampaignId = 5 };
 
         await logic.CreatePcAsync(accountId: 42, request);
 
-        // Verify the stored PC has the correct account_id
+        // Verify the stored PC has the correct account_id and campaign_id
         var storedPcs = await repo.GetPcsByAccountIdAsync(42);
         Assert.Single(storedPcs);
         Assert.Equal(42, storedPcs.First().account_id);
+        Assert.Equal(5, storedPcs.First().campaign_id);
     }
 
     // ── UpdatePcAsync ────────────────────────────────────────────────────────
@@ -126,7 +129,7 @@ public class PcLogicTests
     {
         var repo = new FakePcRepository(new[] { MakePc(1, 10, "Old Name") });
         var logic = CreateLogic(repo);
-        var request = new UpdatePcRequest { Name = "New Name", Description = "Updated" };
+        var request = new UpdatePcRequest { Name = "New Name", Description = "Updated", CampaignId = 1 };
 
         bool result = await logic.UpdatePcAsync(pcId: 1, accountId: 10, request);
 
@@ -138,7 +141,7 @@ public class PcLogicTests
     {
         var repo = new FakePcRepository(new[] { MakePc(1, accountId: 10) });
         var logic = CreateLogic(repo);
-        var request = new UpdatePcRequest { Name = "Hacked Name" };
+        var request = new UpdatePcRequest { Name = "Hacked Name", CampaignId = 1 };
 
         await Assert.ThrowsAsync<UnauthorizedAccessException>(
             () => logic.UpdatePcAsync(pcId: 1, accountId: 99, request));
@@ -149,7 +152,7 @@ public class PcLogicTests
     {
         var repo = new FakePcRepository();
         var logic = CreateLogic(repo);
-        var request = new UpdatePcRequest { Name = "Ghost" };
+        var request = new UpdatePcRequest { Name = "Ghost", CampaignId = 1 };
 
         bool result = await logic.UpdatePcAsync(pcId: 999, accountId: 10, request);
 
@@ -196,12 +199,30 @@ public class PcLogicTests
     [Fact]
     public async Task GetPcsByCampaignAsync_ReturnsMappedDtos()
     {
-        var repo = new FakePcRepository(new[] { MakePc(1, 10, "Campaign PC") });
+        var repo = new FakePcRepository(new[] { MakePc(1, 10, "Campaign PC", campaignId: 5) });
         var logic = CreateLogic(repo);
 
-        // FakePcRepository.GetPcsByCampaignIdAsync returns empty (by design for unit tests)
-        var result = await logic.GetPcsByCampaignAsync(campaignId: 1);
+        var result = (await logic.GetPcsByCampaignAsync(campaignId: 5)).ToList();
 
         Assert.IsAssignableFrom<IEnumerable<PcDto>>(result);
+        Assert.Single(result);
+        Assert.Equal("Campaign PC", result.First().Name);
+    }
+
+    [Fact]
+    public async Task GetPcsByCampaignAsync_ReturnsOnlyCampaignPcs()
+    {
+        var repo = new FakePcRepository(new[]
+        {
+            MakePc(1, accountId: 10, "PC in Campaign 5", campaignId: 5),
+            MakePc(2, accountId: 10, "PC in Campaign 7", campaignId: 7),
+            MakePc(3, accountId: 10, "Another PC in Campaign 5", campaignId: 5),
+        });
+        var logic = CreateLogic(repo);
+
+        var result = (await logic.GetPcsByCampaignAsync(campaignId: 5)).ToList();
+
+        Assert.Equal(2, result.Count);
+        Assert.All(result, dto => Assert.Equal(5, dto.Campaign_Id));
     }
 }

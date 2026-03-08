@@ -34,9 +34,8 @@ internal class FakePcRepository : IPcRepository
 
     public Task<IEnumerable<Pc>> GetPcsByCampaignIdAsync(int campaignId, CancellationToken ct = default)
     {
-        // In real implementation, this would query entity_relationship table
-        // For testing, just return empty
-        return Task.FromResult(Enumerable.Empty<Pc>());
+        var result = _pcs.Where(p => p.campaign_id == campaignId);
+        return Task.FromResult(result.AsEnumerable());
     }
 
     public Task<int> CreatePcAsync(Pc pc, CancellationToken ct = default)
@@ -55,6 +54,7 @@ internal class FakePcRepository : IPcRepository
         {
             existing.name = pc.name;
             existing.description = pc.description;
+            existing.campaign_id = pc.campaign_id;
             existing.updated_at = DateTime.UtcNow;
         }
         return Task.CompletedTask;
