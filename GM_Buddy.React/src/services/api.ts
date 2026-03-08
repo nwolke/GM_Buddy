@@ -431,10 +431,11 @@ export const campaignApi = {
 };
 
 // PC API response type (matches PcDto from backend — no account_id, no timestamps)
+// Includes both camelCase (pc_Id) and PascalCase (Pc_Id) variants for resilience
 export interface ApiPc {
-  pc_id?: number;
+  pc_Id?: number;
   Pc_Id?: number;
-  campaign_id?: number;
+  campaign_Id?: number;
   Campaign_Id?: number;
   name?: string;
   Name?: string;
@@ -444,8 +445,8 @@ export interface ApiPc {
 
 // Normalize API PC response to frontend PC type
 const normalizeApiPc = (raw: ApiPc): PC => {
-  const id = raw.pc_id ?? raw.Pc_Id;
-  const campaignId = raw.campaign_id ?? raw.Campaign_Id;
+  const id = raw.pc_Id ?? raw.Pc_Id;
+  const campaignId = raw.campaign_Id ?? raw.Campaign_Id;
   const name = raw.name ?? raw.Name;
   const description = raw.description ?? raw.Description;
 
