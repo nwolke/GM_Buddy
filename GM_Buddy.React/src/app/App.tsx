@@ -8,8 +8,6 @@ import { AccountPage } from "@/app/pages/AccountPage";
 import { AboutPage } from "@/app/pages/AboutPage";
 import { ProtectedRoute } from "@/app/components/ProtectedRoute";
 
-console.log('[App] GM Buddy React App loading - v8');
-
 export default function App() {
   return (
     <BrowserRouter>

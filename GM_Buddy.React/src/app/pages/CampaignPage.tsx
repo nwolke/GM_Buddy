@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, Navigate } from "react-router-dom";
 import { NPC, RelationshipType } from "@/types/npc";
 import { PC } from "@/types/pc";
-import { EntityItem } from "@/hooks/useRelationshipPageData";
+import { EntityItem } from "@/types/entity";
 import { useNPCData } from "@/hooks/useNPCData";
 import { usePCData } from "@/hooks/usePCData";
 import { useCampaignData } from "@/hooks/useCampaignData";
@@ -39,7 +39,6 @@ const relationshipLegend: { type: RelationshipType; color: string; label: string
 export function CampaignPage() {
   const { id } = useParams<{ id: string }>();
   const campaignId = id ? Number(id) : undefined;
-  const navigate = useNavigate();
   const { isAuthenticated, loginWithCognito, loading: authLoading } = useAuth();
 
   // Fetch campaign info for breadcrumb
@@ -69,7 +68,7 @@ export function CampaignPage() {
   } = usePCData(campaignId);
 
   const loading = npcLoading || pcLoading;
-  const error = npcError ?? pcError;
+  const error = [npcError, pcError].filter(Boolean).join('; ') || null;
 
   // Entity list combining NPCs and PCs
   const entities = useMemo<EntityItem[]>(() => [
@@ -77,7 +76,7 @@ export function CampaignPage() {
       id: npc.id,
       name: npc.name,
       entityType: 'npc',
-      race: npc.lineage,
+      lineage: npc.lineage,
       class: npc.class,
       description: npc.description,
       faction: npc.faction,
@@ -89,6 +88,7 @@ export function CampaignPage() {
       name: pc.name,
       entityType: 'pc',
       description: pc.description,
+      campaignId: pc.campaignId,
     })),
   ], [npcs, pcs]);
 
@@ -217,8 +217,7 @@ export function CampaignPage() {
   }
 
   if (!campaignId) {
-    navigate('/relationship-manager');
-    return null;
+    return <Navigate to="/relationship-manager" replace />;
   }
 
   return (

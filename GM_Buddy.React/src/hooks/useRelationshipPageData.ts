@@ -4,22 +4,9 @@ import { PC } from '@/types/pc';
 import { useNPCData } from './useNPCData';
 import { usePCData } from './usePCData';
 
-export type EntityType = 'npc' | 'pc';
-
-export interface EntityItem {
-  id: number;
-  name: string;
-  entityType: EntityType;
-  // NPC-specific
-  race?: string;
-  class?: string;
-  description?: string;
-  faction?: string;
-  notes?: string;
-  campaignId?: number;
-  // PC-specific
-  // description also applies
-}
+// Re-export from canonical location for backward compatibility
+export type { EntityType, EntityItem } from '@/types/entity';
+import type { EntityItem } from '@/types/entity';
 
 export interface UseRelationshipPageDataReturn {
   npcs: NPC[];
@@ -63,7 +50,7 @@ export function useRelationshipPageData(): UseRelationshipPageDataReturn {
       id: npc.id,
       name: npc.name,
       entityType: 'npc',
-      race: npc.race,
+      lineage: npc.lineage,
       class: npc.class,
       description: npc.description,
       faction: npc.faction,

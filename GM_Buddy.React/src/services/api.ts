@@ -460,7 +460,7 @@ const normalizeApiPc = (raw: ApiPc): PC => {
   }
 
   if (campaignId === undefined) {
-    console.error(
+    console.warn(
       'normalizeApiPc: missing campaign_Id/Campaign_Id in API response, defaulting campaignId to 0.',
       raw
     );

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Relationship, RelationshipType } from "@/types/npc";
-import { EntityItem } from "@/hooks/useRelationshipPageData";
+import { EntityItem } from "@/types/entity";
 import { Badge } from "@/app/components/ui/badge";
 import { Button } from "@/app/components/ui/button";
 import { ScrollArea } from "@/app/components/ui/scroll-area";
@@ -13,7 +13,7 @@ interface EntityDetailPanelProps {
   relationships: Relationship[];
   allEntities: EntityItem[];
   onAddRelationship: (relationship: Omit<Relationship, 'id'>) => Promise<void>;
-  onDeleteRelationship: (id: number) => void;
+  onDeleteRelationship: (id: number) => Promise<void>;
 }
 
 const relationshipBadgeColors: Record<RelationshipType, string> = {
@@ -87,9 +87,9 @@ export function EntityDetailPanel({
                 {isNpc ? 'NPC' : 'PC'}
               </Badge>
             </div>
-            {isNpc && entity.race && entity.class && (
+            {isNpc && entity.lineage && entity.class && (
               <p className="text-sm text-muted-foreground mt-0.5">
-                <span className="text-primary font-medium">{entity.race}</span>
+                <span className="text-primary font-medium">{entity.lineage}</span>
                 <span className="mx-1">•</span>
                 <span className="text-accent font-medium">{entity.class}</span>
               </p>
