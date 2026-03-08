@@ -1,4 +1,4 @@
-import { Scroll, RefreshCw, LogIn, LogOut, Users, UserCircle, Settings, Info, User, Network } from "lucide-react";
+import { Scroll, LogIn, LogOut, Settings, Info, UserCircle, ChevronRight, Home } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import {
   DropdownMenu,
@@ -9,139 +9,108 @@ import {
   DropdownMenuTrigger,
 } from "@/app/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate, useLocation, Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
-interface HeaderProps {
-  showRefresh?: boolean;
-  onRefresh?: () => void;
-  loading?: boolean;
-  error?: string | null;
+export interface BreadcrumbItem {
+  label: string;
+  to?: string;
 }
 
-export function Header({ showRefresh = false, onRefresh, loading = false, error = null }: HeaderProps) {
+interface HeaderProps {
+  breadcrumbs?: BreadcrumbItem[];
+}
+
+export function Header({ breadcrumbs }: HeaderProps) {
   const { isAuthenticated, user, loginWithCognito, logout } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
-
-  const isOnNPCManager = location.pathname === '/npc-manager';
-  const isOnPCManager = location.pathname === '/pc-manager';
-  const isOnCampaignManager = location.pathname === '/campaign-manager';
-  const isOnRelationships = location.pathname === '/relationships';
 
   return (
-    <div className="flex items-center justify-between mb-8">
-      <div className="flex items-center gap-4">
-        <Link 
-          to="/"
-          className="bg-gradient-to-br from-primary to-accent p-3 rounded-xl shadow-lg shadow-primary/30 cursor-pointer inline-block"
-        >
-          <Scroll className="size-8 text-primary-foreground" />
-        </Link>
-        <div>
-          <Link to="/">
-            <h1 
-              className="text-5xl font-bold mb-2 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent cursor-pointer"
-            >
-              GM Buddy
-            </h1>
+    <div className="mb-8">
+      <div className="flex items-center justify-between">
+        {/* Left: Logo + Title */}
+        <div className="flex items-center gap-4">
+          <Link
+            to="/"
+            className="bg-gradient-to-br from-primary to-accent p-3 rounded-xl shadow-lg shadow-primary/30 cursor-pointer inline-block"
+          >
+            <Scroll className="size-8 text-primary-foreground" />
           </Link>
-          <p className="text-muted-foreground">
-            Manage your campaign's characters and their bonds
-          </p>
+          <div>
+            <Link to="/">
+              <h1
+                className="text-5xl font-bold mb-2 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent cursor-pointer"
+              >
+                GM Buddy
+              </h1>
+            </Link>
+            <p className="text-muted-foreground">
+              Your TTRPG companion
+            </p>
+          </div>
+        </div>
+
+        {/* Right: Account */}
+        <div className="flex items-center gap-3">
+          {isAuthenticated ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  title={user?.email || 'Account'}
+                  aria-label="Account menu"
+                >
+                  <UserCircle className="size-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" sideOffset={8} className="w-56">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => navigate('/account')}>
+                  <Settings className="size-4 mr-2" />
+                  Account Settings
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate('/about')}>
+                  <Info className="size-4 mr-2" />
+                  About
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => logout()}>
+                  <LogOut className="size-4 mr-2" />
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Button variant="default" size="sm" onClick={loginWithCognito}>
+              <LogIn className="size-4 mr-2" />
+              Sign In
+            </Button>
+          )}
         </div>
       </div>
-      <div className="flex items-center gap-3">
-        {isAuthenticated && (isOnNPCManager || isOnPCManager || isOnCampaignManager || isOnRelationships) && (
-          <div className="flex gap-2 mr-4">
-            <Button
-              variant={isOnNPCManager ? "default" : "outline"}
-              size="sm"
-              onClick={() => navigate('/npc-manager')}
-            >
-              <Users className="size-4 mr-2" />
-              NPCs
-            </Button>
-            <Button
-              variant={isOnPCManager ? "default" : "outline"}
-              size="sm"
-              onClick={() => navigate('/pc-manager')}
-            >
-              <User className="size-4 mr-2" />
-              PCs
-            </Button>
-            <Button
-              variant={isOnCampaignManager ? "default" : "outline"}
-              size="sm"
-              onClick={() => navigate('/campaign-manager')}
-            >
-              <Scroll className="size-4 mr-2" />
-              Campaigns
-            </Button>
-            <Button
-              variant={isOnRelationships ? "default" : "outline"}
-              size="sm"
-              onClick={() => navigate('/relationships')}
-            >
-              <Network className="size-4 mr-2" />
-              Relationships
-            </Button>
-          </div>
-        )}
-        {error && (
-          <span className="text-sm text-destructive">{error}</span>
-        )}
-        {loading && (
-          <RefreshCw className="size-4 animate-spin text-muted-foreground" />
-        )}
-        {showRefresh && onRefresh && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onRefresh}
-            disabled={loading}
-            title="Refresh"
-            aria-label="Refresh"
-          >
-            <RefreshCw className={`size-4 ${loading ? 'animate-spin' : ''}`} />
-          </Button>
-        )}
-        {isAuthenticated ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button 
-                variant="outline" 
-                size="icon"
-                title={user?.email || 'Account'}
-                aria-label="Account menu"
-              >
-                <UserCircle className="size-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" sideOffset={8} className="w-56">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate('/account')}>
-                <Settings className="size-4 mr-2" />
-                Account Settings
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/about')}>
-                <Info className="size-4 mr-2" />
-                About
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => logout()}>
-                <LogOut className="size-4 mr-2" />
-                Logout
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ) : (
-          <Button variant="default" size="sm" onClick={loginWithCognito}>
-            <LogIn className="size-4 mr-2" />
-            Sign In
-          </Button>
-        )}
-      </div>
+
+      {/* Breadcrumbs */}
+      {breadcrumbs && breadcrumbs.length > 0 && (
+        <nav className="flex items-center gap-1.5 mt-3 text-sm text-muted-foreground" aria-label="Breadcrumb">
+          <Link to="/" className="hover:text-primary transition-colors flex items-center gap-1">
+            <Home className="size-3.5" />
+            Home
+          </Link>
+          {breadcrumbs.map((crumb, index) => (
+            <span key={index} className="flex items-center gap-1.5">
+              <ChevronRight className="size-3.5" />
+              {crumb.to ? (
+                <Link to={crumb.to} className="hover:text-primary transition-colors">
+                  {crumb.label}
+                </Link>
+              ) : (
+                <span className="text-foreground font-medium">{crumb.label}</span>
+              )}
+            </span>
+          ))}
+        </nav>
+      )}
     </div>
   );
 }
