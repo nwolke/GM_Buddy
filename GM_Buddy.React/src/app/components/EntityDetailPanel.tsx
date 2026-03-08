@@ -6,6 +6,7 @@ import { Button } from "@/app/components/ui/button";
 import { ScrollArea } from "@/app/components/ui/scroll-area";
 import { Separator } from "@/app/components/ui/separator";
 import { RelationshipAddModal } from "@/app/components/RelationshipAddModal";
+import { DispositionBadge } from "@/app/components/DispositionBadge";
 import { Trash2, Plus, Shield, User } from "lucide-react";
 
 interface EntityDetailPanelProps {
@@ -154,12 +155,15 @@ export function EntityDetailPanel({
                       key={rel.id}
                       className="flex items-start gap-2 p-2 rounded-lg border border-border/50 bg-card/50 group"
                     >
-                      <Badge
-                        variant="outline"
-                        className={`text-xs shrink-0 mt-0.5 ${relationshipBadgeColors[rel.type] ?? relationshipBadgeColors.neutral}`}
-                      >
-                        {rel.type}
-                      </Badge>
+                      <div className="flex flex-col gap-1 shrink-0 mt-0.5">
+                        <Badge
+                          variant="outline"
+                          className={`text-xs ${relationshipBadgeColors[rel.type] ?? relationshipBadgeColors.neutral}`}
+                        >
+                          {rel.type}
+                        </Badge>
+                        <DispositionBadge disposition={rel.disposition} showScore={true} />
+                      </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">
                           {related?.name ?? `Entity #${rel.npcId1 === entity.id ? rel.npcId2 : rel.npcId1}`}

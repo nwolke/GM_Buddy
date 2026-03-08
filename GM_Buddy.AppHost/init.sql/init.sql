@@ -106,6 +106,7 @@ CREATE TABLE IF NOT EXISTS public.entity_relationship (
     relationship_type_id int NOT NULL,
     description text,
     strength int CHECK (strength BETWEEN 1 AND 10),
+    disposition int CHECK (disposition BETWEEN -5 AND 5),
     is_active boolean DEFAULT true,
     campaign_id int,
     
@@ -281,9 +282,9 @@ ON CONFLICT DO NOTHING;
 -- Insert entity relationships
 -- Note: Using subqueries to get the IDs dynamically, assuming sequential insertion
 INSERT INTO public.entity_relationship (
-    source_entity_type, source_entity_id, 
-    target_entity_type, target_entity_id, 
-    relationship_type_id, description, strength, is_active, campaign_id
+    source_entity_type, source_entity_id,
+    target_entity_type, target_entity_id,
+    relationship_type_id, description, strength, disposition, is_active, campaign_id
 )
 VALUES
   -- Marcus Blackwood (NPC) is Friends with Lyanna Swift (NPC) in Shadows Over Millhaven
@@ -292,7 +293,7 @@ VALUES
     'npc', (SELECT npc_id FROM public.npc WHERE name = 'Lyanna Swift' LIMIT 1),
     (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Friend' LIMIT 1),
     'The magistrate trusts the merchant for advice on regional affairs',
-    7,
+    7, 3,
     true,
     (SELECT campaign_id FROM public.campaign WHERE name = 'Shadows Over Millhaven' LIMIT 1)
   ),
@@ -302,7 +303,7 @@ VALUES
     'npc', (SELECT npc_id FROM public.npc WHERE name = 'Lyanna Swift' LIMIT 1),
     (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Ally' LIMIT 1),
     'Working together to solve the mysteries plaguing Millhaven',
-    8,
+    8, 4,
     true,
     (SELECT campaign_id FROM public.campaign WHERE name = 'Shadows Over Millhaven' LIMIT 1)
   ),
@@ -312,7 +313,7 @@ VALUES
     'npc', (SELECT npc_id FROM public.npc WHERE name = 'Red Scar' LIMIT 1),
     (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Enemy' LIMIT 1),
     'The guide refuses to pay tribute to the bandit chief',
-    9,
+    9, -4,
     true,
     (SELECT campaign_id FROM public.campaign WHERE name = 'The Northern Frontier' LIMIT 1)
   ),
@@ -322,7 +323,7 @@ VALUES
     'npc', (SELECT npc_id FROM public.npc WHERE name = 'Thorgar Stonefist' LIMIT 1),
     (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Ally' LIMIT 1),
     'Tracker and guide work together to map the frontier',
-    8,
+    8, 3,
     true,
     (SELECT campaign_id FROM public.campaign WHERE name = 'The Northern Frontier' LIMIT 1)
   ),
@@ -332,7 +333,7 @@ VALUES
     'npc', (SELECT npc_id FROM public.npc WHERE name = 'Red Scar' LIMIT 1),
     (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Enemy' LIMIT 1),
     'The tracker actively hunts the bandit and his crew',
-    7,
+    7, -3,
     true,
     (SELECT campaign_id FROM public.campaign WHERE name = 'The Northern Frontier' LIMIT 1)
   ),
@@ -343,7 +344,7 @@ VALUES
     'organization', (SELECT organization_id FROM public.organization WHERE name = 'The Regional Alliance' LIMIT 1),
     (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Member' LIMIT 1),
     'Dwarven cleric serving as a liaison for the Alliance',
-    7,
+    7, 2,
     true,
     NULL
   ),
@@ -353,7 +354,7 @@ VALUES
     'organization', (SELECT organization_id FROM public.organization WHERE name = 'The Archivists' LIMIT 1),
     (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Member' LIMIT 1),
     'Half-elf rogue working as a secret agent and researcher',
-    8,
+    8, 3,
     true,
     NULL
   ),
@@ -363,7 +364,7 @@ VALUES
     'organization', (SELECT organization_id FROM public.organization WHERE name = 'The Regional Alliance' LIMIT 1),
     (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Member' LIMIT 1),
     'Paladin recently inducted into the Alliance',
-    6,
+    6, 1,
     true,
     NULL
   ),
@@ -373,7 +374,7 @@ VALUES
     'organization', (SELECT organization_id FROM public.organization WHERE name = 'The Archivists' LIMIT 1),
     (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Member' LIMIT 1),
     'Elven ranger gathering intelligence and preserving lore',
-    7,
+    7, 2,
     true,
     NULL
   ),
@@ -383,7 +384,7 @@ VALUES
     'npc', (SELECT npc_id FROM public.npc WHERE name = 'Marcus Blackwood' LIMIT 1),
     (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Ally' LIMIT 1),
     'The cleric assists the magistrate in investigating the mysteries',
-    7,
+    7, 3,
     true,
     (SELECT campaign_id FROM public.campaign WHERE name = 'Shadows Over Millhaven' LIMIT 1)
   ),
@@ -393,7 +394,7 @@ VALUES
     'pc', (SELECT pc_id FROM public.pc WHERE name = 'Lyra Shadowstep' LIMIT 1),
     (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Mentor' LIMIT 1),
     'The merchant taught Lyra about rare herbs and alchemy',
-    8,
+    8, 4,
     true,
     (SELECT campaign_id FROM public.campaign WHERE name = 'Shadows Over Millhaven' LIMIT 1)
   ),
@@ -403,7 +404,7 @@ VALUES
     'pc', (SELECT pc_id FROM public.pc WHERE name = 'Zephyr Windwhisper' LIMIT 1),
     (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Mentor' LIMIT 1),
     'The guide taught the ranger the secrets of the northern mountains',
-    7,
+    7, 3,
     true,
     (SELECT campaign_id FROM public.campaign WHERE name = 'The Northern Frontier' LIMIT 1)
   ),
@@ -413,7 +414,7 @@ VALUES
     'npc', (SELECT npc_id FROM public.npc WHERE name = 'Kael Windrunner' LIMIT 1),
     (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Ally' LIMIT 1),
     'Paladin and tracker united in protecting travelers from bandits',
-    8,
+    8, 3,
     true,
     (SELECT campaign_id FROM public.campaign WHERE name = 'The Northern Frontier' LIMIT 1)
   ),
@@ -424,7 +425,7 @@ VALUES
     'organization', (SELECT organization_id FROM public.organization WHERE name = 'The Regional Alliance' LIMIT 1),
     (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Enemy' LIMIT 1),
     'Long-standing conflict over regional influence and trade routes',
-    8,
+    8, -4,
     true,
     NULL
   ),
@@ -434,7 +435,7 @@ VALUES
     'organization', (SELECT organization_id FROM public.organization WHERE name = 'The Regional Alliance' LIMIT 1),
     (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Ally' LIMIT 1),
     'United in promoting stability and opposing tyranny',
-    7,
+    7, 3,
     true,
     NULL
   ),
@@ -445,7 +446,7 @@ VALUES
     'pc', (SELECT pc_id FROM public.pc WHERE name = 'Lyra Shadowstep' LIMIT 1),
     (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Friend' LIMIT 1),
     'Adventuring companions who trust each other completely',
-    9,
+    9, 5,
     true,
     NULL
   ),
@@ -455,7 +456,7 @@ VALUES
     'pc', (SELECT pc_id FROM public.pc WHERE name = 'Zephyr Windwhisper' LIMIT 1),
     (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Ally' LIMIT 1),
     'United in their quest to protect the innocent and fight evil',
-    8,
+    8, 3,
     true,
     NULL
   ),
@@ -465,7 +466,7 @@ VALUES
     'organization', (SELECT organization_id FROM public.organization WHERE name = 'Stonepeak Mining Consortium' LIMIT 1),
     (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Member' LIMIT 1),
     'Fellow dwarf invested in the mining consortium ventures',
-    6,
+    6, 1,
     true,
     NULL
   )

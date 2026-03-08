@@ -60,13 +60,27 @@ export function EntityGraph({
       entity,
     }));
 
-    const links = relationships.map(rel => ({
-      source: `${rel.entityType1}-${rel.npcId1}`,
-      target: `${rel.entityType2}-${rel.npcId2}`,
-      type: rel.type,
-      description: rel.description,
-      color: relationshipColors[rel.type] ?? relationshipColors.neutral,
-    }));
+    const links = relationships.map(rel => {
+      // Use disposition to determine edge width: higher magnitude = thicker line
+      const disp = rel.disposition ?? 0;
+      const absDisp = Math.abs(disp);
+      const width = 1.5 + absDisp * 0.5; // Range: 1.5 to 4.0
+
+      // For negative disposition, override color to red tones regardless of type
+      let color = relationshipColors[rel.type] ?? relationshipColors.neutral;
+      if (disp <= -3) color = '#ef4444'; // strong negative = red
+      else if (disp < 0) color = '#f97316'; // mild negative = orange
+
+      return {
+        source: `${rel.entityType1}-${rel.npcId1}`,
+        target: `${rel.entityType2}-${rel.npcId2}`,
+        type: rel.type,
+        description: rel.description,
+        disposition: disp,
+        color,
+        width,
+      };
+    });
 
     return { nodes, links };
   }, [entities, relationships]);
@@ -201,7 +215,7 @@ export function EntityGraph({
           ctx.shadowBlur = 0;
         } catch { /* skip frame if canvas values are invalid */ }}}
         linkColor={(link: any) => link.color}
-        linkWidth={3}
+        linkWidth={(link: any) => link.width ?? 3}
 
         onNodeClick={(node: any) => {
           if (onNodeClick && node.entity) {

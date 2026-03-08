@@ -47,6 +47,12 @@ public class EntityRelationship
     public int? strength { get; set; }
 
     /// <summary>
+    /// Disposition score representing how the source entity feels toward the target.
+    /// Range: -5 (Hostile) to +5 (Devoted). Null means unset/not rated.
+    /// </summary>
+    public int? disposition { get; set; }
+
+    /// <summary>
     /// Whether the relationship is currently active
     /// </summary>
     public bool is_active { get; set; } = true;
