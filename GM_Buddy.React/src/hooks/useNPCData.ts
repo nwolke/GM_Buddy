@@ -11,8 +11,8 @@ interface UseNPCDataReturn {
   refreshNpcs: () => Promise<void>;
   saveNPC: (npcData: Omit<NPC, 'id'> | NPC) => Promise<void>;
   deleteNPC: (id: number) => Promise<void>;
-  addRelationship: (relationship: Omit<Relationship, 'id'>) => void;
-  deleteRelationship: (id: number) => void;
+  addRelationship: (relationship: Omit<Relationship, 'id'>) => Promise<void>;
+  deleteRelationship: (id: number) => Promise<void>;
 }
 
 export function useNPCData(selectedCampaignId?: number): UseNPCDataReturn {

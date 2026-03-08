@@ -206,6 +206,7 @@ const transformApiRelationshipToRelationship = (apiRel: ApiEntityRelationship): 
   entityType2: 'npc' | 'pc';
   type: string;
   description?: string;
+  campaignId?: number;
 } => {
   const id = (apiRel.entity_relationship_id ?? apiRel.relationship_id) || 0;
   const typeName = relationshipTypeMap.get(apiRel.relationship_type_id) || 'neutral';
@@ -226,6 +227,7 @@ const transformApiRelationshipToRelationship = (apiRel: ApiEntityRelationship): 
     })(),
     type: typeName,
     description: apiRel.description,
+    campaignId: apiRel.campaign_id,
   };
 };
 
@@ -453,6 +455,13 @@ const normalizeApiPc = (raw: ApiPc): PC => {
   if (id === undefined) {
     console.warn(
       'normalizeApiPc: missing pc_id/Pc_Id in API response, defaulting id to 0.',
+      raw
+    );
+  }
+
+  if (campaignId === undefined) {
+    console.error(
+      'normalizeApiPc: missing campaign_Id/Campaign_Id in API response, defaulting campaignId to 0.',
       raw
     );
   }

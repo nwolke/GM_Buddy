@@ -447,7 +447,7 @@ export function CampaignPage() {
                 entity={selectedEntity}
                 relationships={relationships}
                 allEntities={entities}
-                onAddRelationship={async (rel) => { await addRelationship(rel); }}
+                onAddRelationship={addRelationship}
                 onDeleteRelationship={deleteRelationship}
               />
               {/* Edit/Delete actions for selected entity */}
