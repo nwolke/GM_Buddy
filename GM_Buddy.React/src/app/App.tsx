@@ -1,16 +1,14 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { Toaster } from "@/app/components/ui/sonner";
-import { LandingPage } from "@/app/pages/LandingPage";
-import { NPCManagerPage } from "@/app/pages/NPCManagerPage";
-import { PCManagerPage } from "@/app/pages/PCManagerPage";
-import { CampaignManagerPage } from "@/app/pages/CampaignManagerPage";
-import { RelationshipsPage } from "@/app/pages/RelationshipsPage";
+import { HomePage } from "@/app/pages/HomePage";
+import { RelationshipManagerPage } from "@/app/pages/RelationshipManagerPage";
+import { CampaignPage } from "@/app/pages/CampaignPage";
 import { AccountPage } from "@/app/pages/AccountPage";
 import { AboutPage } from "@/app/pages/AboutPage";
 import { ProtectedRoute } from "@/app/components/ProtectedRoute";
 
-console.log('[App] GM Buddy React App loading - v7');
+console.log('[App] GM Buddy React App loading - v8');
 
 export default function App() {
   return (
@@ -18,45 +16,33 @@ export default function App() {
       <AuthProvider>
         <Toaster />
         <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route 
-            path="/npc-manager" 
-            element={
-              <ProtectedRoute>
-                <NPCManagerPage />
-              </ProtectedRoute>
-            } 
-          />
+          <Route path="/" element={<HomePage />} />
           <Route
-            path="/pc-manager"
+            path="/relationship-manager"
             element={
               <ProtectedRoute>
-                <PCManagerPage />
+                <RelationshipManagerPage />
               </ProtectedRoute>
             }
           />
           <Route
-            path="/campaign-manager"
-            element={<CampaignManagerPage />}
-          />
-          <Route
-            path="/relationships"
+            path="/campaign/:id"
             element={
               <ProtectedRoute>
-                <RelationshipsPage />
+                <CampaignPage />
               </ProtectedRoute>
             }
           />
-          <Route 
-            path="/account" 
+          <Route
+            path="/account"
             element={
               <ProtectedRoute>
                 <AccountPage />
               </ProtectedRoute>
-            } 
+            }
           />
           <Route path="/about" element={<AboutPage />} />
-          <Route path="/callback" element={<LandingPage />} />
+          <Route path="/callback" element={<HomePage />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
