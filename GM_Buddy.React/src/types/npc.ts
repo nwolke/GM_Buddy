@@ -22,7 +22,7 @@ export interface Relationship {
   campaignId?: number;
 }
 
-/// Disposition scale helpers for the frontend
+// Disposition scale helpers for the frontend
 export const DISPOSITION_MIN = -5;
 export const DISPOSITION_MAX = 5;
 
