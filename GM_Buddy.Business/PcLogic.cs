@@ -48,6 +48,7 @@ public class PcLogic : IPcLogic
         var pc = new Pc
         {
             account_id = accountId,
+            campaign_id = request.CampaignId,
             name = request.Name,
             description = request.Description
         };
@@ -80,6 +81,7 @@ public class PcLogic : IPcLogic
 
             existing.name = request.Name;
             existing.description = request.Description;
+            existing.campaign_id = request.CampaignId;
 
             await _pcRepository.UpdatePcAsync(existing, ct);
             _logger.LogInformation("Updated PC {PcId} for account {AccountId}", pcId, accountId);

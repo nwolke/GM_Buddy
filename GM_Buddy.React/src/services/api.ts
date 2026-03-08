@@ -173,6 +173,7 @@ export interface ApiEntityRelationship {
   target_entity_id: number;
   relationship_type_id: number;
   description?: string;
+  campaign_id?: number;
 }
 
 // Transform API NPC to frontend NPC
@@ -205,6 +206,7 @@ const transformApiRelationshipToRelationship = (apiRel: ApiEntityRelationship): 
   entityType2: 'npc' | 'pc';
   type: string;
   description?: string;
+  campaignId?: number;
 } => {
   const id = (apiRel.entity_relationship_id ?? apiRel.relationship_id) || 0;
   const typeName = relationshipTypeMap.get(apiRel.relationship_type_id) || 'neutral';
@@ -225,6 +227,7 @@ const transformApiRelationshipToRelationship = (apiRel: ApiEntityRelationship): 
     })(),
     type: typeName,
     description: apiRel.description,
+    campaignId: apiRel.campaign_id,
   };
 };
 
@@ -430,9 +433,12 @@ export const campaignApi = {
 };
 
 // PC API response type (matches PcDto from backend — no account_id, no timestamps)
+// Includes both camelCase (pc_Id) and PascalCase (Pc_Id) variants for resilience
 export interface ApiPc {
-  pc_id?: number;
+  pc_Id?: number;
   Pc_Id?: number;
+  campaign_Id?: number;
+  Campaign_Id?: number;
   name?: string;
   Name?: string;
   description?: string;
@@ -441,13 +447,21 @@ export interface ApiPc {
 
 // Normalize API PC response to frontend PC type
 const normalizeApiPc = (raw: ApiPc): PC => {
-  const id = raw.pc_id ?? raw.Pc_Id;
+  const id = raw.pc_Id ?? raw.Pc_Id;
+  const campaignId = raw.campaign_Id ?? raw.Campaign_Id;
   const name = raw.name ?? raw.Name;
   const description = raw.description ?? raw.Description;
 
   if (id === undefined) {
     console.warn(
       'normalizeApiPc: missing pc_id/Pc_Id in API response, defaulting id to 0.',
+      raw
+    );
+  }
+
+  if (campaignId === undefined) {
+    console.warn(
+      'normalizeApiPc: missing campaign_Id/Campaign_Id in API response, defaulting campaignId to 0.',
       raw
     );
   }
@@ -461,6 +475,7 @@ const normalizeApiPc = (raw: ApiPc): PC => {
 
   return {
     id: id ?? 0,
+    campaignId: campaignId ?? 0,
     name: name ?? '',
     description,
   };
@@ -474,7 +489,7 @@ export const pcApi = {
     return response.data.map(normalizeApiPc);
   },
 
-  // Get PCs linked to a campaign (via entity_relationship)
+  // Get PCs linked to a campaign
   async getPcsByCampaign(campaignId: number): Promise<PC[]> {
     const response = await apiClient.get<ApiPc[]>(`/Pcs/campaign/${campaignId}`);
     return response.data.map(normalizeApiPc);
@@ -487,13 +502,13 @@ export const pcApi = {
   },
 
   // Create a new PC for the authenticated user
-  async createPc(data: { name: string; description?: string }): Promise<PC> {
+  async createPc(data: { name: string; description?: string; campaignId: number }): Promise<PC> {
     const response = await apiClient.post<ApiPc>('/Pcs', data);
     return normalizeApiPc(response.data);
   },
 
   // Update an existing PC
-  async updatePc(id: number, data: { name: string; description?: string }): Promise<void> {
+  async updatePc(id: number, data: { name: string; description?: string; campaignId: number }): Promise<void> {
     await apiClient.put(`/Pcs/${id}`, data);
   },
 

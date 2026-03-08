@@ -14,6 +14,7 @@ public class PcMapperTests
         {
             pc_id = 42,
             account_id = 7,
+            campaign_id = 3,
             name = "Thorin Ironforge",
             description = "A stout dwarven cleric",
             created_at = DateTime.UtcNow,
@@ -25,6 +26,7 @@ public class PcMapperTests
 
         // Assert
         Assert.Equal(42, dto.Pc_Id);
+        Assert.Equal(3, dto.Campaign_Id);
         Assert.Equal("Thorin Ironforge", dto.Name);
         Assert.Equal("A stout dwarven cleric", dto.Description);
     }
@@ -37,6 +39,7 @@ public class PcMapperTests
         {
             pc_id = 1,
             account_id = 1,
+            campaign_id = 1,
             name = "Silent Scout",
             description = null,
             created_at = DateTime.UtcNow,

@@ -11,8 +11,8 @@ interface UseNPCDataReturn {
   refreshNpcs: () => Promise<void>;
   saveNPC: (npcData: Omit<NPC, 'id'> | NPC) => Promise<void>;
   deleteNPC: (id: number) => Promise<void>;
-  addRelationship: (relationship: Omit<Relationship, 'id'>) => void;
-  deleteRelationship: (id: number) => void;
+  addRelationship: (relationship: Omit<Relationship, 'id'>) => Promise<void>;
+  deleteRelationship: (id: number) => Promise<void>;
 }
 
 export function useNPCData(selectedCampaignId?: number): UseNPCDataReturn {
@@ -21,11 +21,6 @@ const [npcs, setNPCs] = useState<NPC[]>([]);
 const [relationships, setRelationships] = useState<Relationship[]>([]);
 const [loading, setLoading] = useState(true);
 const [error, setError] = useState<string | null>(null);
-
-// Log on mount to verify code is running
-useEffect(() => {
-  console.log('[useNPCData] Hook initialized - v2');
-}, []);
 
   // Load NPCs from API
   const loadNpcs = useCallback(async () => {
@@ -63,15 +58,14 @@ useEffect(() => {
     // Transform backend relationships to frontend format
     const transformedRelationships = apiRelationships.map(transformApiRelationshipToRelationship) as Relationship[];
     
-    // When filtering by campaign, only show relationships where both NPCs are in the loaded set
-    // This prevents showing relationships to NPCs outside the selected campaign
+    // When filtering by campaign, use the relationship's campaignId
+    // This correctly includes NPC-PC and PC-PC relationships, not just NPC-NPC
     let filteredRelationships = transformedRelationships;
     if (selectedCampaignId !== undefined && selectedCampaignId !== null) {
-      const npcIds = new Set(apiNpcs.map(npc => npc.id));
       filteredRelationships = transformedRelationships.filter(
-        rel => npcIds.has(rel.npcId1) && npcIds.has(rel.npcId2)
+        rel => rel.campaignId === selectedCampaignId
       );
-      console.log(`[useNPCData] Filtered relationships to match campaign NPCs: ${filteredRelationships.length} of ${transformedRelationships.length}`);
+      console.log(`[useNPCData] Filtered relationships by campaignId ${selectedCampaignId}: ${filteredRelationships.length} of ${transformedRelationships.length}`);
     }
     
     setRelationships(filteredRelationships);
@@ -104,13 +98,12 @@ useEffect(() => {
       if (storedRelationships) {
         let localRelationships = JSON.parse(storedRelationships);
         
-        // When filtering by campaign, only show relationships where both NPCs are in the loaded set
-        if (selectedCampaignId !== undefined && selectedCampaignId !== null && localNpcs.length > 0) {
-          const npcIds = new Set(localNpcs.map((npc: NPC) => npc.id));
+        // When filtering by campaign, use the relationship's campaignId
+        if (selectedCampaignId !== undefined && selectedCampaignId !== null) {
           localRelationships = localRelationships.filter(
-            (rel: Relationship) => npcIds.has(rel.npcId1) && npcIds.has(rel.npcId2)
+            (rel: Relationship) => rel.campaignId === selectedCampaignId
           );
-          console.log(`[useNPCData] Filtered localStorage relationships to match campaign NPCs`);
+          console.log(`[useNPCData] Filtered localStorage relationships by campaignId ${selectedCampaignId}`);
         }
         
         setRelationships(localRelationships);
@@ -190,6 +183,7 @@ useEffect(() => {
     } catch (err) {
       console.error('Failed to save NPC:', err);
       // Toast is shown automatically by the axios interceptor
+      throw err;
     }
   }, [loadNpcs, npcs, relationships]);
 
@@ -221,6 +215,7 @@ useEffect(() => {
         target_entity_id: relationshipData.npcId2,
         relationship_type_id: relationshipTypeId,
         description: relationshipData.description,
+        campaign_id: selectedCampaignId,
       };
 
       console.log('[useNPCData] Creating relationship:', apiRelationship);
@@ -238,7 +233,7 @@ useEffect(() => {
       // Toast is shown automatically by the axios interceptor
       throw err;
     }
-  }, []);
+  }, [selectedCampaignId]);
 
   const deleteRelationship = useCallback(async (id: number) => {
     try {

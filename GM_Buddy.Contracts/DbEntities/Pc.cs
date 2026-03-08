@@ -16,6 +16,11 @@ public class Pc
     public int account_id { get; set; }
 
     /// <summary>
+    /// Foreign key to public.campaign
+    /// </summary>
+    public required int campaign_id { get; set; }
+
+    /// <summary>
     /// PC name
     /// </summary>
     public required string name { get; set; }
