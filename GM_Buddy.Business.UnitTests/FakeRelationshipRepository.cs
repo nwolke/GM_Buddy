@@ -158,6 +158,7 @@ internal class FakeRelationshipRepository : IRelationshipRepository
         {
             existing.description = relationship.description;
             existing.strength = relationship.strength;
+            existing.disposition = relationship.disposition;
             existing.is_active = relationship.is_active;
             existing.campaign_id = relationship.campaign_id;
             existing.updated_at = DateTime.UtcNow;
