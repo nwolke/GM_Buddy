@@ -1,6 +1,7 @@
 using GM_Buddy.Contracts.Constants;
 using GM_Buddy.Contracts.DbEntities;
 using GM_Buddy.Contracts.Interfaces;
+using GM_Buddy.Contracts.Models.Relationships;
 using GM_Buddy.Server.Helpers;
 using Microsoft.AspNetCore.Mvc;
 
@@ -172,6 +173,19 @@ public class RelationshipsController : ControllerBase
             relationships.Count(), campaignId);
 
         return Ok(relationships);
+    }
+
+    [HttpGet("npc/{npcId}/pc-stances")]
+    public async Task<ActionResult<IEnumerable<PcStanceDto>>> GetPcStancesForNpc(
+        int npcId,
+        [FromQuery] int? campaignId = null)
+    {
+        IEnumerable<PcStanceDto> stances = await _repository.GetPcStancesForNpcAsync(npcId, campaignId);
+
+        _logger.LogInformation("Retrieved {Count} PC stances for NPC {NpcId}",
+            stances.Count(), npcId);
+
+        return Ok(stances);
     }
 
     [HttpPut("{id}")]

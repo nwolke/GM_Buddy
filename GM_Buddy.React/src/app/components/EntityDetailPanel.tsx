@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { Relationship, RelationshipType } from "@/types/npc";
 import { EntityItem } from "@/types/entity";
+import { PcStance } from "@/hooks/useNpcPcStances";
 import { Badge } from "@/app/components/ui/badge";
 import { Button } from "@/app/components/ui/button";
 import { ScrollArea } from "@/app/components/ui/scroll-area";
 import { Separator } from "@/app/components/ui/separator";
 import { RelationshipAddModal } from "@/app/components/RelationshipAddModal";
 import { DispositionBadge } from "@/app/components/DispositionBadge";
+import { NpcPcStanceGrid } from "@/app/components/NpcPcStanceGrid";
 import { Trash2, Plus, Shield, User } from "lucide-react";
 
 interface EntityDetailPanelProps {
@@ -15,6 +17,10 @@ interface EntityDetailPanelProps {
   allEntities: EntityItem[];
   onAddRelationship: (relationship: Omit<Relationship, 'id'>) => Promise<void>;
   onDeleteRelationship: (id: number) => Promise<void>;
+  // PC stance props (only rendered for NPCs)
+  pcStances?: PcStance[];
+  pcStancesLoading?: boolean;
+  onStanceChanged?: () => void;
 }
 
 const relationshipBadgeColors: Record<RelationshipType, string> = {
@@ -33,6 +39,9 @@ export function EntityDetailPanel({
   allEntities,
   onAddRelationship,
   onDeleteRelationship,
+  pcStances,
+  pcStancesLoading,
+  onStanceChanged,
 }: EntityDetailPanelProps) {
   const [addModalOpen, setAddModalOpen] = useState(false);
 
@@ -121,6 +130,22 @@ export function EntityDetailPanel({
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Notes</p>
               <p className="text-sm text-foreground/80 italic leading-relaxed">{entity.notes}</p>
             </div>
+          )}
+
+          {/* PC Stances section (NPC only) */}
+          {isNpc && pcStances && onStanceChanged && (
+            <>
+              <Separator className="bg-primary/20" />
+              <NpcPcStanceGrid
+                npcEntity={entity}
+                stances={pcStances}
+                loading={pcStancesLoading ?? false}
+                allEntities={allEntities}
+                existingRelationships={entityRelationships}
+                onStanceChanged={onStanceChanged}
+                onAddRelationship={onAddRelationship}
+              />
+            </>
           )}
 
           <Separator className="bg-primary/20" />

@@ -6,6 +6,7 @@ import { EntityItem } from "@/types/entity";
 import { useNPCData } from "@/hooks/useNPCData";
 import { usePCData } from "@/hooks/usePCData";
 import { useCampaignData } from "@/hooks/useCampaignData";
+import { useNpcPcStances } from "@/hooks/useNpcPcStances";
 import { EntityGraph } from "@/app/components/EntityGraph";
 import { EntityDetailPanel } from "@/app/components/EntityDetailPanel";
 import { NPCForm } from "@/app/components/NPCForm";
@@ -96,6 +97,14 @@ export function CampaignPage() {
   const [search, setSearch] = useState("");
   const [showNPCs, setShowNPCs] = useState(true);
   const [showPCs, setShowPCs] = useState(true);
+
+  // PC stances for selected NPC
+  const selectedNpcId = selectedEntity?.entityType === 'npc' ? selectedEntity.id : null;
+  const {
+    stances: pcStances,
+    loading: pcStancesLoading,
+    refreshStances: refreshPcStances,
+  } = useNpcPcStances(selectedNpcId, campaignId, pcs);
 
   // NPC form state
   const [npcFormOpen, setNpcFormOpen] = useState(false);
@@ -448,6 +457,11 @@ export function CampaignPage() {
                 allEntities={entities}
                 onAddRelationship={addRelationship}
                 onDeleteRelationship={deleteRelationship}
+                pcStances={pcStances}
+                pcStancesLoading={pcStancesLoading}
+                onStanceChanged={async () => {
+                  await Promise.all([refreshPcStances(), refreshNpcs()]);
+                }}
               />
               {/* Edit/Delete actions for selected entity */}
               {selectedEntity && (

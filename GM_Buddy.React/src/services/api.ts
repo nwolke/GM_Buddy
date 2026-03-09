@@ -177,6 +177,16 @@ export interface ApiEntityRelationship {
   campaign_id?: number;
 }
 
+export interface ApiPcStance {
+  entity_relationship_id: number;
+  pc_id: number;
+  pc_name: string;
+  relationship_type: string | null;
+  relationship_type_id: number;
+  disposition: number | null;
+  description: string | null;
+}
+
 // Transform API NPC to frontend NPC
 const transformApiNpcToNpc = (apiNpc: ApiNpc): NPC => {
   const normalized = normalizeApiNpc(apiNpc);
@@ -332,6 +342,24 @@ export const relationshipApi = {
   // Delete a relationship
   async deleteRelationship(id: number): Promise<void> {
     await apiClient.delete(`/Relationships/${id}`);
+  },
+
+  // Get PC stances for a specific NPC
+  async getPcStancesForNpc(npcId: number, campaignId?: number): Promise<ApiPcStance[]> {
+    const params = campaignId ? { campaignId } : undefined;
+    const response = await apiClient.get<ApiPcStance[]>(
+      `/Relationships/npc/${npcId}/pc-stances`,
+      { params }
+    );
+    return response.data;
+  },
+
+  // Update an existing relationship (for inline stance editing)
+  async updateRelationship(id: number, relationship: ApiEntityRelationship): Promise<void> {
+    await apiClient.put(`/Relationships/${id}`, {
+      ...relationship,
+      entity_relationship_id: id,
+    });
   },
 };
 

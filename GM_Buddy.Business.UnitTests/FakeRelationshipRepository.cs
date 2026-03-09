@@ -1,5 +1,6 @@
 using GM_Buddy.Contracts.DbEntities;
 using GM_Buddy.Contracts.Interfaces;
+using GM_Buddy.Contracts.Models.Relationships;
 
 namespace GM_Buddy.Business.UnitTests;
 
@@ -149,6 +150,40 @@ internal class FakeRelationshipRepository : IRelationshipRepository
         return Task.FromResult(result.AsEnumerable());
     }
 
+    public Task<IEnumerable<PcStanceDto>> GetPcStancesForNpcAsync(
+        int npcId,
+        int? campaignId = null,
+        CancellationToken ct = default)
+    {
+        var result = _relationships
+            .Where(r => r.is_active &&
+                ((r.source_entity_type == "npc" && r.source_entity_id == npcId &&
+                  r.target_entity_type == "pc") ||
+                 (r.target_entity_type == "npc" && r.target_entity_id == npcId &&
+                  r.source_entity_type == "pc")) &&
+                (!campaignId.HasValue || r.campaign_id == campaignId))
+            .Select(r =>
+            {
+                var isPcSource = r.source_entity_type == "pc";
+                var pcId = isPcSource ? r.source_entity_id : r.target_entity_id;
+                var typeName = _relationshipTypes
+                    .FirstOrDefault(rt => rt.relationship_type_id == r.relationship_type_id)?
+                    .relationship_type_name;
+                return new PcStanceDto
+                {
+                    Entity_Relationship_Id = r.entity_relationship_id,
+                    Pc_Id = pcId,
+                    Pc_Name = $"PC-{pcId}",
+                    Relationship_Type = typeName,
+                    Relationship_Type_Id = r.relationship_type_id,
+                    Disposition = r.disposition,
+                    Description = r.description,
+                };
+            });
+
+        return Task.FromResult(result.AsEnumerable());
+    }
+
     public Task UpdateRelationshipAsync(EntityRelationship relationship, CancellationToken ct = default)
     {
         var existing = _relationships.FirstOrDefault(r => 
@@ -156,6 +191,7 @@ internal class FakeRelationshipRepository : IRelationshipRepository
 
         if (existing != null)
         {
+            existing.relationship_type_id = relationship.relationship_type_id;
             existing.description = relationship.description;
             existing.strength = relationship.strength;
             existing.disposition = relationship.disposition;

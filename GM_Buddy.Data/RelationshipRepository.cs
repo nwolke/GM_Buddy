@@ -1,6 +1,7 @@
 using Dapper;
 using GM_Buddy.Contracts.DbEntities;
 using GM_Buddy.Contracts.Interfaces;
+using GM_Buddy.Contracts.Models.Relationships;
 using System.Data;
 
 namespace GM_Buddy.Data;
@@ -298,12 +299,55 @@ public class RelationshipRepository : IRelationshipRepository
         return await dbConnection.QueryAsync<EntityRelationship>(cmd);
     }
 
+    public async Task<IEnumerable<PcStanceDto>> GetPcStancesForNpcAsync(
+        int npcId,
+        int? campaignId = null,
+        CancellationToken ct = default)
+    {
+        using IDbConnection dbConnection = _dbConnector.CreateConnection();
+
+        string sql = @"
+            SELECT
+                er.entity_relationship_id,
+                p.pc_id,
+                p.name AS pc_name,
+                rt.relationship_type_name AS relationship_type,
+                er.relationship_type_id,
+                er.disposition,
+                er.description
+            FROM public.entity_relationship er
+            JOIN public.relationship_type rt ON er.relationship_type_id = rt.relationship_type_id
+            JOIN public.pc p ON (
+                (er.source_entity_type = 'pc' AND er.source_entity_id = p.pc_id)
+                OR (er.target_entity_type = 'pc' AND er.target_entity_id = p.pc_id)
+            )
+            WHERE er.is_active = true
+              AND (
+                (er.source_entity_type = 'npc' AND er.source_entity_id = @NpcId)
+                OR (er.target_entity_type = 'npc' AND er.target_entity_id = @NpcId)
+              )
+              AND (
+                er.source_entity_type = 'pc' OR er.target_entity_type = 'pc'
+              )";
+
+        if (campaignId.HasValue)
+        {
+            sql += " AND er.campaign_id = @CampaignId";
+        }
+
+        sql += " ORDER BY p.name";
+
+        CommandDefinition cmd = new(sql, new { NpcId = npcId, CampaignId = campaignId }, cancellationToken: ct);
+        return await dbConnection.QueryAsync<PcStanceDto>(cmd);
+    }
+
     public async Task UpdateRelationshipAsync(EntityRelationship relationship, CancellationToken ct = default)
     {
         using IDbConnection dbConnection = _dbConnector.CreateConnection();
         const string sql = @"
             UPDATE public.entity_relationship
-            SET description = @description,
+            SET relationship_type_id = @relationship_type_id,
+                description = @description,
                 strength = @strength,
                 disposition = @disposition,
                 is_active = @is_active,

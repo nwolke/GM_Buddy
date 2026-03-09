@@ -1,4 +1,5 @@
 using GM_Buddy.Contracts.DbEntities;
+using GM_Buddy.Contracts.Models.Relationships;
 
 namespace GM_Buddy.Contracts.Interfaces;
 
@@ -83,6 +84,15 @@ public interface IRelationshipRepository
     Task<IEnumerable<EntityRelationship>> GetRelationshipsByCampaignAsync(
         int campaignId, 
         bool includeInactive = false, 
+        CancellationToken ct = default);
+
+    /// <summary>
+    /// Get all PC stances for a specific NPC, optionally filtered by campaign.
+    /// Returns existing relationships where a PC and the specified NPC are connected.
+    /// </summary>
+    Task<IEnumerable<PcStanceDto>> GetPcStancesForNpcAsync(
+        int npcId,
+        int? campaignId = null,
         CancellationToken ct = default);
 
     /// <summary>
