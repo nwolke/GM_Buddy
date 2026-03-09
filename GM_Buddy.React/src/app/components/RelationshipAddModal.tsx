@@ -231,32 +231,6 @@ export function RelationshipAddModal({
               placeholder="Additional details about this relationship"
             />
           </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="attitude-score">
-              Attitude Score: <span className={`font-semibold ${attitudeScore > 0 ? 'text-green-400' : attitudeScore < 0 ? 'text-red-400' : 'text-muted-foreground'}`}>
-                {attitudeScore > 0 ? '+' : ''}{attitudeScore}
-              </span>
-              <span className="text-muted-foreground ml-1 font-normal text-xs">
-                ({attitudeScore <= -4 ? 'Hostile' : attitudeScore <= -2 ? 'Unfriendly' : attitudeScore <= 1 ? 'Neutral' : attitudeScore <= 3 ? 'Friendly' : 'Devoted'})
-              </span>
-            </Label>
-            <input
-              id="attitude-score"
-              type="range"
-              min={-5}
-              max={5}
-              step={1}
-              value={attitudeScore}
-              onChange={(e) => setAttitudeScore(Number(e.target.value))}
-              className="w-full accent-primary"
-            />
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span>-5 Hostile</span>
-              <span>0</span>
-              <span>+5 Devoted</span>
-            </div>
-          </div>
         </div>
 
         {error && (
