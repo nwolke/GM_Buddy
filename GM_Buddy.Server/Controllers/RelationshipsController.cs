@@ -53,6 +53,11 @@ public class RelationshipsController : ControllerBase
             return BadRequest($"Invalid entity type. Must be one of: {string.Join(", ", EntityTypes.All)}");
         }
 
+        if (!DispositionScale.IsValid(relationship.disposition))
+        {
+            return BadRequest($"Disposition must be between {DispositionScale.Min} and {DispositionScale.Max}");
+        }
+
         bool exists = await _repository.RelationshipExistsAsync(
             relationship.source_entity_type,
             relationship.source_entity_id,
@@ -175,6 +180,11 @@ public class RelationshipsController : ControllerBase
         if (id != relationship.entity_relationship_id)
         {
             return BadRequest("Relationship ID mismatch");
+        }
+
+        if (!DispositionScale.IsValid(relationship.disposition))
+        {
+            return BadRequest($"Disposition must be between {DispositionScale.Min} and {DispositionScale.Max}");
         }
 
         EntityRelationship? existing = await _repository.GetRelationshipByIdAsync(id);

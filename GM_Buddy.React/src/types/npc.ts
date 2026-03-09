@@ -18,6 +18,7 @@ export interface Relationship {
   entityType2: 'npc' | 'pc';
   type: RelationshipType;
   description?: string;
+  disposition?: number | null; // -5 (Hostile) to +5 (Devoted)
   campaignId?: number;
 }
 
