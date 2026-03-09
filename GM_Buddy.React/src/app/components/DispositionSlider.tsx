@@ -1,7 +1,7 @@
 import { Slider } from "@/app/components/ui/slider";
 import { Label } from "@/app/components/ui/label";
 import { Checkbox } from "@/app/components/ui/checkbox";
-import { DISPOSITION_MIN, DISPOSITION_MAX, getDispositionLabel, getDispositionColor } from "@/types/npc";
+import { DISPOSITION_MIN, DISPOSITION_MAX, getDispositionLabel, getDispositionColor } from "@/utils/disposition";
 
 interface DispositionSliderProps {
   value: number | null;
@@ -24,12 +24,12 @@ export function DispositionSlider({ value, onChange, id = 'disposition-slider' }
           <Checkbox
             id={`${id}-toggle`}
             checked={enabled}
-            onCheckedChange={(checked) => onChange(checked ? 0 : null)}
+            onCheckedChange={(checked) => onChange(checked === true ? 0 : null)}
           />
           <Label id={labelId} htmlFor={`${id}-toggle`}>Disposition</Label>
         </div>
         <span className={`text-sm font-medium ${textColor}`}>
-          {scoreText} {label}
+          {scoreText ? `${scoreText} ` : ''}{label}
         </span>
       </div>
       <Slider
