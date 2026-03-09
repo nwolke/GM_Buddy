@@ -173,6 +173,7 @@ export interface ApiEntityRelationship {
   target_entity_id: number;
   relationship_type_id: number;
   description?: string;
+  disposition?: number | null; // -5 (Hostile) to +5 (Devoted)
   campaign_id?: number;
 }
 
@@ -206,6 +207,7 @@ const transformApiRelationshipToRelationship = (apiRel: ApiEntityRelationship): 
   entityType2: 'npc' | 'pc';
   type: string;
   description?: string;
+  disposition?: number | null;
   campaignId?: number;
 } => {
   const id = (apiRel.entity_relationship_id ?? apiRel.relationship_id) || 0;
@@ -227,6 +229,7 @@ const transformApiRelationshipToRelationship = (apiRel: ApiEntityRelationship): 
     })(),
     type: typeName,
     description: apiRel.description,
+    disposition: apiRel.disposition,
     campaignId: apiRel.campaign_id,
   };
 };

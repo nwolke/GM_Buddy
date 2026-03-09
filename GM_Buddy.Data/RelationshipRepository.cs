@@ -95,6 +95,7 @@ public class RelationshipRepository : IRelationshipRepository
                 relationship_type_id,
                 description,
                 strength,
+                disposition,
                 is_active,
                 campaign_id
             )
@@ -106,6 +107,7 @@ public class RelationshipRepository : IRelationshipRepository
                 @relationship_type_id,
                 @description,
                 @strength,
+                @disposition,
                 @is_active,
                 @campaign_id
             )
@@ -128,6 +130,7 @@ public class RelationshipRepository : IRelationshipRepository
                 er.relationship_type_id,
                 er.description,
                 er.strength,
+                er.disposition,
                 er.is_active,
                 er.campaign_id,
                 er.created_at,
@@ -302,6 +305,7 @@ public class RelationshipRepository : IRelationshipRepository
             UPDATE public.entity_relationship
             SET description = @description,
                 strength = @strength,
+                disposition = @disposition,
                 is_active = @is_active,
                 campaign_id = @campaign_id,
                 updated_at = NOW()
@@ -395,6 +399,7 @@ public class RelationshipRepository : IRelationshipRepository
                 er.relationship_type_id,
                 er.description,
                 er.strength,
+                er.disposition,
                 er.is_active,
                 er.campaign_id,
                 er.created_at,

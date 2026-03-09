@@ -19,6 +19,7 @@ import {
 } from "@/app/components/ui/select";
 import { Input } from "@/app/components/ui/input";
 import { EntityItem } from "@/types/entity";
+import { DispositionSlider } from "@/app/components/DispositionSlider";
 
 interface RelationshipAddModalProps {
   open: boolean;
@@ -44,6 +45,7 @@ export function RelationshipAddModal({
   const [targetId, setTargetId] = useState<string>("");
   const [relationshipType, setRelationshipType] = useState<RelationshipType>("ally");
   const [description, setDescription] = useState("");
+  const [disposition, setDisposition] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -84,11 +86,13 @@ export function RelationshipAddModal({
         entityType2: targetType,
         type: relationshipType,
         description: description || undefined,
+        disposition,
       });
       // Only clear and close on success
       setTargetId("");
       setRelationshipType("ally");
       setDescription("");
+      setDisposition(null);
       onOpenChange(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to add relationship. Please try again.');
@@ -179,6 +183,11 @@ export function RelationshipAddModal({
               placeholder="Additional details about this relationship"
             />
           </div>
+
+          <DispositionSlider
+            value={disposition}
+            onChange={setDisposition}
+          />
         </div>
 
         {error && (
