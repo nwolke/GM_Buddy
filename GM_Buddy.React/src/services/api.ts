@@ -175,6 +175,7 @@ export interface ApiEntityRelationship {
   description?: string;
   attitude_score?: number;
   custom_type?: string;
+  campaign_id?: number;
 }
 
 // Transform API NPC to frontend NPC
@@ -209,6 +210,7 @@ const transformApiRelationshipToRelationship = (apiRel: ApiEntityRelationship): 
   description?: string;
   attitudeScore: number;
   customType?: string;
+  campaignId?: number;
 } => {
   const id = (apiRel.entity_relationship_id ?? apiRel.relationship_id) || 0;
   const typeName = relationshipTypeMap.get(apiRel.relationship_type_id);
@@ -234,6 +236,7 @@ const transformApiRelationshipToRelationship = (apiRel: ApiEntityRelationship): 
     description: apiRel.description,
     attitudeScore: apiRel.attitude_score ?? 0,
     customType: apiRel.custom_type,
+    campaignId: apiRel.campaign_id,
   };
 };
 

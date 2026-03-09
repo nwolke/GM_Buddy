@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useParams, Navigate } from "react-router-dom";
-import { NPC, RelationshipType } from "@/types/npc";
+import { NPC } from "@/types/npc";
 import { PC } from "@/types/pc";
 import { EntityItem } from "@/types/entity";
 import { useNPCData } from "@/hooks/useNPCData";

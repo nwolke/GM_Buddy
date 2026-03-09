@@ -20,6 +20,7 @@ export interface Relationship {
   description?: string;
   attitudeScore: number;
   customType?: string;
+  campaignId?: number;
 }
 
 export type RelationshipType =
