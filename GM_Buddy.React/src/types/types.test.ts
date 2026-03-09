@@ -66,14 +66,18 @@ describe('Type Definitions', () => {
         id: 1,
         npcId1: 1,
         npcId2: 2,
+        entityType1: 'npc',
+        entityType2: 'npc',
         type: 'ally',
         description: 'Close friends',
+        attitudeScore: 3,
       }
 
       expect(relationship.id).toBe(1)
       expect(relationship.npcId1).toBe(1)
       expect(relationship.npcId2).toBe(2)
       expect(relationship.type).toBe('ally')
+      expect(relationship.attitudeScore).toBe(3)
     })
 
     it('should allow relationships without description', () => {
@@ -81,7 +85,10 @@ describe('Type Definitions', () => {
         id: 1,
         npcId1: 1,
         npcId2: 2,
+        entityType1: 'npc',
+        entityType2: 'npc',
         type: 'enemy',
+        attitudeScore: -4,
       }
 
       expect(relationship.description).toBeUndefined()
@@ -103,7 +110,10 @@ describe('Type Definitions', () => {
           id: 1,
           npcId1: 1,
           npcId2: 2,
+          entityType1: 'npc',
+          entityType2: 'pc',
           type: type,
+          attitudeScore: 0,
         }
         expect(relationship.type).toBe(type)
       })

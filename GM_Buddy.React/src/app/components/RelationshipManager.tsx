@@ -18,16 +18,40 @@ interface RelationshipManagerProps {
   onDeleteRelationship: (id: number) => void;
 }
 
-const relationshipTypes: RelationshipType[] = ['ally', 'enemy', 'family', 'rival', 'mentor', 'student', 'neutral'];
+const relationshipTypes: RelationshipType[] = [
+  'acquaintance', 'ally', 'child', 'contact', 'employee', 'employer',
+  'enemy', 'family', 'follower', 'friend', 'informant', 'leader',
+  'lover', 'member', 'mentor', 'parent', 'patron', 'protege',
+  'rival', 'sibling', 'spouse', 'stranger', 'student', 'vassal',
+];
 
-const relationshipColors: Record<RelationshipType, string> = {
+const relationshipColors: Record<string, string> = {
+  acquaintance: 'bg-slate-500',
   ally: 'bg-green-500',
+  child: 'bg-pink-500',
+  contact: 'bg-teal-500',
+  employee: 'bg-amber-500',
+  employer: 'bg-amber-600',
   enemy: 'bg-red-500',
   family: 'bg-purple-500',
-  rival: 'bg-orange-500',
+  follower: 'bg-indigo-500',
+  friend: 'bg-emerald-500',
+  informant: 'bg-yellow-500',
+  leader: 'bg-indigo-600',
+  lover: 'bg-rose-500',
+  member: 'bg-violet-500',
   mentor: 'bg-blue-500',
+  parent: 'bg-pink-600',
+  patron: 'bg-sky-500',
+  protege: 'bg-sky-600',
+  rival: 'bg-orange-500',
+  sibling: 'bg-fuchsia-500',
+  spouse: 'bg-rose-600',
+  stranger: 'bg-zinc-500',
   student: 'bg-cyan-500',
-  neutral: 'bg-gray-500'
+  vassal: 'bg-stone-500',
+  custom: 'bg-lime-500',
+  neutral: 'bg-gray-500',
 };
 
 export function RelationshipManager({
@@ -71,8 +95,11 @@ export function RelationshipManager({
     onAddRelationship({
       npcId1: currentNPC.id,
       npcId2: numericNPCId,
+      entityType1: 'npc',
+      entityType2: 'npc',
       type: relationshipType,
-      description: description || undefined
+      description: description || undefined,
+      attitudeScore: 0,
     });
 
     setSelectedNPCId("");
@@ -109,9 +136,16 @@ export function RelationshipManager({
                   return (
                     <div key={rel.id} className="flex items-center justify-between p-3 border rounded-lg">
                       <div className="flex items-center gap-3 flex-1">
-                        <Badge className={relationshipColors[rel.type]}>
-                          {rel.type}
+                        <Badge className={relationshipColors[rel.type] ?? relationshipColors.neutral}>
+                          {rel.customType || rel.type}
                         </Badge>
+                        {rel.attitudeScore !== 0 && (
+                          <span className={`text-xs font-semibold ${
+                            rel.attitudeScore > 0 ? 'text-green-400' : 'text-red-400'
+                          }`}>
+                            {rel.attitudeScore > 0 ? '+' : ''}{rel.attitudeScore}
+                          </span>
+                        )}
                         <div>
                           <p className="font-medium">{otherNPCName}</p>
                           {rel.description && (
@@ -147,7 +181,7 @@ export function RelationshipManager({
                     <SelectContent>
                       {availableNPCs.map(npc => (
                         <SelectItem key={npc.id} value={npc.id.toString()}>
-                          {npc.name} ({npc.race} {npc.class})
+                          {npc.name} ({npc.lineage} {npc.class})
                         </SelectItem>
                       ))}
                     </SelectContent>

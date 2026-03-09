@@ -1,6 +1,6 @@
 import { useEffect, useRef, useMemo } from "react";
 import ForceGraph2D from "react-force-graph-2d";
-import { NPC, Relationship, RelationshipType } from "@/types/npc";
+import { NPC, Relationship } from "@/types/npc";
 import { Users } from "lucide-react";
 
 interface NPCNetworkProps {
@@ -9,14 +9,33 @@ interface NPCNetworkProps {
   onNodeClick?: (npc: NPC) => void;
 }
 
-const relationshipColors: Record<RelationshipType, string> = {
+const relationshipColors: Record<string, string> = {
+  acquaintance: '#64748b',
   ally: '#10b981',
+  child: '#ec4899',
+  contact: '#14b8a6',
+  employee: '#f59e0b',
+  employer: '#d97706',
   enemy: '#ef4444',
   family: '#a855f7',
-  rival: '#f97316',
+  follower: '#6366f1',
+  friend: '#34d399',
+  informant: '#eab308',
+  leader: '#4f46e5',
+  lover: '#f43f5e',
+  member: '#8b5cf6',
   mentor: '#3b82f6',
+  parent: '#db2777',
+  patron: '#0ea5e9',
+  protege: '#0284c7',
+  rival: '#f97316',
+  sibling: '#d946ef',
+  spouse: '#e11d48',
+  stranger: '#71717a',
   student: '#06b6d4',
-  neutral: '#6b7280'
+  vassal: '#78716c',
+  custom: '#84cc16',
+  neutral: '#6b7280',
 };
 
 export function NPCNetwork({ npcs, relationships, onNodeClick }: NPCNetworkProps) {
