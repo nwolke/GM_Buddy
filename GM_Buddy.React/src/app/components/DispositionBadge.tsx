@@ -1,5 +1,5 @@
 import { Badge } from "@/app/components/ui/badge";
-import { getDispositionLabel, getDispositionColor, getDispositionBgColor } from "@/types/npc";
+import { getDispositionLabel, getDispositionColor, getDispositionBgColor } from "@/utils/disposition";
 
 interface DispositionBadgeProps {
   disposition: number | null | undefined;
