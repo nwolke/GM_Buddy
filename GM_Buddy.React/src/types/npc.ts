@@ -18,11 +18,18 @@ export interface Relationship {
   entityType2: 'npc' | 'pc';
   type: RelationshipType;
   description?: string;
-  disposition?: number | null; // -5 (Hostile) to +5 (Devoted)
-  campaignId?: number;
+  attitudeScore: number;
+  customType?: string;
 }
 
-export type RelationshipType = 'ally' | 'enemy' | 'family' | 'rival' | 'mentor' | 'student' | 'neutral';
+export type RelationshipType =
+  | 'acquaintance' | 'ally' | 'child' | 'contact'
+  | 'employee' | 'employer' | 'enemy' | 'family'
+  | 'follower' | 'friend' | 'informant' | 'leader'
+  | 'lover' | 'member' | 'mentor' | 'parent'
+  | 'patron' | 'protege' | 'rival' | 'sibling'
+  | 'spouse' | 'stranger' | 'student' | 'vassal'
+  | 'custom' | 'neutral';
 
 // Auth context types
 export interface User {

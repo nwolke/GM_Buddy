@@ -53,9 +53,9 @@ public class RelationshipsController : ControllerBase
             return BadRequest($"Invalid entity type. Must be one of: {string.Join(", ", EntityTypes.All)}");
         }
 
-        if (!DispositionScale.IsValid(relationship.disposition))
+        if (relationship.attitude_score < -5 || relationship.attitude_score > 5)
         {
-            return BadRequest($"Disposition must be between {DispositionScale.Min} and {DispositionScale.Max}");
+            return BadRequest("attitude_score must be between -5 and 5");
         }
 
         bool exists = await _repository.RelationshipExistsAsync(
@@ -182,9 +182,9 @@ public class RelationshipsController : ControllerBase
             return BadRequest("Relationship ID mismatch");
         }
 
-        if (!DispositionScale.IsValid(relationship.disposition))
+        if (relationship.attitude_score < -5 || relationship.attitude_score > 5)
         {
-            return BadRequest($"Disposition must be between {DispositionScale.Min} and {DispositionScale.Max}");
+            return BadRequest("attitude_score must be between -5 and 5");
         }
 
         EntityRelationship? existing = await _repository.GetRelationshipByIdAsync(id);
@@ -242,6 +242,17 @@ public class RelationshipsController : ControllerBase
         _logger.LogInformation("Reactivated relationship {RelationshipId}", id);
 
         return NoContent();
+    }
+
+    [HttpGet("npc/{npcId}/pc-stances")]
+    public async Task<ActionResult<IEnumerable<EntityRelationship>>> GetPcStancesForNpc(
+        int npcId,
+        [FromQuery] int? campaignId = null)
+    {
+        IEnumerable<EntityRelationship> stances =
+            await _repository.GetPcStancesForNpcAsync(npcId, campaignId);
+
+        return Ok(stances);
     }
 
     [HttpGet("account")]

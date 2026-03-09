@@ -173,8 +173,8 @@ export interface ApiEntityRelationship {
   target_entity_id: number;
   relationship_type_id: number;
   description?: string;
-  disposition?: number | null; // -5 (Hostile) to +5 (Devoted)
-  campaign_id?: number;
+  attitude_score?: number;
+  custom_type?: string;
 }
 
 // Transform API NPC to frontend NPC
@@ -207,8 +207,8 @@ const transformApiRelationshipToRelationship = (apiRel: ApiEntityRelationship): 
   entityType2: 'npc' | 'pc';
   type: string;
   description?: string;
-  disposition?: number | null;
-  campaignId?: number;
+  attitudeScore: number;
+  customType?: string;
 } => {
   const id = (apiRel.entity_relationship_id ?? apiRel.relationship_id) || 0;
   const typeName = relationshipTypeMap.get(apiRel.relationship_type_id) || 'neutral';
@@ -229,8 +229,8 @@ const transformApiRelationshipToRelationship = (apiRel: ApiEntityRelationship): 
     })(),
     type: typeName,
     description: apiRel.description,
-    disposition: apiRel.disposition,
-    campaignId: apiRel.campaign_id,
+    attitudeScore: apiRel.attitude_score ?? 0,
+    customType: apiRel.custom_type,
   };
 };
 
@@ -332,6 +332,13 @@ export const relationshipApi = {
   // Delete a relationship
   async deleteRelationship(id: number): Promise<void> {
     await apiClient.delete(`/Relationships/${id}`);
+  },
+
+  // Get PC stances for an NPC
+  async getPcStancesForNpc(npcId: number, campaignId?: number): Promise<ApiEntityRelationship[]> {
+    const params = campaignId ? { campaignId } : undefined;
+    const response = await apiClient.get<ApiEntityRelationship[]>(`/Relationships/npc/${npcId}/pc-stances`, { params });
+    return response.data;
   },
 };
 

@@ -94,8 +94,9 @@ public class RelationshipRepository : IRelationshipRepository
                 target_entity_id,
                 relationship_type_id,
                 description,
+                custom_type,
                 strength,
-                disposition,
+                attitude_score,
                 is_active,
                 campaign_id
             )
@@ -106,8 +107,9 @@ public class RelationshipRepository : IRelationshipRepository
                 @target_entity_id,
                 @relationship_type_id,
                 @description,
+                @custom_type,
                 @strength,
-                @disposition,
+                @attitude_score,
                 @is_active,
                 @campaign_id
             )
@@ -129,8 +131,9 @@ public class RelationshipRepository : IRelationshipRepository
                 er.target_entity_id,
                 er.relationship_type_id,
                 er.description,
+                er.custom_type,
                 er.strength,
-                er.disposition,
+                er.attitude_score,
                 er.is_active,
                 er.campaign_id,
                 er.created_at,
@@ -304,8 +307,9 @@ public class RelationshipRepository : IRelationshipRepository
         const string sql = @"
             UPDATE public.entity_relationship
             SET description = @description,
+                custom_type = @custom_type,
                 strength = @strength,
-                disposition = @disposition,
+                attitude_score = @attitude_score,
                 is_active = @is_active,
                 campaign_id = @campaign_id,
                 updated_at = NOW()
@@ -383,6 +387,30 @@ public class RelationshipRepository : IRelationshipRepository
         return await dbConnection.ExecuteScalarAsync<bool>(cmd);
     }
 
+    public async Task<IEnumerable<EntityRelationship>> GetPcStancesForNpcAsync(
+        int npcId,
+        int? campaignId = null,
+        CancellationToken ct = default)
+    {
+        using IDbConnection dbConnection = _dbConnector.CreateConnection();
+        string sql = BuildRelationshipQuery() + @"
+            WHERE er.is_active = true
+              AND (
+                  (er.source_entity_type = 'npc' AND er.source_entity_id = @NpcId AND er.target_entity_type = 'pc')
+                  OR (er.target_entity_type = 'npc' AND er.target_entity_id = @NpcId AND er.source_entity_type = 'pc')
+              )";
+
+        if (campaignId.HasValue)
+        {
+            sql += " AND er.campaign_id = @CampaignId";
+        }
+
+        sql += " ORDER BY er.created_at DESC";
+
+        CommandDefinition cmd = new(sql, new { NpcId = npcId, CampaignId = campaignId }, cancellationToken: ct);
+        return await dbConnection.QueryAsync<EntityRelationship>(cmd);
+    }
+
     #endregion
 
     #region Helper Methods
@@ -390,7 +418,7 @@ public class RelationshipRepository : IRelationshipRepository
     private static string BuildRelationshipQuery()
     {
         return @"
-            SELECT 
+            SELECT
                 er.entity_relationship_id,
                 er.source_entity_type,
                 er.source_entity_id,
@@ -398,8 +426,9 @@ public class RelationshipRepository : IRelationshipRepository
                 er.target_entity_id,
                 er.relationship_type_id,
                 er.description,
+                er.custom_type,
                 er.strength,
-                er.disposition,
+                er.attitude_score,
                 er.is_active,
                 er.campaign_id,
                 er.created_at,

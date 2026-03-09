@@ -29,14 +29,30 @@ internal class FakeRelationshipRepository : IRelationshipRepository
     {
         return new List<RelationshipType>
         {
-            new() { relationship_type_id = 1, relationship_type_name = "Friend", is_directional = false },
+            new() { relationship_type_id = 1, relationship_type_name = "Acquaintance", is_directional = false },
             new() { relationship_type_id = 2, relationship_type_name = "Ally", is_directional = false },
-            new() { relationship_type_id = 3, relationship_type_name = "Enemy", is_directional = false },
-            new() { relationship_type_id = 4, relationship_type_name = "Rival", is_directional = false },
-            new() { relationship_type_id = 5, relationship_type_name = "Mentor", is_directional = true, inverse_type_id = 6 },
-            new() { relationship_type_id = 6, relationship_type_name = "Student", is_directional = true, inverse_type_id = 5 },
-            new() { relationship_type_id = 7, relationship_type_name = "Member", is_directional = true },
-            new() { relationship_type_id = 8, relationship_type_name = "Leader", is_directional = true }
+            new() { relationship_type_id = 3, relationship_type_name = "Child", is_directional = true, inverse_type_id = 16 },
+            new() { relationship_type_id = 4, relationship_type_name = "Contact", is_directional = false },
+            new() { relationship_type_id = 5, relationship_type_name = "Employee", is_directional = true, inverse_type_id = 6 },
+            new() { relationship_type_id = 6, relationship_type_name = "Employer", is_directional = true, inverse_type_id = 5 },
+            new() { relationship_type_id = 7, relationship_type_name = "Enemy", is_directional = false },
+            new() { relationship_type_id = 8, relationship_type_name = "Family", is_directional = false },
+            new() { relationship_type_id = 9, relationship_type_name = "Follower", is_directional = true, inverse_type_id = 12 },
+            new() { relationship_type_id = 10, relationship_type_name = "Friend", is_directional = false },
+            new() { relationship_type_id = 11, relationship_type_name = "Informant", is_directional = false },
+            new() { relationship_type_id = 12, relationship_type_name = "Leader", is_directional = true, inverse_type_id = 9 },
+            new() { relationship_type_id = 13, relationship_type_name = "Lover", is_directional = false },
+            new() { relationship_type_id = 14, relationship_type_name = "Member", is_directional = true },
+            new() { relationship_type_id = 15, relationship_type_name = "Mentor", is_directional = true, inverse_type_id = 23 },
+            new() { relationship_type_id = 16, relationship_type_name = "Parent", is_directional = true, inverse_type_id = 3 },
+            new() { relationship_type_id = 17, relationship_type_name = "Patron", is_directional = true, inverse_type_id = 18 },
+            new() { relationship_type_id = 18, relationship_type_name = "Protege", is_directional = true, inverse_type_id = 17 },
+            new() { relationship_type_id = 19, relationship_type_name = "Rival", is_directional = false },
+            new() { relationship_type_id = 20, relationship_type_name = "Sibling", is_directional = false },
+            new() { relationship_type_id = 21, relationship_type_name = "Spouse", is_directional = false },
+            new() { relationship_type_id = 22, relationship_type_name = "Stranger", is_directional = false },
+            new() { relationship_type_id = 23, relationship_type_name = "Student", is_directional = true, inverse_type_id = 15 },
+            new() { relationship_type_id = 24, relationship_type_name = "Vassal", is_directional = true }
         };
     }
 
@@ -157,8 +173,9 @@ internal class FakeRelationshipRepository : IRelationshipRepository
         if (existing != null)
         {
             existing.description = relationship.description;
+            existing.custom_type = relationship.custom_type;
             existing.strength = relationship.strength;
-            existing.disposition = relationship.disposition;
+            existing.attitude_score = relationship.attitude_score;
             existing.is_active = relationship.is_active;
             existing.campaign_id = relationship.campaign_id;
             existing.updated_at = DateTime.UtcNow;
@@ -221,6 +238,20 @@ internal class FakeRelationshipRepository : IRelationshipRepository
     public Task<IEnumerable<EntityRelationship>> GetAllRelationshipsOfAccountAsync(int accountId, bool includeInactive = false, CancellationToken ct = default)
     {
         return Task.FromResult(_relationships.AsEnumerable());
+    }
+
+    public Task<IEnumerable<EntityRelationship>> GetPcStancesForNpcAsync(
+        int npcId,
+        int? campaignId = null,
+        CancellationToken ct = default)
+    {
+        var result = _relationships.Where(r =>
+            r.is_active &&
+            ((r.source_entity_type == "npc" && r.source_entity_id == npcId && r.target_entity_type == "pc") ||
+             (r.target_entity_type == "npc" && r.target_entity_id == npcId && r.source_entity_type == "pc")) &&
+            (!campaignId.HasValue || r.campaign_id == campaignId.Value));
+
+        return Task.FromResult(result.AsEnumerable());
     }
 
     #endregion
