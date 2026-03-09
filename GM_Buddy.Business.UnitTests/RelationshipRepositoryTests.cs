@@ -23,6 +23,8 @@ public class RelationshipRepositoryTests
         Assert.NotEmpty(types);
         Assert.Contains(types, t => t.relationship_type_name == "Friend");
         Assert.Contains(types, t => t.relationship_type_name == "Enemy");
+        Assert.Contains(types, t => t.relationship_type_name == "Patron");
+        Assert.Equal(24, types.Count);
     }
 
     [Fact]
@@ -32,7 +34,7 @@ public class RelationshipRepositoryTests
         var repo = new FakeRelationshipRepository();
 
         // Act
-        var result = await repo.GetRelationshipTypeByIdAsync(1);
+        var result = await repo.GetRelationshipTypeByIdAsync(10);
 
         // Assert
         Assert.NotNull(result);
@@ -50,7 +52,7 @@ public class RelationshipRepositoryTests
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(1, result.relationship_type_id);
+        Assert.Equal(10, result.relationship_type_id);
     }
 
     [Fact]
@@ -344,7 +346,7 @@ public class RelationshipRepositoryTests
                 source_entity_id = 1,
                 target_entity_type = "pc",
                 target_entity_id = 2,
-                relationship_type_id = 1, // Friend
+                relationship_type_id = 10, // Friend
                 is_active = true
             },
             new EntityRelationship
@@ -354,19 +356,19 @@ public class RelationshipRepositoryTests
                 source_entity_id = 1,
                 target_entity_type = "pc",
                 target_entity_id = 3,
-                relationship_type_id = 3, // Enemy
+                relationship_type_id = 7, // Enemy
                 is_active = true
             }
         };
         var repo = new FakeRelationshipRepository(relationships: relationships);
 
         // Act
-        var result = await repo.GetRelationshipsByTypeAsync("npc", 1, 1); // Friend type
+        var result = await repo.GetRelationshipsByTypeAsync("npc", 1, 10); // Friend type
 
         // Assert
         var relList = result.ToList();
         Assert.Single(relList);
-        Assert.Equal(1, relList[0].relationship_type_id);
+        Assert.Equal(10, relList[0].relationship_type_id);
     }
 
     [Fact]
@@ -407,6 +409,207 @@ public class RelationshipRepositoryTests
         var relList = result.ToList();
         Assert.Single(relList);
         Assert.Equal(1, relList[0].campaign_id);
+    }
+
+    #endregion
+
+    #region Attitude Score Tests
+
+    [Fact]
+    public async Task CreateRelationship_PersistsAttitudeScore()
+    {
+        // Arrange
+        var repo = new FakeRelationshipRepository();
+        var relationship = new EntityRelationship
+        {
+            source_entity_type = "npc",
+            source_entity_id = 1,
+            target_entity_type = "pc",
+            target_entity_id = 2,
+            relationship_type_id = 10,
+            attitude_score = 3
+        };
+
+        // Act
+        var id = await repo.CreateRelationshipAsync(relationship);
+        var retrieved = await repo.GetRelationshipByIdAsync(id);
+
+        // Assert
+        Assert.NotNull(retrieved);
+        Assert.Equal(3, retrieved.attitude_score);
+    }
+
+    [Fact]
+    public async Task UpdateRelationship_PersistsAttitudeScoreAndCustomType()
+    {
+        // Arrange
+        var relationship = new EntityRelationship
+        {
+            entity_relationship_id = 1,
+            source_entity_type = "npc",
+            source_entity_id = 1,
+            target_entity_type = "pc",
+            target_entity_id = 2,
+            relationship_type_id = 10,
+            attitude_score = 0,
+            is_active = true
+        };
+        var repo = new FakeRelationshipRepository(relationships: new[] { relationship });
+
+        var updated = new EntityRelationship
+        {
+            entity_relationship_id = 1,
+            source_entity_type = "npc",
+            source_entity_id = 1,
+            target_entity_type = "pc",
+            target_entity_id = 2,
+            relationship_type_id = 10,
+            attitude_score = -4,
+            custom_type = "Blood Oath",
+            is_active = true
+        };
+
+        // Act
+        await repo.UpdateRelationshipAsync(updated);
+        var result = await repo.GetRelationshipByIdAsync(1);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(-4, result.attitude_score);
+        Assert.Equal("Blood Oath", result.custom_type);
+    }
+
+    #endregion
+
+    #region PC Stances Tests
+
+    [Fact]
+    public async Task GetPcStancesForNpc_ReturnsOnlyPcRelationships()
+    {
+        // Arrange
+        var relationships = new[]
+        {
+            new EntityRelationship
+            {
+                entity_relationship_id = 1,
+                source_entity_type = "npc",
+                source_entity_id = 1,
+                target_entity_type = "pc",
+                target_entity_id = 10,
+                relationship_type_id = 10,
+                attitude_score = 3,
+                is_active = true
+            },
+            new EntityRelationship
+            {
+                entity_relationship_id = 2,
+                source_entity_type = "pc",
+                source_entity_id = 20,
+                target_entity_type = "npc",
+                target_entity_id = 1,
+                relationship_type_id = 7,
+                attitude_score = -2,
+                is_active = true
+            },
+            new EntityRelationship
+            {
+                entity_relationship_id = 3,
+                source_entity_type = "npc",
+                source_entity_id = 1,
+                target_entity_type = "npc",
+                target_entity_id = 5,
+                relationship_type_id = 2,
+                attitude_score = 1,
+                is_active = true
+            }
+        };
+        var repo = new FakeRelationshipRepository(relationships: relationships);
+
+        // Act
+        var result = (await repo.GetPcStancesForNpcAsync(1)).ToList();
+
+        // Assert — only relationships 1 and 2 involve NPC 1 ↔ PC
+        Assert.Equal(2, result.Count);
+        Assert.All(result, r =>
+            Assert.True(
+                (r.source_entity_type == "pc" || r.target_entity_type == "pc") &&
+                (r.source_entity_type == "npc" || r.target_entity_type == "npc")));
+    }
+
+    [Fact]
+    public async Task GetPcStancesForNpc_RespectsCampaignFilter()
+    {
+        // Arrange
+        var relationships = new[]
+        {
+            new EntityRelationship
+            {
+                entity_relationship_id = 1,
+                source_entity_type = "npc",
+                source_entity_id = 1,
+                target_entity_type = "pc",
+                target_entity_id = 10,
+                relationship_type_id = 10,
+                campaign_id = 1,
+                is_active = true
+            },
+            new EntityRelationship
+            {
+                entity_relationship_id = 2,
+                source_entity_type = "npc",
+                source_entity_id = 1,
+                target_entity_type = "pc",
+                target_entity_id = 20,
+                relationship_type_id = 7,
+                campaign_id = 2,
+                is_active = true
+            }
+        };
+        var repo = new FakeRelationshipRepository(relationships: relationships);
+
+        // Act
+        var result = (await repo.GetPcStancesForNpcAsync(1, campaignId: 1)).ToList();
+
+        // Assert
+        Assert.Single(result);
+        Assert.Equal(1, result[0].campaign_id);
+    }
+
+    [Fact]
+    public async Task GetPcStancesForNpc_ExcludesInactive()
+    {
+        // Arrange
+        var relationships = new[]
+        {
+            new EntityRelationship
+            {
+                entity_relationship_id = 1,
+                source_entity_type = "npc",
+                source_entity_id = 1,
+                target_entity_type = "pc",
+                target_entity_id = 10,
+                relationship_type_id = 10,
+                is_active = true
+            },
+            new EntityRelationship
+            {
+                entity_relationship_id = 2,
+                source_entity_type = "npc",
+                source_entity_id = 1,
+                target_entity_type = "pc",
+                target_entity_id = 20,
+                relationship_type_id = 7,
+                is_active = false
+            }
+        };
+        var repo = new FakeRelationshipRepository(relationships: relationships);
+
+        // Act
+        var result = (await repo.GetPcStancesForNpcAsync(1)).ToList();
+
+        // Assert
+        Assert.Single(result);
+        Assert.True(result[0].is_active);
     }
 
     #endregion

@@ -19,7 +19,6 @@ import {
 } from "@/app/components/ui/select";
 import { Input } from "@/app/components/ui/input";
 import { EntityItem } from "@/types/entity";
-import { DispositionSlider } from "@/app/components/DispositionSlider";
 
 interface RelationshipAddModalProps {
   open: boolean;
@@ -31,7 +30,11 @@ interface RelationshipAddModalProps {
 }
 
 const relationshipTypes: RelationshipType[] = [
-  'ally', 'enemy', 'family', 'rival', 'mentor', 'student', 'neutral',
+  'acquaintance', 'ally', 'child', 'contact', 'employee', 'employer',
+  'enemy', 'family', 'follower', 'friend', 'informant', 'leader',
+  'lover', 'member', 'mentor', 'parent', 'patron', 'protege',
+  'rival', 'sibling', 'spouse', 'stranger', 'student', 'vassal',
+  'custom',
 ];
 
 export function RelationshipAddModal({
@@ -44,8 +47,9 @@ export function RelationshipAddModal({
 }: RelationshipAddModalProps) {
   const [targetId, setTargetId] = useState<string>("");
   const [relationshipType, setRelationshipType] = useState<RelationshipType>("ally");
+  const [attitudeScore, setAttitudeScore] = useState(0);
+  const [customType, setCustomType] = useState("");
   const [description, setDescription] = useState("");
-  const [disposition, setDisposition] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -86,13 +90,15 @@ export function RelationshipAddModal({
         entityType2: targetType,
         type: relationshipType,
         description: description || undefined,
-        disposition,
+        attitudeScore,
+        customType: relationshipType === 'custom' ? customType.trim() || undefined : undefined,
       });
       // Only clear and close on success
       setTargetId("");
       setRelationshipType("ally");
+      setAttitudeScore(0);
+      setCustomType("");
       setDescription("");
-      setDisposition(null);
       onOpenChange(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to add relationship. Please try again.');
@@ -174,6 +180,48 @@ export function RelationshipAddModal({
             </Select>
           </div>
 
+          {relationshipType === 'custom' && (
+            <div className="grid gap-2">
+              <Label htmlFor="custom-type">Custom Type Name <span className="text-destructive">*</span></Label>
+              <Input
+                id="custom-type"
+                value={customType}
+                onChange={(e) => setCustomType(e.target.value)}
+                placeholder="e.g. Blood Oath, Sworn Shield"
+                maxLength={100}
+              />
+              {relationshipType === 'custom' && !customType.trim() && (
+                <p className="text-xs text-muted-foreground">A custom type name is required.</p>
+              )}
+            </div>
+          )}
+
+          <div className="grid gap-2">
+            <Label htmlFor="attitude-score">
+              Attitude Score: <span className={`font-semibold ${attitudeScore > 0 ? 'text-green-400' : attitudeScore < 0 ? 'text-red-400' : 'text-muted-foreground'}`}>
+                {attitudeScore > 0 ? '+' : ''}{attitudeScore}
+              </span>
+              <span className="text-muted-foreground ml-1 font-normal text-xs">
+                ({attitudeScore <= -4 ? 'Hostile' : attitudeScore <= -2 ? 'Unfriendly' : attitudeScore <= 1 ? 'Neutral' : attitudeScore <= 3 ? 'Friendly' : 'Devoted'})
+              </span>
+            </Label>
+            <input
+              id="attitude-score"
+              type="range"
+              min={-5}
+              max={5}
+              step={1}
+              value={attitudeScore}
+              onChange={(e) => setAttitudeScore(Number(e.target.value))}
+              className="w-full accent-primary"
+            />
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>-5 Hostile</span>
+              <span>0</span>
+              <span>+5 Devoted</span>
+            </div>
+          </div>
+
           <div className="grid gap-2">
             <Label htmlFor="description">Description (Optional)</Label>
             <Input
@@ -183,11 +231,6 @@ export function RelationshipAddModal({
               placeholder="Additional details about this relationship"
             />
           </div>
-
-          <DispositionSlider
-            value={disposition}
-            onChange={setDisposition}
-          />
         </div>
 
         {error && (
@@ -199,7 +242,7 @@ export function RelationshipAddModal({
           </Button>
           <Button
             onClick={handleAdd}
-            disabled={!targetId || saving}
+            disabled={!targetId || saving || (relationshipType === 'custom' && !customType.trim())}
             className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
           >
             {saving ? 'Adding...' : 'Add Relationship'}

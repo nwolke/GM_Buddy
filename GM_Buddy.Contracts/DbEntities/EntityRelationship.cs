@@ -42,15 +42,19 @@ public class EntityRelationship
     public string? description { get; set; }
 
     /// <summary>
+    /// Optional custom relationship type label (overrides relationship_type_name when set)
+    /// </summary>
+    public string? custom_type { get; set; }
+
+    /// <summary>
     /// Relationship strength/importance (1-10, where 10 is strongest)
     /// </summary>
     public int? strength { get; set; }
 
     /// <summary>
-    /// Disposition score representing how the source entity feels toward the target.
-    /// Range: -5 (Hostile) to +5 (Devoted). Null means unset/not rated.
+    /// Attitude score from source toward target (-5 hostile to +5 friendly)
     /// </summary>
-    public int? disposition { get; set; }
+    public int attitude_score { get; set; } = 0;
 
     /// <summary>
     /// Whether the relationship is currently active

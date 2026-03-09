@@ -104,9 +104,10 @@ CREATE TABLE IF NOT EXISTS public.entity_relationship (
     
     -- Relationship metadata
     relationship_type_id int NOT NULL,
+    custom_type varchar(100),
     description text,
     strength int CHECK (strength BETWEEN 1 AND 10),
-    disposition int CHECK (disposition BETWEEN -5 AND 5),
+    attitude_score int DEFAULT 0 CHECK (attitude_score BETWEEN -5 AND 5),
     is_active boolean DEFAULT true,
     campaign_id int,
     
@@ -127,19 +128,43 @@ CREATE INDEX IF NOT EXISTS idx_entity_relationship_type ON public.entity_relatio
 
 -- Seed relationship types
 INSERT INTO public.relationship_type (relationship_type_name, description, is_directional) VALUES
-    ('Friend', 'Friendly relationship', false),
+    ('Acquaintance', 'Casual or passing familiarity', false),
     ('Ally', 'Allied, working together', false),
-    ('Enemy', 'Hostile relationship', false),
-    ('Rival', 'Competitive relationship', false),
-    ('Mentor', 'Teacher/guide relationship', true),
-    ('Student', 'Learner', true),
-    ('Member', 'Member of an organization', true),
-    ('Leader', 'Leader or authority figure', true),
-    ('Parent', 'Parent-child relationship', true),
     ('Child', 'Child-parent relationship', true),
+    ('Contact', 'Useful connection or informant', false),
+    ('Employee', 'Works for another entity', true),
+    ('Employer', 'Employs or commissions another entity', true),
+    ('Enemy', 'Hostile relationship', false),
+    ('Family', 'Blood relative or adopted kin', false),
+    ('Follower', 'Vassal, devotee, or loyal follower', true),
+    ('Friend', 'Friendly relationship', false),
+    ('Informant', 'Provides intelligence or secret information', true),
+    ('Leader', 'Leader or authority figure', true),
+    ('Lover', 'Romantic relationship', false),
+    ('Member', 'Member of an organization', true),
+    ('Mentor', 'Teacher/guide relationship', true),
+    ('Parent', 'Parent-child relationship', true),
+    ('Patron', 'Sponsor or benefactor', true),
+    ('Protege', 'Sponsored or supported by a patron', true),
+    ('Rival', 'Competitive relationship', false),
     ('Sibling', 'Brother or sister', false),
-    ('Spouse', 'Married or life partner', false)
+    ('Spouse', 'Married or life partner', false),
+    ('Stranger', 'No established relationship yet', false),
+    ('Student', 'Learner', true),
+    ('Vassal', 'Sworn servant or feudal subject', true)
 ON CONFLICT (relationship_type_name) DO NOTHING;
+
+-- Set inverse type pairs for directional relationships
+UPDATE public.relationship_type SET inverse_type_id = (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Student') WHERE relationship_type_name = 'Mentor';
+UPDATE public.relationship_type SET inverse_type_id = (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Mentor') WHERE relationship_type_name = 'Student';
+UPDATE public.relationship_type SET inverse_type_id = (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Child') WHERE relationship_type_name = 'Parent';
+UPDATE public.relationship_type SET inverse_type_id = (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Parent') WHERE relationship_type_name = 'Child';
+UPDATE public.relationship_type SET inverse_type_id = (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Follower') WHERE relationship_type_name = 'Leader';
+UPDATE public.relationship_type SET inverse_type_id = (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Leader') WHERE relationship_type_name = 'Follower';
+UPDATE public.relationship_type SET inverse_type_id = (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Employee') WHERE relationship_type_name = 'Employer';
+UPDATE public.relationship_type SET inverse_type_id = (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Employer') WHERE relationship_type_name = 'Employee';
+UPDATE public.relationship_type SET inverse_type_id = (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Protege') WHERE relationship_type_name = 'Patron';
+UPDATE public.relationship_type SET inverse_type_id = (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Patron') WHERE relationship_type_name = 'Protege';
 
 
 -- Seed data
@@ -284,7 +309,7 @@ ON CONFLICT DO NOTHING;
 INSERT INTO public.entity_relationship (
     source_entity_type, source_entity_id,
     target_entity_type, target_entity_id,
-    relationship_type_id, description, strength, disposition, is_active, campaign_id
+    relationship_type_id, description, strength, attitude_score, is_active, campaign_id
 )
 VALUES
   -- Marcus Blackwood (NPC) is Friends with Lyanna Swift (NPC) in Shadows Over Millhaven
@@ -293,7 +318,7 @@ VALUES
     'npc', (SELECT npc_id FROM public.npc WHERE name = 'Lyanna Swift' LIMIT 1),
     (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Friend' LIMIT 1),
     'The magistrate trusts the merchant for advice on regional affairs',
-    7, 3,
+    7, 4,
     true,
     (SELECT campaign_id FROM public.campaign WHERE name = 'Shadows Over Millhaven' LIMIT 1)
   ),
@@ -303,7 +328,7 @@ VALUES
     'npc', (SELECT npc_id FROM public.npc WHERE name = 'Lyanna Swift' LIMIT 1),
     (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Ally' LIMIT 1),
     'Working together to solve the mysteries plaguing Millhaven',
-    8, 4,
+    8, 3,
     true,
     (SELECT campaign_id FROM public.campaign WHERE name = 'Shadows Over Millhaven' LIMIT 1)
   ),
@@ -384,7 +409,7 @@ VALUES
     'npc', (SELECT npc_id FROM public.npc WHERE name = 'Marcus Blackwood' LIMIT 1),
     (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Ally' LIMIT 1),
     'The cleric assists the magistrate in investigating the mysteries',
-    7, 3,
+    7, 2,
     true,
     (SELECT campaign_id FROM public.campaign WHERE name = 'Shadows Over Millhaven' LIMIT 1)
   ),
@@ -394,7 +419,7 @@ VALUES
     'pc', (SELECT pc_id FROM public.pc WHERE name = 'Lyra Shadowstep' LIMIT 1),
     (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Mentor' LIMIT 1),
     'The merchant taught Lyra about rare herbs and alchemy',
-    8, 4,
+    8, 3,
     true,
     (SELECT campaign_id FROM public.campaign WHERE name = 'Shadows Over Millhaven' LIMIT 1)
   ),
@@ -404,7 +429,7 @@ VALUES
     'pc', (SELECT pc_id FROM public.pc WHERE name = 'Zephyr Windwhisper' LIMIT 1),
     (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Mentor' LIMIT 1),
     'The guide taught the ranger the secrets of the northern mountains',
-    7, 3,
+    7, 2,
     true,
     (SELECT campaign_id FROM public.campaign WHERE name = 'The Northern Frontier' LIMIT 1)
   ),

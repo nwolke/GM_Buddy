@@ -215,7 +215,8 @@ const [error, setError] = useState<string | null>(null);
         target_entity_id: relationshipData.npcId2,
         relationship_type_id: relationshipTypeId,
         description: relationshipData.description,
-        disposition: relationshipData.disposition ?? null,
+        attitude_score: relationshipData.attitudeScore ?? 0,
+        custom_type: relationshipData.customType,
         campaign_id: selectedCampaignId,
       };
 
@@ -223,10 +224,11 @@ const [error, setError] = useState<string | null>(null);
       const newRelationshipId = await relationshipApi.createRelationship(apiRelationship);
       console.log('[useNPCData] Created relationship with ID:', newRelationshipId);
 
-      // Add to local state with the backend ID
+      // Add to local state with the backend ID and campaign
       const newRelationship: Relationship = {
         ...relationshipData,
         id: newRelationshipId,
+        campaignId: selectedCampaignId,
       };
       setRelationships(prev => [...prev, newRelationship]);
     } catch (err) {
