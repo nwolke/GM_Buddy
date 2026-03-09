@@ -58,6 +58,19 @@ public class RelationshipsController : ControllerBase
             return BadRequest("attitude_score must be between -5 and 5");
         }
 
+        if (relationship.custom_type != null)
+        {
+            relationship.custom_type = relationship.custom_type.Trim();
+            if (relationship.custom_type.Length > 100)
+            {
+                return BadRequest("custom_type must be 100 characters or fewer");
+            }
+            if (relationship.custom_type.Length == 0)
+            {
+                relationship.custom_type = null;
+            }
+        }
+
         bool exists = await _repository.RelationshipExistsAsync(
             relationship.source_entity_type,
             relationship.source_entity_id,
@@ -185,6 +198,19 @@ public class RelationshipsController : ControllerBase
         if (relationship.attitude_score < -5 || relationship.attitude_score > 5)
         {
             return BadRequest("attitude_score must be between -5 and 5");
+        }
+
+        if (relationship.custom_type != null)
+        {
+            relationship.custom_type = relationship.custom_type.Trim();
+            if (relationship.custom_type.Length > 100)
+            {
+                return BadRequest("custom_type must be 100 characters or fewer");
+            }
+            if (relationship.custom_type.Length == 0)
+            {
+                relationship.custom_type = null;
+            }
         }
 
         EntityRelationship? existing = await _repository.GetRelationshipByIdAsync(id);

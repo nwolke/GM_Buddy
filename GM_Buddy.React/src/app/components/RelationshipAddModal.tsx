@@ -34,7 +34,7 @@ const relationshipTypes: RelationshipType[] = [
   'enemy', 'family', 'follower', 'friend', 'informant', 'leader',
   'lover', 'member', 'mentor', 'parent', 'patron', 'protege',
   'rival', 'sibling', 'spouse', 'stranger', 'student', 'vassal',
-  'custom', 'neutral',
+  'custom',
 ];
 
 export function RelationshipAddModal({
@@ -91,7 +91,7 @@ export function RelationshipAddModal({
         type: relationshipType,
         description: description || undefined,
         attitudeScore,
-        customType: relationshipType === 'custom' ? customType || undefined : undefined,
+        customType: relationshipType === 'custom' ? customType.trim() || undefined : undefined,
       });
       // Only clear and close on success
       setTargetId("");
@@ -182,13 +182,17 @@ export function RelationshipAddModal({
 
           {relationshipType === 'custom' && (
             <div className="grid gap-2">
-              <Label htmlFor="custom-type">Custom Type Name</Label>
+              <Label htmlFor="custom-type">Custom Type Name <span className="text-destructive">*</span></Label>
               <Input
                 id="custom-type"
                 value={customType}
                 onChange={(e) => setCustomType(e.target.value)}
                 placeholder="e.g. Blood Oath, Sworn Shield"
+                maxLength={100}
               />
+              {relationshipType === 'custom' && !customType.trim() && (
+                <p className="text-xs text-muted-foreground">A custom type name is required.</p>
+              )}
             </div>
           )}
 
@@ -264,7 +268,7 @@ export function RelationshipAddModal({
           </Button>
           <Button
             onClick={handleAdd}
-            disabled={!targetId || saving}
+            disabled={!targetId || saving || (relationshipType === 'custom' && !customType.trim())}
             className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
           >
             {saving ? 'Adding...' : 'Add Relationship'}

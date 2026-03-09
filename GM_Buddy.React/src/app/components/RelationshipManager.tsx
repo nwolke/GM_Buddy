@@ -23,7 +23,7 @@ const relationshipTypes: RelationshipType[] = [
   'enemy', 'family', 'follower', 'friend', 'informant', 'leader',
   'lover', 'member', 'mentor', 'parent', 'patron', 'protege',
   'rival', 'sibling', 'spouse', 'stranger', 'student', 'vassal',
-  'custom', 'neutral',
+  'custom',
 ];
 
 const relationshipColors: Record<string, string> = {

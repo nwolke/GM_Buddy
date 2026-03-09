@@ -211,7 +211,10 @@ const transformApiRelationshipToRelationship = (apiRel: ApiEntityRelationship): 
   customType?: string;
 } => {
   const id = (apiRel.entity_relationship_id ?? apiRel.relationship_id) || 0;
-  const typeName = relationshipTypeMap.get(apiRel.relationship_type_id) || 'neutral';
+  const typeName = relationshipTypeMap.get(apiRel.relationship_type_id);
+  if (!typeName) {
+    console.warn(`[transformApiRelationship] Unknown relationship_type_id: ${apiRel.relationship_type_id}, defaulting to 'neutral'`);
+  }
 
   return {
     id,
@@ -227,7 +230,7 @@ const transformApiRelationshipToRelationship = (apiRel: ApiEntityRelationship): 
       if (t !== 'npc' && t !== 'pc') console.warn(`[transformApiRelationship] Unexpected target_entity_type: "${apiRel.target_entity_type}", defaulting to 'npc'`);
       return (t === 'pc' ? 'pc' : 'npc') as 'npc' | 'pc';
     })(),
-    type: typeName,
+    type: typeName || 'neutral',
     description: apiRel.description,
     attitudeScore: apiRel.attitude_score ?? 0,
     customType: apiRel.custom_type,
@@ -236,7 +239,20 @@ const transformApiRelationshipToRelationship = (apiRel: ApiEntityRelationship): 
 
 // Get relationship type ID by name
 export const getRelationshipTypeId = (typeName: string): number => {
-  return relationshipTypeNameToIdMap.get(typeName.toLowerCase()) || 7; // Default to 'neutral' if not found
+  const id = relationshipTypeNameToIdMap.get(typeName.toLowerCase());
+  if (id) return id;
+
+  // For 'custom' type, map to 'stranger' as a safe structural default
+  // (the user's intent is captured in the custom_type field)
+  if (typeName.toLowerCase() === 'custom' || typeName.toLowerCase() === 'neutral') {
+    const strangerId = relationshipTypeNameToIdMap.get('stranger');
+    if (strangerId) return strangerId;
+  }
+
+  console.warn(`[getRelationshipTypeId] Unknown type "${typeName}", falling back to first available type`);
+  // Fall back to first type in the map rather than a hardcoded ID
+  const firstEntry = relationshipTypeNameToIdMap.values().next();
+  return firstEntry.done ? 1 : firstEntry.value;
 };
 
 // Create NPC request type
