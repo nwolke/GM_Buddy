@@ -106,6 +106,14 @@ public interface IRelationshipRepository
     Task ReactivateRelationshipAsync(int relationshipId, CancellationToken ct = default);
 
     /// <summary>
+    /// Get all PC↔NPC relationships for a given NPC, optionally filtered by campaign
+    /// </summary>
+    Task<IEnumerable<EntityRelationship>> GetPcStancesForNpcAsync(
+        int npcId,
+        int? campaignId = null,
+        CancellationToken ct = default);
+
+    /// <summary>
     /// Check if a relationship exists between two entities
     /// </summary>
     Task<bool> RelationshipExistsAsync(

@@ -215,8 +215,8 @@ const [error, setError] = useState<string | null>(null);
         target_entity_id: relationshipData.npcId2,
         relationship_type_id: relationshipTypeId,
         description: relationshipData.description,
-        disposition: relationshipData.disposition ?? null,
-        campaign_id: selectedCampaignId,
+        attitude_score: relationshipData.attitudeScore ?? 0,
+        custom_type: relationshipData.customType,
       };
 
       console.log('[useNPCData] Creating relationship:', apiRelationship);

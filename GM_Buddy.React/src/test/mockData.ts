@@ -54,15 +54,21 @@ export const mockRelationships: Relationship[] = [
     id: 1,
     npcId1: 1,
     npcId2: 2,
+    entityType1: 'npc',
+    entityType2: 'npc',
     type: 'ally',
     description: 'Close friends',
+    attitudeScore: 3,
   },
   {
     id: 2,
     npcId1: 1,
     npcId2: 3,
+    entityType1: 'npc',
+    entityType2: 'npc',
     type: 'rival',
     description: 'Competing for glory',
+    attitudeScore: -1,
   },
 ]
 
