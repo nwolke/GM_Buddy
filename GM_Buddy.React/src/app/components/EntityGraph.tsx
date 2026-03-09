@@ -80,12 +80,12 @@ export function EntityGraph({
     }));
 
     const links = relationships.map(rel => {
-      // Use disposition to determine edge width: higher magnitude = thicker line
-      const disp = rel.disposition ?? 0;
+      // Use attitude score to determine edge width: higher magnitude = thicker line
+      const disp = rel.attitudeScore ?? 0;
       const absDisp = Math.abs(disp);
       const width = 1.5 + absDisp * 0.5; // Range: 1.5 to 4.0
 
-      // For negative disposition, override color to red tones regardless of type
+      // For negative attitude, override color to red tones regardless of type
       let color = relationshipColors[rel.type] ?? relationshipColors.neutral;
       if (disp <= -3) color = '#ef4444'; // strong negative = red
       else if (disp < 0) color = '#f97316'; // mild negative = orange
