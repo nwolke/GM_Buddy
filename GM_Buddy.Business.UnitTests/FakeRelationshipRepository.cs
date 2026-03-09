@@ -39,7 +39,7 @@ internal class FakeRelationshipRepository : IRelationshipRepository
             new() { relationship_type_id = 8, relationship_type_name = "Family", is_directional = false },
             new() { relationship_type_id = 9, relationship_type_name = "Follower", is_directional = true, inverse_type_id = 12 },
             new() { relationship_type_id = 10, relationship_type_name = "Friend", is_directional = false },
-            new() { relationship_type_id = 11, relationship_type_name = "Informant", is_directional = false },
+            new() { relationship_type_id = 11, relationship_type_name = "Informant", is_directional = true },
             new() { relationship_type_id = 12, relationship_type_name = "Leader", is_directional = true, inverse_type_id = 9 },
             new() { relationship_type_id = 13, relationship_type_name = "Lover", is_directional = false },
             new() { relationship_type_id = 14, relationship_type_name = "Member", is_directional = true },
