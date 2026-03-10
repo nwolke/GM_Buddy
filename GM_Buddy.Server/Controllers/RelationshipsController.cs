@@ -268,9 +268,14 @@ public class RelationshipsController : ControllerBase
             return NotFound($"Relationship with ID {id} not found");
         }
 
-        // Lock campaign_id to existing value — prevents cross-account injection
-        // by reassigning a relationship to another account's campaign
+        // Lock identifying fields to existing values — prevents retargeting
+        // relationships to different entities or campaigns via update payload
         relationship.campaign_id = existing.campaign_id;
+        relationship.source_entity_type = existing.source_entity_type;
+        relationship.source_entity_id = existing.source_entity_id;
+        relationship.target_entity_type = existing.target_entity_type;
+        relationship.target_entity_id = existing.target_entity_id;
+        relationship.relationship_type_id = existing.relationship_type_id;
 
         await _repository.UpdateRelationshipAsync(relationship);
         _logger.LogInformation("Updated relationship {RelationshipId} for account {AccountId}", id, accountId);

@@ -211,8 +211,8 @@ public class OrganizationsController : ControllerBase
         // Return reference to relationships API
         return Ok(new
         {
-            message = "Use /Relationships/to/organization/{id} endpoint to get members",
-            endpoint = $"/Relationships/to/organization/{id}"
+            message = "Use /api/Relationships/to/organization/{id} endpoint to get members",
+            endpoint = $"/api/Relationships/to/organization/{id}"
         });
     }
 
@@ -233,8 +233,8 @@ public class OrganizationsController : ControllerBase
 
         return Ok(new
         {
-            message = "Use /Relationships/to/organization/{id} with type filter",
-            endpoint = $"/Relationships/entity/organization/{id}/type/8"  // 8 is Leader relationship type
+            message = "Use /api/Relationships/to/organization/{id} with type filter",
+            endpoint = $"/api/Relationships/entity/organization/{id}/type/8"  // 8 is Leader relationship type
         });
     }
 
@@ -274,8 +274,8 @@ public class OrganizationsController : ControllerBase
 
         return Ok(new
         {
-            message = "Use /Relationships/from/organization/{id} with type=Ally filter",
-            endpoint = $"/Relationships/entity/organization/{id}/type/2"  // 2 is Ally relationship type
+            message = "Use /api/Relationships/from/organization/{id} with type=Ally filter",
+            endpoint = $"/api/Relationships/entity/organization/{id}/type/2"  // 2 is Ally relationship type
         });
     }
 
@@ -296,8 +296,8 @@ public class OrganizationsController : ControllerBase
 
         return Ok(new
         {
-            message = "Use /Relationships/from/organization/{id} with type=Enemy filter",
-            endpoint = $"/Relationships/entity/organization/{id}/type/3"  // 3 is Enemy relationship type
+            message = "Use /api/Relationships/from/organization/{id} with type=Enemy filter",
+            endpoint = $"/api/Relationships/entity/organization/{id}/type/3"  // 3 is Enemy relationship type
         });
     }
 
