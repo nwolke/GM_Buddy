@@ -373,6 +373,7 @@ public class RelationshipRepository : IRelationshipRepository
         string targetEntityType,
         int targetEntityId,
         int relationshipTypeId,
+        int campaignId,
         CancellationToken ct = default)
     {
         using IDbConnection dbConnection = _dbConnector.CreateConnection();
@@ -385,6 +386,7 @@ public class RelationshipRepository : IRelationshipRepository
                   AND target_entity_type = @TargetEntityType
                   AND target_entity_id = @TargetEntityId
                   AND relationship_type_id = @RelationshipTypeId
+                  AND campaign_id = @CampaignId
                   AND is_active = true
             )";
 
@@ -394,7 +396,8 @@ public class RelationshipRepository : IRelationshipRepository
             SourceEntityId = sourceEntityId,
             TargetEntityType = targetEntityType,
             TargetEntityId = targetEntityId,
-            RelationshipTypeId = relationshipTypeId
+            RelationshipTypeId = relationshipTypeId,
+            CampaignId = campaignId
         }, cancellationToken: ct);
 
         return await dbConnection.ExecuteScalarAsync<bool>(cmd);
