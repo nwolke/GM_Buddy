@@ -134,21 +134,15 @@ public class OrganizationsController : ControllerBase
 
     /// <summary>
     /// Get all organizations for the authenticated account
+    /// Route param is ignored — always uses auth-derived accountId to prevent info disclosure
     /// </summary>
     [HttpGet("account/{accountId}")]
     public async Task<ActionResult<IEnumerable<Organization>>> GetOrganizationsByAccount(int accountId)
     {
         int authenticatedAccountId = await _authHelper.GetAuthenticatedAccountIdAsync();
 
-        if (authenticatedAccountId != accountId)
-        {
-            _logger.LogWarning("Account {AuthAccountId} attempted to access organizations for account {AccountId}",
-                authenticatedAccountId, accountId);
-            return Forbid();
-        }
-
-        _logger.LogInformation("Getting organizations for account {AccountId}", accountId);
-        IEnumerable<Organization> organizations = await _repository.GetOrganizationsByAccountIdAsync(accountId);
+        _logger.LogInformation("Getting organizations for account {AccountId}", authenticatedAccountId);
+        IEnumerable<Organization> organizations = await _repository.GetOrganizationsByAccountIdAsync(authenticatedAccountId);
         return Ok(organizations);
     }
 

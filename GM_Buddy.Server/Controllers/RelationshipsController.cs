@@ -83,14 +83,18 @@ public class RelationshipsController : ControllerBase
             }
         }
 
-        // Verify campaign ownership if campaign is specified
-        if (relationship.campaign_id.HasValue)
+        // Require campaign_id — account scoping relies on campaign.account_id,
+        // so relationships without a campaign would be orphaned/invisible
+        if (!relationship.campaign_id.HasValue)
         {
-            var campaign = await _campaignLogic.GetCampaignAsync(relationship.campaign_id.Value, accountId);
-            if (campaign == null)
-            {
-                return NotFound("Campaign not found");
-            }
+            return BadRequest("campaign_id is required");
+        }
+
+        // Verify campaign ownership
+        var campaign = await _campaignLogic.GetCampaignAsync(relationship.campaign_id.Value, accountId);
+        if (campaign == null)
+        {
+            return NotFound("Campaign not found");
         }
 
         bool exists = await _repository.RelationshipExistsAsync(
@@ -98,12 +102,13 @@ public class RelationshipsController : ControllerBase
             relationship.source_entity_id,
             relationship.target_entity_type,
             relationship.target_entity_id,
-            relationship.relationship_type_id
+            relationship.relationship_type_id,
+            relationship.campaign_id.Value
         );
 
         if (exists)
         {
-            return Conflict("This relationship already exists");
+            return Conflict("This relationship already exists in this campaign");
         }
 
         int relationshipId = await _repository.CreateRelationshipAsync(relationship);
@@ -255,6 +260,10 @@ public class RelationshipsController : ControllerBase
         {
             return NotFound($"Relationship with ID {id} not found");
         }
+
+        // Lock campaign_id to existing value — prevents cross-account injection
+        // by reassigning a relationship to another account's campaign
+        relationship.campaign_id = existing.campaign_id;
 
         await _repository.UpdateRelationshipAsync(relationship);
         _logger.LogInformation("Updated relationship {RelationshipId} for account {AccountId}", id, accountId);

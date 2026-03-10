@@ -124,7 +124,7 @@ public interface IRelationshipRepository
         CancellationToken ct = default);
 
     /// <summary>
-    /// Check if a relationship exists between two entities
+    /// Check if a relationship exists between two entities within a specific campaign
     /// </summary>
     Task<bool> RelationshipExistsAsync(
         string sourceEntityType,
@@ -132,5 +132,6 @@ public interface IRelationshipRepository
         string targetEntityType,
         int targetEntityId,
         int relationshipTypeId,
+        int campaignId,
         CancellationToken ct = default);
 }

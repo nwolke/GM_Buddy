@@ -742,12 +742,13 @@ public class RelationshipRepositoryTests
             target_entity_type = "pc",
             target_entity_id = 2,
             relationship_type_id = 1,
+            campaign_id = 1,
             is_active = true
         };
         var repo = new FakeRelationshipRepository(relationships: new[] { relationship });
 
         // Act
-        var exists = await repo.RelationshipExistsAsync("npc", 1, "pc", 2, 1);
+        var exists = await repo.RelationshipExistsAsync("npc", 1, "pc", 2, 1, 1);
 
         // Assert
         Assert.True(exists);
@@ -760,7 +761,7 @@ public class RelationshipRepositoryTests
         var repo = new FakeRelationshipRepository();
 
         // Act
-        var exists = await repo.RelationshipExistsAsync("npc", 1, "pc", 2, 1);
+        var exists = await repo.RelationshipExistsAsync("npc", 1, "pc", 2, 1, 1);
 
         // Assert
         Assert.False(exists);
@@ -778,12 +779,13 @@ public class RelationshipRepositoryTests
             target_entity_type = "pc",
             target_entity_id = 2,
             relationship_type_id = 1,
+            campaign_id = 1,
             is_active = false
         };
         var repo = new FakeRelationshipRepository(relationships: new[] { relationship });
 
         // Act
-        var exists = await repo.RelationshipExistsAsync("npc", 1, "pc", 2, 1);
+        var exists = await repo.RelationshipExistsAsync("npc", 1, "pc", 2, 1, 1);
 
         // Assert
         Assert.False(exists);

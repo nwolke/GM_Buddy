@@ -233,6 +233,7 @@ internal class FakeRelationshipRepository : IRelationshipRepository
         string targetEntityType,
         int targetEntityId,
         int relationshipTypeId,
+        int campaignId,
         CancellationToken ct = default)
     {
         var exists = _relationships.Any(r =>
@@ -241,6 +242,7 @@ internal class FakeRelationshipRepository : IRelationshipRepository
             r.target_entity_type == targetEntityType &&
             r.target_entity_id == targetEntityId &&
             r.relationship_type_id == relationshipTypeId &&
+            r.campaign_id == campaignId &&
             r.is_active);
 
         return Task.FromResult(exists);
