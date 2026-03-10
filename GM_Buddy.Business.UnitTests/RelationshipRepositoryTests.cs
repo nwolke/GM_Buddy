@@ -768,9 +768,10 @@ public class RelationshipRepositoryTests
     }
 
     [Fact]
-    public async Task RelationshipExists_ReturnsFalse_WhenRelationshipInactive()
+    public async Task RelationshipExists_ReturnsTrue_WhenRelationshipInactive()
     {
-        // Arrange
+        // Arrange — deactivated relationships still exist in DB (unique constraint),
+        // so existence check must find them to avoid insert failures
         var relationship = new EntityRelationship
         {
             entity_relationship_id = 1,
@@ -788,7 +789,7 @@ public class RelationshipRepositoryTests
         var exists = await repo.RelationshipExistsAsync("npc", 1, "pc", 2, 1, 1);
 
         // Assert
-        Assert.False(exists);
+        Assert.True(exists);
     }
 
     #endregion

@@ -217,6 +217,13 @@ public class RelationshipsController : ControllerBase
     {
         int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
 
+        // Verify campaign ownership — return 404 for unowned/non-existent campaigns
+        var campaign = await _campaignLogic.GetCampaignAsync(campaignId, accountId);
+        if (campaign == null)
+        {
+            return NotFound("Campaign not found");
+        }
+
         IEnumerable<EntityRelationship> relationships =
             await _repository.GetRelationshipsByCampaignAsync(campaignId, accountId, includeInactive);
 
