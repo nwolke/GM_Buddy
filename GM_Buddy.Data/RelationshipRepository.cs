@@ -23,7 +23,7 @@ public class RelationshipRepository : IRelationshipRepository
     {
         using IDbConnection dbConnection = _dbConnector.CreateConnection();
         const string sql = @"
-            SELECT 
+            SELECT
                 rt.relationship_type_id,
                 rt.relationship_type_name,
                 rt.description,
@@ -43,7 +43,7 @@ public class RelationshipRepository : IRelationshipRepository
     {
         using IDbConnection dbConnection = _dbConnector.CreateConnection();
         const string sql = @"
-            SELECT 
+            SELECT
                 rt.relationship_type_id,
                 rt.relationship_type_name,
                 rt.description,
@@ -63,7 +63,7 @@ public class RelationshipRepository : IRelationshipRepository
     {
         using IDbConnection dbConnection = _dbConnector.CreateConnection();
         const string sql = @"
-            SELECT 
+            SELECT
                 rt.relationship_type_id,
                 rt.relationship_type_name,
                 rt.description,
@@ -119,11 +119,11 @@ public class RelationshipRepository : IRelationshipRepository
         return await dbConnection.ExecuteScalarAsync<int>(cmd);
     }
 
-    public async Task<EntityRelationship?> GetRelationshipByIdAsync(int relationshipId, CancellationToken ct = default)
+    public async Task<EntityRelationship?> GetRelationshipByIdAsync(int relationshipId, int accountId, CancellationToken ct = default)
     {
         using IDbConnection dbConnection = _dbConnector.CreateConnection();
         const string sql = @"
-            SELECT 
+            SELECT
                 er.entity_relationship_id,
                 er.source_entity_type,
                 er.source_entity_id,
@@ -160,15 +160,17 @@ public class RelationshipRepository : IRelationshipRepository
             LEFT JOIN public.pc p2 ON er.target_entity_type = 'pc' AND er.target_entity_id = p2.pc_id
             LEFT JOIN public.organization o2 ON er.target_entity_type = 'organization' AND er.target_entity_id = o2.organization_id
             LEFT JOIN public.campaign c ON er.campaign_id = c.campaign_id
-            WHERE er.entity_relationship_id = @RelationshipId";
+            WHERE er.entity_relationship_id = @RelationshipId
+              AND c.account_id = @AccountId";
 
-        CommandDefinition cmd = new(sql, new { RelationshipId = relationshipId }, cancellationToken: ct);
+        CommandDefinition cmd = new(sql, new { RelationshipId = relationshipId, AccountId = accountId }, cancellationToken: ct);
         return await dbConnection.QueryFirstOrDefaultAsync<EntityRelationship>(cmd);
     }
 
     public async Task<IEnumerable<EntityRelationship>> GetRelationshipsForEntityAsync(
         string entityType,
         int entityId,
+        int accountId,
         bool includeInactive = false,
         CancellationToken ct = default)
     {
@@ -177,7 +179,8 @@ public class RelationshipRepository : IRelationshipRepository
             WHERE (
                 (er.source_entity_type = @EntityType AND er.source_entity_id = @EntityId)
                 OR (er.target_entity_type = @EntityType AND er.target_entity_id = @EntityId)
-            )";
+            )
+            AND c.account_id = @AccountId";
 
         if (!includeInactive)
         {
@@ -186,19 +189,21 @@ public class RelationshipRepository : IRelationshipRepository
 
         sql += " ORDER BY er.created_at DESC";
 
-        CommandDefinition cmd = new(sql, new { EntityType = entityType, EntityId = entityId }, cancellationToken: ct);
+        CommandDefinition cmd = new(sql, new { EntityType = entityType, EntityId = entityId, AccountId = accountId }, cancellationToken: ct);
         return await dbConnection.QueryAsync<EntityRelationship>(cmd);
     }
 
     public async Task<IEnumerable<EntityRelationship>> GetRelationshipsFromEntityAsync(
         string entityType,
         int entityId,
+        int accountId,
         bool includeInactive = false,
         CancellationToken ct = default)
     {
         using IDbConnection dbConnection = _dbConnector.CreateConnection();
         string sql = BuildRelationshipQuery() + @"
-            WHERE er.source_entity_type = @EntityType AND er.source_entity_id = @EntityId";
+            WHERE er.source_entity_type = @EntityType AND er.source_entity_id = @EntityId
+              AND c.account_id = @AccountId";
 
         if (!includeInactive)
         {
@@ -207,19 +212,21 @@ public class RelationshipRepository : IRelationshipRepository
 
         sql += " ORDER BY er.created_at DESC";
 
-        CommandDefinition cmd = new(sql, new { EntityType = entityType, EntityId = entityId }, cancellationToken: ct);
+        CommandDefinition cmd = new(sql, new { EntityType = entityType, EntityId = entityId, AccountId = accountId }, cancellationToken: ct);
         return await dbConnection.QueryAsync<EntityRelationship>(cmd);
     }
 
     public async Task<IEnumerable<EntityRelationship>> GetRelationshipsToEntityAsync(
         string entityType,
         int entityId,
+        int accountId,
         bool includeInactive = false,
         CancellationToken ct = default)
     {
         using IDbConnection dbConnection = _dbConnector.CreateConnection();
         string sql = BuildRelationshipQuery() + @"
-            WHERE er.target_entity_type = @EntityType AND er.target_entity_id = @EntityId";
+            WHERE er.target_entity_type = @EntityType AND er.target_entity_id = @EntityId
+              AND c.account_id = @AccountId";
 
         if (!includeInactive)
         {
@@ -228,7 +235,7 @@ public class RelationshipRepository : IRelationshipRepository
 
         sql += " ORDER BY er.created_at DESC";
 
-        CommandDefinition cmd = new(sql, new { EntityType = entityType, EntityId = entityId }, cancellationToken: ct);
+        CommandDefinition cmd = new(sql, new { EntityType = entityType, EntityId = entityId, AccountId = accountId }, cancellationToken: ct);
         return await dbConnection.QueryAsync<EntityRelationship>(cmd);
     }
 
@@ -254,6 +261,7 @@ public class RelationshipRepository : IRelationshipRepository
         string entityType,
         int entityId,
         int relationshipTypeId,
+        int accountId,
         bool includeInactive = false,
         CancellationToken ct = default)
     {
@@ -263,7 +271,8 @@ public class RelationshipRepository : IRelationshipRepository
                 (er.source_entity_type = @EntityType AND er.source_entity_id = @EntityId)
                 OR (er.target_entity_type = @EntityType AND er.target_entity_id = @EntityId)
             )
-            AND er.relationship_type_id = @RelationshipTypeId";
+            AND er.relationship_type_id = @RelationshipTypeId
+            AND c.account_id = @AccountId";
 
         if (!includeInactive)
         {
@@ -272,11 +281,12 @@ public class RelationshipRepository : IRelationshipRepository
 
         sql += " ORDER BY er.created_at DESC";
 
-        CommandDefinition cmd = new(sql, new 
-        { 
-            EntityType = entityType, 
-            EntityId = entityId, 
-            RelationshipTypeId = relationshipTypeId 
+        CommandDefinition cmd = new(sql, new
+        {
+            EntityType = entityType,
+            EntityId = entityId,
+            RelationshipTypeId = relationshipTypeId,
+            AccountId = accountId
         }, cancellationToken: ct);
 
         return await dbConnection.QueryAsync<EntityRelationship>(cmd);
@@ -284,11 +294,14 @@ public class RelationshipRepository : IRelationshipRepository
 
     public async Task<IEnumerable<EntityRelationship>> GetRelationshipsByCampaignAsync(
         int campaignId,
+        int accountId,
         bool includeInactive = false,
         CancellationToken ct = default)
     {
         using IDbConnection dbConnection = _dbConnector.CreateConnection();
-        string sql = BuildRelationshipQuery() + " WHERE er.campaign_id = @CampaignId";
+        string sql = BuildRelationshipQuery() + @"
+            WHERE er.campaign_id = @CampaignId
+              AND c.account_id = @AccountId";
 
         if (!includeInactive)
         {
@@ -297,7 +310,7 @@ public class RelationshipRepository : IRelationshipRepository
 
         sql += " ORDER BY er.created_at DESC";
 
-        CommandDefinition cmd = new(sql, new { CampaignId = campaignId }, cancellationToken: ct);
+        CommandDefinition cmd = new(sql, new { CampaignId = campaignId, AccountId = accountId }, cancellationToken: ct);
         return await dbConnection.QueryAsync<EntityRelationship>(cmd);
     }
 
@@ -365,7 +378,7 @@ public class RelationshipRepository : IRelationshipRepository
         using IDbConnection dbConnection = _dbConnector.CreateConnection();
         const string sql = @"
             SELECT EXISTS(
-                SELECT 1 
+                SELECT 1
                 FROM public.entity_relationship
                 WHERE source_entity_type = @SourceEntityType
                   AND source_entity_id = @SourceEntityId
@@ -389,12 +402,14 @@ public class RelationshipRepository : IRelationshipRepository
 
     public async Task<IEnumerable<EntityRelationship>> GetPcStancesForNpcAsync(
         int npcId,
+        int accountId,
         int? campaignId = null,
         CancellationToken ct = default)
     {
         using IDbConnection dbConnection = _dbConnector.CreateConnection();
         string sql = BuildRelationshipQuery() + @"
             WHERE er.is_active = true
+              AND c.account_id = @AccountId
               AND (
                   (er.source_entity_type = 'npc' AND er.source_entity_id = @NpcId AND er.target_entity_type = 'pc')
                   OR (er.target_entity_type = 'npc' AND er.target_entity_id = @NpcId AND er.source_entity_type = 'pc')
@@ -407,7 +422,7 @@ public class RelationshipRepository : IRelationshipRepository
 
         sql += " ORDER BY er.created_at DESC";
 
-        CommandDefinition cmd = new(sql, new { NpcId = npcId, CampaignId = campaignId }, cancellationToken: ct);
+        CommandDefinition cmd = new(sql, new { NpcId = npcId, AccountId = accountId, CampaignId = campaignId }, cancellationToken: ct);
         return await dbConnection.QueryAsync<EntityRelationship>(cmd);
     }
 
