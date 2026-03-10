@@ -233,7 +233,7 @@ public class OrganizationsController : ControllerBase
 
         return Ok(new
         {
-            message = "Use /api/Relationships/to/organization/{id} with type filter",
+            message = "Use /api/Relationships/entity/organization/{id}/type/8 to get leaders",
             endpoint = $"/api/Relationships/entity/organization/{id}/type/8"  // 8 is Leader relationship type
         });
     }
@@ -274,7 +274,7 @@ public class OrganizationsController : ControllerBase
 
         return Ok(new
         {
-            message = "Use /api/Relationships/from/organization/{id} with type=Ally filter",
+            message = "Use /api/Relationships/entity/organization/{id}/type/2 to get allies",
             endpoint = $"/api/Relationships/entity/organization/{id}/type/2"  // 2 is Ally relationship type
         });
     }
@@ -296,7 +296,7 @@ public class OrganizationsController : ControllerBase
 
         return Ok(new
         {
-            message = "Use /api/Relationships/from/organization/{id} with type=Enemy filter",
+            message = "Use /api/Relationships/entity/organization/{id}/type/3 to get enemies",
             endpoint = $"/api/Relationships/entity/organization/{id}/type/3"  // 3 is Enemy relationship type
         });
     }
