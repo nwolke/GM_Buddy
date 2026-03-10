@@ -134,12 +134,17 @@ public class OrganizationsController : ControllerBase
 
     /// <summary>
     /// Get all organizations for the authenticated account
-    /// Route param is ignored — always uses auth-derived accountId to prevent info disclosure
+    /// Returns 404 if route accountId doesn't match authenticated user
     /// </summary>
     [HttpGet("account/{accountId}")]
     public async Task<ActionResult<IEnumerable<Organization>>> GetOrganizationsByAccount(int accountId)
     {
         int authenticatedAccountId = await _authHelper.GetAuthenticatedAccountIdAsync();
+
+        if (authenticatedAccountId != accountId)
+        {
+            return NotFound("Account not found");
+        }
 
         _logger.LogInformation("Getting organizations for account {AccountId}", authenticatedAccountId);
         IEnumerable<Organization> organizations = await _repository.GetOrganizationsByAccountIdAsync(authenticatedAccountId);

@@ -387,7 +387,6 @@ public class RelationshipRepository : IRelationshipRepository
                   AND target_entity_id = @TargetEntityId
                   AND relationship_type_id = @RelationshipTypeId
                   AND campaign_id = @CampaignId
-                  AND is_active = true
             )";
 
         CommandDefinition cmd = new(sql, new

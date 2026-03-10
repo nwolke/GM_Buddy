@@ -242,8 +242,7 @@ internal class FakeRelationshipRepository : IRelationshipRepository
             r.target_entity_type == targetEntityType &&
             r.target_entity_id == targetEntityId &&
             r.relationship_type_id == relationshipTypeId &&
-            r.campaign_id == campaignId &&
-            r.is_active);
+            r.campaign_id == campaignId);
 
         return Task.FromResult(exists);
     }
