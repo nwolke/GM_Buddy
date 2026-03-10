@@ -14,15 +14,18 @@ public class PcsController : ControllerBase
     private readonly ILogger<PcsController> _logger;
     private readonly IPcLogic _logic;
     private readonly IAuthHelper _authHelper;
+    private readonly ICampaignLogic _campaignLogic;
 
     public PcsController(
         ILogger<PcsController> logger,
         IPcLogic logic,
-        IAuthHelper authHelper)
+        IAuthHelper authHelper,
+        ICampaignLogic campaignLogic)
     {
         _logger = logger;
         _logic = logic;
         _authHelper = authHelper;
+        _campaignLogic = campaignLogic;
     }
 
     /// <summary>
@@ -149,8 +152,13 @@ public class PcsController : ControllerBase
         _logger.LogInformation("Getting PCs for campaign {CampaignId} requested by account {AccountId}", 
             campaignId, accountId);
         
-        // TODO: Verify campaign ownership - for now we'll allow access
-        // In the future, add campaign ownership check here
+        // Verify campaign ownership
+        var campaign = await _campaignLogic.GetCampaignAsync(campaignId, accountId);
+        if (campaign == null)
+        {
+            return NotFound("Campaign not found");
+        }
+
         IEnumerable<PcDto> pcs = await _logic.GetPcsByCampaignAsync(campaignId);
         return Ok(pcs);
     }
@@ -209,8 +217,13 @@ public class PcsController : ControllerBase
         _logger.LogInformation("Getting party for campaign {CampaignId} requested by account {AccountId}", 
             campaignId, accountId);
         
-        // TODO: Verify campaign ownership - for now we'll allow access
-        // In the future, add campaign ownership check here
+        // Verify campaign ownership
+        var campaign = await _campaignLogic.GetCampaignAsync(campaignId, accountId);
+        if (campaign == null)
+        {
+            return NotFound("Campaign not found");
+        }
+
         IEnumerable<PcDto> pcs = await _logic.GetPcsByCampaignAsync(campaignId);
         return Ok(pcs);
     }

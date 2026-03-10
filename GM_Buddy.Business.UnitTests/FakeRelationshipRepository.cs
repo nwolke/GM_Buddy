@@ -71,7 +71,7 @@ internal class FakeRelationshipRepository : IRelationshipRepository
 
     public Task<RelationshipType?> GetRelationshipTypeByNameAsync(string name, CancellationToken ct = default)
     {
-        var type = _relationshipTypes.FirstOrDefault(rt => 
+        var type = _relationshipTypes.FirstOrDefault(rt =>
             rt.relationship_type_name.Equals(name, StringComparison.OrdinalIgnoreCase));
         return Task.FromResult(type);
     }
@@ -89,8 +89,9 @@ internal class FakeRelationshipRepository : IRelationshipRepository
         return Task.FromResult(relationship.entity_relationship_id);
     }
 
-    public Task<EntityRelationship?> GetRelationshipByIdAsync(int relationshipId, CancellationToken ct = default)
+    public Task<EntityRelationship?> GetRelationshipByIdAsync(int relationshipId, int accountId, CancellationToken ct = default)
     {
+        // Fake: accepts accountId but doesn't filter — auth tested at controller level
         var relationship = _relationships.FirstOrDefault(r => r.entity_relationship_id == relationshipId);
         return Task.FromResult(relationship);
     }
@@ -98,9 +99,11 @@ internal class FakeRelationshipRepository : IRelationshipRepository
     public Task<IEnumerable<EntityRelationship>> GetRelationshipsForEntityAsync(
         string entityType,
         int entityId,
+        int accountId,
         bool includeInactive = false,
         CancellationToken ct = default)
     {
+        // Fake: accepts accountId but doesn't filter — auth tested at controller level
         var result = _relationships.Where(r =>
             ((r.source_entity_type == entityType && r.source_entity_id == entityId) ||
              (r.target_entity_type == entityType && r.target_entity_id == entityId)) &&
@@ -112,9 +115,11 @@ internal class FakeRelationshipRepository : IRelationshipRepository
     public Task<IEnumerable<EntityRelationship>> GetRelationshipsFromEntityAsync(
         string entityType,
         int entityId,
+        int accountId,
         bool includeInactive = false,
         CancellationToken ct = default)
     {
+        // Fake: accepts accountId but doesn't filter — auth tested at controller level
         var result = _relationships.Where(r =>
             r.source_entity_type == entityType &&
             r.source_entity_id == entityId &&
@@ -126,9 +131,11 @@ internal class FakeRelationshipRepository : IRelationshipRepository
     public Task<IEnumerable<EntityRelationship>> GetRelationshipsToEntityAsync(
         string entityType,
         int entityId,
+        int accountId,
         bool includeInactive = false,
         CancellationToken ct = default)
     {
+        // Fake: accepts accountId but doesn't filter — auth tested at controller level
         var result = _relationships.Where(r =>
             r.target_entity_type == entityType &&
             r.target_entity_id == entityId &&
@@ -141,9 +148,11 @@ internal class FakeRelationshipRepository : IRelationshipRepository
         string entityType,
         int entityId,
         int relationshipTypeId,
+        int accountId,
         bool includeInactive = false,
         CancellationToken ct = default)
     {
+        // Fake: accepts accountId but doesn't filter — auth tested at controller level
         var result = _relationships.Where(r =>
             ((r.source_entity_type == entityType && r.source_entity_id == entityId) ||
              (r.target_entity_type == entityType && r.target_entity_id == entityId)) &&
@@ -155,9 +164,11 @@ internal class FakeRelationshipRepository : IRelationshipRepository
 
     public Task<IEnumerable<EntityRelationship>> GetRelationshipsByCampaignAsync(
         int campaignId,
+        int accountId,
         bool includeInactive = false,
         CancellationToken ct = default)
     {
+        // Fake: accepts accountId but doesn't filter — auth tested at controller level
         var result = _relationships.Where(r =>
             r.campaign_id == campaignId &&
             (includeInactive || r.is_active));
@@ -167,7 +178,7 @@ internal class FakeRelationshipRepository : IRelationshipRepository
 
     public Task UpdateRelationshipAsync(EntityRelationship relationship, CancellationToken ct = default)
     {
-        var existing = _relationships.FirstOrDefault(r => 
+        var existing = _relationships.FirstOrDefault(r =>
             r.entity_relationship_id == relationship.entity_relationship_id);
 
         if (existing != null)
@@ -242,9 +253,11 @@ internal class FakeRelationshipRepository : IRelationshipRepository
 
     public Task<IEnumerable<EntityRelationship>> GetPcStancesForNpcAsync(
         int npcId,
+        int accountId,
         int? campaignId = null,
         CancellationToken ct = default)
     {
+        // Fake: accepts accountId but doesn't filter — auth tested at controller level
         var result = _relationships.Where(r =>
             r.is_active &&
             ((r.source_entity_type == "npc" && r.source_entity_id == npcId && r.target_entity_type == "pc") ||

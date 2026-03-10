@@ -2,27 +2,36 @@ using GM_Buddy.Contracts.Constants;
 using GM_Buddy.Contracts.DbEntities;
 using GM_Buddy.Contracts.Interfaces;
 using GM_Buddy.Server.Helpers;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GM_Buddy.Server.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class RelationshipsController : ControllerBase
 {
     private readonly ILogger<RelationshipsController> _logger;
     private readonly IRelationshipRepository _repository;
     private readonly IAuthHelper _authHelper;
+    private readonly ICampaignLogic _campaignLogic;
 
-    public RelationshipsController(ILogger<RelationshipsController> logger, IRelationshipRepository repository, IAuthHelper authHelper)
+    public RelationshipsController(
+        ILogger<RelationshipsController> logger,
+        IRelationshipRepository repository,
+        IAuthHelper authHelper,
+        ICampaignLogic campaignLogic)
     {
         _logger = logger;
         _repository = repository;
         _authHelper = authHelper;
+        _campaignLogic = campaignLogic;
     }
 
-    #region Relationship Types
+    #region Relationship Types (reference data — no auth required)
 
+    [AllowAnonymous]
     [HttpGet("types")]
     public async Task<ActionResult<IEnumerable<RelationshipType>>> GetRelationshipTypes()
     {
@@ -30,6 +39,7 @@ public class RelationshipsController : ControllerBase
         return Ok(types);
     }
 
+    [AllowAnonymous]
     [HttpGet("types/{id}")]
     public async Task<ActionResult<RelationshipType>> GetRelationshipType(int id)
     {
@@ -48,6 +58,8 @@ public class RelationshipsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<int>> CreateRelationship([FromBody] EntityRelationship relationship)
     {
+        int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
+
         if (!EntityTypes.IsValid(relationship.source_entity_type) || !EntityTypes.IsValid(relationship.target_entity_type))
         {
             return BadRequest($"Invalid entity type. Must be one of: {string.Join(", ", EntityTypes.All)}");
@@ -71,6 +83,16 @@ public class RelationshipsController : ControllerBase
             }
         }
 
+        // Verify campaign ownership if campaign is specified
+        if (relationship.campaign_id.HasValue)
+        {
+            var campaign = await _campaignLogic.GetCampaignAsync(relationship.campaign_id.Value, accountId);
+            if (campaign == null)
+            {
+                return NotFound("Campaign not found");
+            }
+        }
+
         bool exists = await _repository.RelationshipExistsAsync(
             relationship.source_entity_type,
             relationship.source_entity_id,
@@ -85,7 +107,7 @@ public class RelationshipsController : ControllerBase
         }
 
         int relationshipId = await _repository.CreateRelationshipAsync(relationship);
-        _logger.LogInformation("Created relationship {RelationshipId}", relationshipId);
+        _logger.LogInformation("Created relationship {RelationshipId} for account {AccountId}", relationshipId, accountId);
 
         return CreatedAtAction(nameof(GetRelationship), new { id = relationshipId }, relationshipId);
     }
@@ -93,7 +115,9 @@ public class RelationshipsController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<EntityRelationship>> GetRelationship(int id)
     {
-        EntityRelationship? relationship = await _repository.GetRelationshipByIdAsync(id);
+        int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
+
+        EntityRelationship? relationship = await _repository.GetRelationshipByIdAsync(id, accountId);
         if (relationship == null)
         {
             return NotFound($"Relationship with ID {id} not found");
@@ -107,16 +131,18 @@ public class RelationshipsController : ControllerBase
         int entityId,
         [FromQuery] bool includeInactive = false)
     {
+        int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
+
         if (!EntityTypes.IsValid(entityType))
         {
             return BadRequest($"Invalid entity type. Must be one of: {string.Join(", ", EntityTypes.All)}");
         }
 
         IEnumerable<EntityRelationship> relationships =
-            await _repository.GetRelationshipsForEntityAsync(entityType, entityId, includeInactive);
+            await _repository.GetRelationshipsForEntityAsync(entityType, entityId, accountId, includeInactive);
 
-        _logger.LogInformation("Retrieved {Count} relationships for {EntityType} {EntityId}",
-            relationships.Count(), entityType, entityId);
+        _logger.LogInformation("Retrieved {Count} relationships for {EntityType} {EntityId} (account {AccountId})",
+            relationships.Count(), entityType, entityId, accountId);
 
         return Ok(relationships);
     }
@@ -127,13 +153,15 @@ public class RelationshipsController : ControllerBase
         int entityId,
         [FromQuery] bool includeInactive = false)
     {
+        int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
+
         if (!EntityTypes.IsValid(entityType))
         {
             return BadRequest($"Invalid entity type. Must be one of: {string.Join(", ", EntityTypes.All)}");
         }
 
         IEnumerable<EntityRelationship> relationships =
-            await _repository.GetRelationshipsFromEntityAsync(entityType, entityId, includeInactive);
+            await _repository.GetRelationshipsFromEntityAsync(entityType, entityId, accountId, includeInactive);
 
         return Ok(relationships);
     }
@@ -144,13 +172,15 @@ public class RelationshipsController : ControllerBase
         int entityId,
         [FromQuery] bool includeInactive = false)
     {
+        int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
+
         if (!EntityTypes.IsValid(entityType))
         {
             return BadRequest($"Invalid entity type. Must be one of: {string.Join(", ", EntityTypes.All)}");
         }
 
         IEnumerable<EntityRelationship> relationships =
-            await _repository.GetRelationshipsToEntityAsync(entityType, entityId, includeInactive);
+            await _repository.GetRelationshipsToEntityAsync(entityType, entityId, accountId, includeInactive);
 
         return Ok(relationships);
     }
@@ -162,13 +192,15 @@ public class RelationshipsController : ControllerBase
         int relationshipTypeId,
         [FromQuery] bool includeInactive = false)
     {
+        int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
+
         if (!EntityTypes.IsValid(entityType))
         {
             return BadRequest($"Invalid entity type. Must be one of: {string.Join(", ", EntityTypes.All)}");
         }
 
         IEnumerable<EntityRelationship> relationships =
-            await _repository.GetRelationshipsByTypeAsync(entityType, entityId, relationshipTypeId, includeInactive);
+            await _repository.GetRelationshipsByTypeAsync(entityType, entityId, relationshipTypeId, accountId, includeInactive);
 
         return Ok(relationships);
     }
@@ -178,11 +210,13 @@ public class RelationshipsController : ControllerBase
         int campaignId,
         [FromQuery] bool includeInactive = false)
     {
-        IEnumerable<EntityRelationship> relationships =
-            await _repository.GetRelationshipsByCampaignAsync(campaignId, includeInactive);
+        int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
 
-        _logger.LogInformation("Retrieved {Count} relationships for campaign {CampaignId}",
-            relationships.Count(), campaignId);
+        IEnumerable<EntityRelationship> relationships =
+            await _repository.GetRelationshipsByCampaignAsync(campaignId, accountId, includeInactive);
+
+        _logger.LogInformation("Retrieved {Count} relationships for campaign {CampaignId} (account {AccountId})",
+            relationships.Count(), campaignId, accountId);
 
         return Ok(relationships);
     }
@@ -190,6 +224,8 @@ public class RelationshipsController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateRelationship(int id, [FromBody] EntityRelationship relationship)
     {
+        int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
+
         if (id != relationship.entity_relationship_id)
         {
             return BadRequest("Relationship ID mismatch");
@@ -213,14 +249,15 @@ public class RelationshipsController : ControllerBase
             }
         }
 
-        EntityRelationship? existing = await _repository.GetRelationshipByIdAsync(id);
+        // Account-scoped fetch — returns null if not owned by this account
+        EntityRelationship? existing = await _repository.GetRelationshipByIdAsync(id, accountId);
         if (existing == null)
         {
             return NotFound($"Relationship with ID {id} not found");
         }
 
         await _repository.UpdateRelationshipAsync(relationship);
-        _logger.LogInformation("Updated relationship {RelationshipId}", id);
+        _logger.LogInformation("Updated relationship {RelationshipId} for account {AccountId}", id, accountId);
 
         return NoContent();
     }
@@ -228,14 +265,17 @@ public class RelationshipsController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteRelationship(int id)
     {
-        EntityRelationship? existing = await _repository.GetRelationshipByIdAsync(id);
+        int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
+
+        // Account-scoped fetch — returns null if not owned by this account
+        EntityRelationship? existing = await _repository.GetRelationshipByIdAsync(id, accountId);
         if (existing == null)
         {
             return NotFound($"Relationship with ID {id} not found");
         }
 
         await _repository.DeleteRelationshipAsync(id);
-        _logger.LogInformation("Deleted relationship {RelationshipId}", id);
+        _logger.LogInformation("Deleted relationship {RelationshipId} for account {AccountId}", id, accountId);
 
         return NoContent();
     }
@@ -243,14 +283,17 @@ public class RelationshipsController : ControllerBase
     [HttpPost("{id}/deactivate")]
     public async Task<IActionResult> DeactivateRelationship(int id)
     {
-        EntityRelationship? existing = await _repository.GetRelationshipByIdAsync(id);
+        int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
+
+        // Account-scoped fetch — returns null if not owned by this account
+        EntityRelationship? existing = await _repository.GetRelationshipByIdAsync(id, accountId);
         if (existing == null)
         {
             return NotFound($"Relationship with ID {id} not found");
         }
 
         await _repository.DeactivateRelationshipAsync(id);
-        _logger.LogInformation("Deactivated relationship {RelationshipId}", id);
+        _logger.LogInformation("Deactivated relationship {RelationshipId} for account {AccountId}", id, accountId);
 
         return NoContent();
     }
@@ -258,14 +301,17 @@ public class RelationshipsController : ControllerBase
     [HttpPost("{id}/reactivate")]
     public async Task<IActionResult> ReactivateRelationship(int id)
     {
-        EntityRelationship? existing = await _repository.GetRelationshipByIdAsync(id);
+        int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
+
+        // Account-scoped fetch — returns null if not owned by this account
+        EntityRelationship? existing = await _repository.GetRelationshipByIdAsync(id, accountId);
         if (existing == null)
         {
             return NotFound($"Relationship with ID {id} not found");
         }
 
         await _repository.ReactivateRelationshipAsync(id);
-        _logger.LogInformation("Reactivated relationship {RelationshipId}", id);
+        _logger.LogInformation("Reactivated relationship {RelationshipId} for account {AccountId}", id, accountId);
 
         return NoContent();
     }
@@ -275,8 +321,10 @@ public class RelationshipsController : ControllerBase
         int npcId,
         [FromQuery] int? campaignId = null)
     {
+        int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
+
         IEnumerable<EntityRelationship> stances =
-            await _repository.GetPcStancesForNpcAsync(npcId, campaignId);
+            await _repository.GetPcStancesForNpcAsync(npcId, accountId, campaignId);
 
         return Ok(stances);
     }
