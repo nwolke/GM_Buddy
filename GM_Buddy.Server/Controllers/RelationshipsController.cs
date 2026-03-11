@@ -108,7 +108,7 @@ public class RelationshipsController : ControllerBase
 
         if (exists)
         {
-            return Conflict("This relationship already exists in this campaign");
+            return Conflict("A relationship between these entities already exists in this campaign (including inactive relationships). If an inactive relationship exists, consider reactivating it instead of creating a new one.");
         }
 
         int relationshipId = await _repository.CreateRelationshipAsync(relationship);
