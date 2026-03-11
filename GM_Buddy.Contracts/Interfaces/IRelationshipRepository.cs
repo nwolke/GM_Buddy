@@ -32,57 +32,66 @@ public interface IRelationshipRepository
     Task<int> CreateRelationshipAsync(EntityRelationship relationship, CancellationToken ct = default);
 
     /// <summary>
-    /// Get a specific relationship by ID
+    /// Get a specific relationship by ID, scoped to the given account
     /// </summary>
-    Task<EntityRelationship?> GetRelationshipByIdAsync(int relationshipId, CancellationToken ct = default);
+    Task<EntityRelationship?> GetRelationshipByIdAsync(int relationshipId, int accountId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Get all relationships for the given account
+    /// </summary>
     Task<IEnumerable<EntityRelationship>> GetAllRelationshipsOfAccountAsync(
         int accountId,
         bool includeInactive = false,
         CancellationToken ct = default);
 
     /// <summary>
-    /// Get all relationships for a specific entity (as source or target)
+    /// Get all relationships for a specific entity (as source or target), scoped to account
     /// </summary>
     Task<IEnumerable<EntityRelationship>> GetRelationshipsForEntityAsync(
-        string entityType, 
-        int entityId, 
-        bool includeInactive = false, 
+        string entityType,
+        int entityId,
+        int accountId,
+        bool includeInactive = false,
         CancellationToken ct = default);
 
     /// <summary>
-    /// Get all relationships where the entity is the source
+    /// Get all relationships where the entity is the source, scoped to account
     /// </summary>
     Task<IEnumerable<EntityRelationship>> GetRelationshipsFromEntityAsync(
-        string entityType, 
-        int entityId, 
-        bool includeInactive = false, 
+        string entityType,
+        int entityId,
+        int accountId,
+        bool includeInactive = false,
         CancellationToken ct = default);
 
     /// <summary>
-    /// Get all relationships where the entity is the target
+    /// Get all relationships where the entity is the target, scoped to account
     /// </summary>
     Task<IEnumerable<EntityRelationship>> GetRelationshipsToEntityAsync(
-        string entityType, 
-        int entityId, 
-        bool includeInactive = false, 
+        string entityType,
+        int entityId,
+        int accountId,
+        bool includeInactive = false,
         CancellationToken ct = default);
 
     /// <summary>
-    /// Get all relationships of a specific type for an entity
+    /// Get all relationships of a specific type for an entity, scoped to account
     /// </summary>
     Task<IEnumerable<EntityRelationship>> GetRelationshipsByTypeAsync(
-        string entityType, 
-        int entityId, 
-        int relationshipTypeId, 
-        bool includeInactive = false, 
+        string entityType,
+        int entityId,
+        int relationshipTypeId,
+        int accountId,
+        bool includeInactive = false,
         CancellationToken ct = default);
 
     /// <summary>
-    /// Get all relationships within a campaign
+    /// Get all relationships within a campaign, scoped to account
     /// </summary>
     Task<IEnumerable<EntityRelationship>> GetRelationshipsByCampaignAsync(
-        int campaignId, 
-        bool includeInactive = false, 
+        int campaignId,
+        int accountId,
+        bool includeInactive = false,
         CancellationToken ct = default);
 
     /// <summary>
@@ -106,21 +115,23 @@ public interface IRelationshipRepository
     Task ReactivateRelationshipAsync(int relationshipId, CancellationToken ct = default);
 
     /// <summary>
-    /// Get all PC↔NPC relationships for a given NPC, optionally filtered by campaign
+    /// Get all PC↔NPC relationships for a given NPC, scoped to account, optionally filtered by campaign
     /// </summary>
     Task<IEnumerable<EntityRelationship>> GetPcStancesForNpcAsync(
         int npcId,
+        int accountId,
         int? campaignId = null,
         CancellationToken ct = default);
 
     /// <summary>
-    /// Check if a relationship exists between two entities
+    /// Check if a relationship exists between two entities within a specific campaign
     /// </summary>
     Task<bool> RelationshipExistsAsync(
-        string sourceEntityType, 
-        int sourceEntityId, 
-        string targetEntityType, 
-        int targetEntityId, 
-        int relationshipTypeId, 
+        string sourceEntityType,
+        int sourceEntityId,
+        string targetEntityType,
+        int targetEntityId,
+        int relationshipTypeId,
+        int campaignId,
         CancellationToken ct = default);
 }
