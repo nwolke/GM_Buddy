@@ -27,7 +27,7 @@ public class RelationshipIntegrationTests
 
         // Act
         var id = await relationshipRepo.CreateRelationshipAsync(relationship);
-        var retrieved = await relationshipRepo.GetRelationshipByIdAsync(id);
+        var retrieved = await relationshipRepo.GetRelationshipByIdAsync(id, 1);
 
         // Assert
         Assert.NotNull(retrieved);
@@ -70,7 +70,7 @@ public class RelationshipIntegrationTests
         await relationshipRepo.CreateRelationshipAsync(npcMember);
         await relationshipRepo.CreateRelationshipAsync(pcMember);
 
-        var members = await relationshipRepo.GetRelationshipsToEntityAsync(EntityTypes.Organization, 10);
+        var members = await relationshipRepo.GetRelationshipsToEntityAsync(EntityTypes.Organization, 10, 1);
 
         // Assert
         var memberList = members.ToList();
@@ -99,7 +99,7 @@ public class RelationshipIntegrationTests
 
         // Act
         await relationshipRepo.CreateRelationshipAsync(rivalry);
-        var enemies = await relationshipRepo.GetRelationshipsByTypeAsync(EntityTypes.Organization, 1, 3);
+        var enemies = await relationshipRepo.GetRelationshipsByTypeAsync(EntityTypes.Organization, 1, 3, 1);
 
         // Assert
         var enemyList = enemies.ToList();
@@ -149,7 +149,7 @@ public class RelationshipIntegrationTests
         });
 
         // Act
-        var campaign1Rels = await relationshipRepo.GetRelationshipsByCampaignAsync(1);
+        var campaign1Rels = await relationshipRepo.GetRelationshipsByCampaignAsync(1, 1);
 
         // Assert
         var relList = campaign1Rels.ToList();
@@ -179,8 +179,8 @@ public class RelationshipIntegrationTests
         await relationshipRepo.DeactivateRelationshipAsync(id);
 
         // Assert - Still in database but not in active queries
-        var allRels = await relationshipRepo.GetRelationshipsForEntityAsync(EntityTypes.Npc, 1, includeInactive: true);
-        var activeRels = await relationshipRepo.GetRelationshipsForEntityAsync(EntityTypes.Npc, 1, includeInactive: false);
+        var allRels = await relationshipRepo.GetRelationshipsForEntityAsync(EntityTypes.Npc, 1, 1, includeInactive: true);
+        var activeRels = await relationshipRepo.GetRelationshipsForEntityAsync(EntityTypes.Npc, 1, 1, includeInactive: false);
 
         Assert.Single(allRels);
         Assert.Empty(activeRels);
@@ -205,8 +205,8 @@ public class RelationshipIntegrationTests
         // Act
         await relationshipRepo.CreateRelationshipAsync(mentorRel);
 
-        var fromMentor = await relationshipRepo.GetRelationshipsFromEntityAsync(EntityTypes.Npc, 10);
-        var toStudent = await relationshipRepo.GetRelationshipsToEntityAsync(EntityTypes.Pc, 5);
+        var fromMentor = await relationshipRepo.GetRelationshipsFromEntityAsync(EntityTypes.Npc, 10, 1);
+        var toStudent = await relationshipRepo.GetRelationshipsToEntityAsync(EntityTypes.Pc, 5, 1);
 
         // Assert
         Assert.Single(fromMentor);
@@ -254,7 +254,7 @@ public class RelationshipIntegrationTests
         });
 
         // Act
-        var npc1Relationships = await relationshipRepo.GetRelationshipsForEntityAsync(EntityTypes.Npc, 1);
+        var npc1Relationships = await relationshipRepo.GetRelationshipsForEntityAsync(EntityTypes.Npc, 1, 1);
 
         // Assert
         var relList = npc1Relationships.ToList();

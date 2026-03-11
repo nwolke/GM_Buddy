@@ -1,49 +1,58 @@
 using GM_Buddy.Contracts.DbEntities;
 using GM_Buddy.Contracts.Interfaces;
+using GM_Buddy.Server.Helpers;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GM_Buddy.Server.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class OrganizationsController : ControllerBase
 {
     private readonly ILogger<OrganizationsController> _logger;
     private readonly IOrganizationRepository _repository;
+    private readonly IAuthHelper _authHelper;
+    private readonly ICampaignLogic _campaignLogic;
 
-    public OrganizationsController(ILogger<OrganizationsController> logger, IOrganizationRepository repository)
+    public OrganizationsController(
+        ILogger<OrganizationsController> logger,
+        IOrganizationRepository repository,
+        IAuthHelper authHelper,
+        ICampaignLogic campaignLogic)
     {
         _logger = logger;
         _repository = repository;
+        _authHelper = authHelper;
+        _campaignLogic = campaignLogic;
     }
 
     /// <summary>
-    /// Get all organizations, optionally filtered by account
+    /// Get all organizations for the authenticated account
     /// </summary>
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Organization>>> GetOrganizations(
-        [FromQuery] int? accountId = null)
+    public async Task<ActionResult<IEnumerable<Organization>>> GetOrganizations()
     {
-        if (!accountId.HasValue)
-        {
-            return BadRequest("Account ID is required");
-        }
+        int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
 
         _logger.LogInformation("Getting organizations for account {AccountId}", accountId);
-        IEnumerable<Organization> organizations = await _repository.GetOrganizationsByAccountIdAsync(accountId.Value);
+        IEnumerable<Organization> organizations = await _repository.GetOrganizationsByAccountIdAsync(accountId);
         return Ok(organizations);
     }
 
     /// <summary>
-    /// Get a specific organization by ID
+    /// Get a specific organization by ID (must belong to authenticated account)
     /// </summary>
     [HttpGet("{id}")]
     public async Task<ActionResult<Organization>> GetOrganization(int id)
     {
-        _logger.LogInformation("Getting organization {OrganizationId}", id);
+        int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
+
+        _logger.LogInformation("Getting organization {OrganizationId} for account {AccountId}", id, accountId);
         Organization? organization = await _repository.GetOrganizationByIdAsync(id);
 
-        if (organization == null)
+        if (organization == null || organization.account_id != accountId)
         {
             return NotFound($"Organization with ID {id} not found");
         }
@@ -52,98 +61,132 @@ public class OrganizationsController : ControllerBase
     }
 
     /// <summary>
-    /// Create a new organization
+    /// Create a new organization for the authenticated account
     /// </summary>
     [HttpPost]
     public async Task<ActionResult<int>> CreateOrganization([FromBody] Organization organization)
     {
+        int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
+
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
 
-        _logger.LogInformation("Creating new organization: {Name}", organization.name);
+        // Override client-supplied account_id with authenticated account
+        organization.account_id = accountId;
+
+        _logger.LogInformation("Creating new organization: {Name} for account {AccountId}", organization.name, accountId);
         int organizationId = await _repository.CreateOrganizationAsync(organization);
 
         return CreatedAtAction(nameof(GetOrganization), new { id = organizationId }, organizationId);
     }
 
     /// <summary>
-    /// Update an existing organization
+    /// Update an existing organization (must belong to authenticated account)
     /// </summary>
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateOrganization(int id, [FromBody] Organization organization)
     {
+        int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
+
         if (id != organization.organization_id)
         {
             return BadRequest("Organization ID mismatch");
         }
 
-        if (!await _repository.OrganizationExistsAsync(id))
+        // Verify ownership
+        Organization? existing = await _repository.GetOrganizationByIdAsync(id);
+        if (existing == null || existing.account_id != accountId)
         {
             return NotFound($"Organization with ID {id} not found");
         }
 
-        _logger.LogInformation("Updating organization {OrganizationId}", id);
+        // Ensure account_id stays consistent
+        organization.account_id = accountId;
+
+        _logger.LogInformation("Updating organization {OrganizationId} for account {AccountId}", id, accountId);
         await _repository.UpdateOrganizationAsync(organization);
 
         return NoContent();
     }
 
     /// <summary>
-    /// Delete an organization
+    /// Delete an organization (must belong to authenticated account)
     /// </summary>
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteOrganization(int id)
     {
-        if (!await _repository.OrganizationExistsAsync(id))
+        int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
+
+        // Verify ownership
+        Organization? existing = await _repository.GetOrganizationByIdAsync(id);
+        if (existing == null || existing.account_id != accountId)
         {
             return NotFound($"Organization with ID {id} not found");
         }
 
-        _logger.LogInformation("Deleting organization {OrganizationId}", id);
+        _logger.LogInformation("Deleting organization {OrganizationId} for account {AccountId}", id, accountId);
         await _repository.DeleteOrganizationAsync(id);
 
         return NoContent();
     }
 
     /// <summary>
-    /// Get all organizations for a specific account
+    /// Get all organizations for the authenticated account
+    /// Returns 404 if route accountId doesn't match authenticated user
     /// </summary>
     [HttpGet("account/{accountId}")]
     public async Task<ActionResult<IEnumerable<Organization>>> GetOrganizationsByAccount(int accountId)
     {
-        _logger.LogInformation("Getting organizations for account {AccountId}", accountId);
-        IEnumerable<Organization> organizations = await _repository.GetOrganizationsByAccountIdAsync(accountId);
+        int authenticatedAccountId = await _authHelper.GetAuthenticatedAccountIdAsync();
+
+        if (authenticatedAccountId != accountId)
+        {
+            return NotFound("Account not found");
+        }
+
+        _logger.LogInformation("Getting organizations for account {AccountId}", authenticatedAccountId);
+        IEnumerable<Organization> organizations = await _repository.GetOrganizationsByAccountIdAsync(authenticatedAccountId);
         return Ok(organizations);
     }
 
     /// <summary>
-    /// Get all organizations in a specific campaign
+    /// Get all organizations in a specific campaign (must own the campaign)
     /// </summary>
     [HttpGet("campaign/{campaignId}")]
     public async Task<ActionResult<IEnumerable<Organization>>> GetOrganizationsByCampaign(int campaignId)
     {
-        _logger.LogInformation("Getting organizations for campaign {CampaignId}", campaignId);
+        int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
+
+        // Verify campaign ownership
+        var campaign = await _campaignLogic.GetCampaignAsync(campaignId, accountId);
+        if (campaign == null)
+        {
+            return NotFound("Campaign not found");
+        }
+
+        _logger.LogInformation("Getting organizations for campaign {CampaignId} (account {AccountId})", campaignId, accountId);
         IEnumerable<Organization> organizations = await _repository.GetOrganizationsByCampaignIdAsync(campaignId);
         return Ok(organizations);
     }
 
     /// <summary>
-    /// Search organizations by name or type
+    /// Search organizations by name or type for the authenticated account
     /// </summary>
     [HttpGet("search")]
     public async Task<ActionResult<IEnumerable<Organization>>> SearchOrganizations(
-        [FromQuery] int accountId,
         [FromQuery] string? name = null,
         [FromQuery] string? type = null)
     {
+        int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
+
         if (string.IsNullOrWhiteSpace(name) && string.IsNullOrWhiteSpace(type))
         {
             return BadRequest("At least one search parameter (name or type) is required");
         }
 
-        _logger.LogInformation("Searching organizations");
+        _logger.LogInformation("Searching organizations for account {AccountId}", accountId);
         string searchTerm = name ?? type ?? "";
         IEnumerable<Organization> organizations = await _repository.SearchOrganizationsAsync(accountId, searchTerm);
 
@@ -156,9 +199,11 @@ public class OrganizationsController : ControllerBase
     [HttpGet("{id}/members")]
     public async Task<ActionResult<object>> GetOrganizationMembers(int id)
     {
-        _logger.LogInformation("Getting members for organization {OrganizationId}", id);
+        int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
 
-        if (!await _repository.OrganizationExistsAsync(id))
+        // Verify ownership
+        Organization? organization = await _repository.GetOrganizationByIdAsync(id);
+        if (organization == null || organization.account_id != accountId)
         {
             return NotFound($"Organization with ID {id} not found");
         }
@@ -166,8 +211,8 @@ public class OrganizationsController : ControllerBase
         // Return reference to relationships API
         return Ok(new
         {
-            message = "Use /Relationships/to/organization/{id} endpoint to get members",
-            endpoint = $"/Relationships/to/organization/{id}"
+            message = "Use /api/Relationships/to/organization/{id} endpoint to get members",
+            endpoint = $"/api/Relationships/to/organization/{id}"
         });
     }
 
@@ -177,17 +222,19 @@ public class OrganizationsController : ControllerBase
     [HttpGet("{id}/leaders")]
     public async Task<ActionResult<object>> GetOrganizationLeaders(int id)
     {
-        _logger.LogInformation("Getting leaders for organization {OrganizationId}", id);
+        int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
 
-        if (!await _repository.OrganizationExistsAsync(id))
+        // Verify ownership
+        Organization? organization = await _repository.GetOrganizationByIdAsync(id);
+        if (organization == null || organization.account_id != accountId)
         {
             return NotFound($"Organization with ID {id} not found");
         }
 
         return Ok(new
         {
-            message = "Use /Relationships/to/organization/{id} with type filter",
-            endpoint = $"/Relationships/entity/organization/{id}/type/8"  // 8 is Leader relationship type
+            message = "Use /api/Relationships/entity/organization/{id}/type/8 to get leaders",
+            endpoint = $"/api/Relationships/entity/organization/{id}/type/8"  // 8 is Leader relationship type
         });
     }
 
@@ -197,9 +244,11 @@ public class OrganizationsController : ControllerBase
     [HttpGet("{id}/hierarchy")]
     public async Task<ActionResult<object>> GetOrganizationHierarchy(int id)
     {
-        _logger.LogInformation("Getting hierarchy for organization {OrganizationId}", id);
+        int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
 
-        if (!await _repository.OrganizationExistsAsync(id))
+        // Verify ownership
+        Organization? organization = await _repository.GetOrganizationByIdAsync(id);
+        if (organization == null || organization.account_id != accountId)
         {
             return NotFound($"Organization with ID {id} not found");
         }
@@ -214,17 +263,19 @@ public class OrganizationsController : ControllerBase
     [HttpGet("{id}/allies")]
     public async Task<ActionResult<object>> GetAlliedOrganizations(int id)
     {
-        _logger.LogInformation("Getting allies for organization {OrganizationId}", id);
+        int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
 
-        if (!await _repository.OrganizationExistsAsync(id))
+        // Verify ownership
+        Organization? organization = await _repository.GetOrganizationByIdAsync(id);
+        if (organization == null || organization.account_id != accountId)
         {
             return NotFound($"Organization with ID {id} not found");
         }
 
         return Ok(new
         {
-            message = "Use /Relationships/from/organization/{id} with type=Ally filter",
-            endpoint = $"/Relationships/entity/organization/{id}/type/2"  // 2 is Ally relationship type
+            message = "Use /api/Relationships/entity/organization/{id}/type/2 to get allies",
+            endpoint = $"/api/Relationships/entity/organization/{id}/type/2"  // 2 is Ally relationship type
         });
     }
 
@@ -234,28 +285,31 @@ public class OrganizationsController : ControllerBase
     [HttpGet("{id}/enemies")]
     public async Task<ActionResult<object>> GetEnemyOrganizations(int id)
     {
-        _logger.LogInformation("Getting enemies for organization {OrganizationId}", id);
+        int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
 
-        if (!await _repository.OrganizationExistsAsync(id))
+        // Verify ownership
+        Organization? organization = await _repository.GetOrganizationByIdAsync(id);
+        if (organization == null || organization.account_id != accountId)
         {
             return NotFound($"Organization with ID {id} not found");
         }
 
         return Ok(new
         {
-            message = "Use /Relationships/from/organization/{id} with type=Enemy filter",
-            endpoint = $"/Relationships/entity/organization/{id}/type/3"  // 3 is Enemy relationship type
+            message = "Use /api/Relationships/entity/organization/{id}/type/3 to get enemies",
+            endpoint = $"/api/Relationships/entity/organization/{id}/type/3"  // 3 is Enemy relationship type
         });
     }
 
     /// <summary>
-    /// Export organizations in specified format
+    /// Export organizations for the authenticated account
     /// </summary>
     [HttpGet("export")]
     public async Task<IActionResult> ExportOrganizations(
-        [FromQuery] int accountId,
         [FromQuery] string format = "json")
     {
+        int accountId = await _authHelper.GetAuthenticatedAccountIdAsync();
+
         _logger.LogInformation("Exporting organizations for account {AccountId} in {Format} format",
             accountId, format);
 

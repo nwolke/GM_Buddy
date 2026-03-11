@@ -134,7 +134,7 @@ public class RelationshipRepositoryTests
 
         // Act
         var id = await repo.CreateRelationshipAsync(relationship);
-        var retrieved = await repo.GetRelationshipByIdAsync(id);
+        var retrieved = await repo.GetRelationshipByIdAsync(id, 1);
 
         // Assert
         Assert.NotNull(retrieved);
@@ -175,7 +175,7 @@ public class RelationshipRepositoryTests
         var repo = new FakeRelationshipRepository(relationships: relationships);
 
         // Act
-        var result = await repo.GetRelationshipsForEntityAsync("pc", 2);
+        var result = await repo.GetRelationshipsForEntityAsync("pc", 2, 1);
 
         // Assert
         var relList = result.ToList();
@@ -212,7 +212,7 @@ public class RelationshipRepositoryTests
         var repo = new FakeRelationshipRepository(relationships: relationships);
 
         // Act
-        var result = await repo.GetRelationshipsForEntityAsync("npc", 1);
+        var result = await repo.GetRelationshipsForEntityAsync("npc", 1, 1);
 
         // Assert
         var relList = result.ToList();
@@ -250,7 +250,7 @@ public class RelationshipRepositoryTests
         var repo = new FakeRelationshipRepository(relationships: relationships);
 
         // Act
-        var result = await repo.GetRelationshipsForEntityAsync("npc", 1, includeInactive: true);
+        var result = await repo.GetRelationshipsForEntityAsync("npc", 1, 1, includeInactive: true);
 
         // Assert
         var relList = result.ToList();
@@ -287,7 +287,7 @@ public class RelationshipRepositoryTests
         var repo = new FakeRelationshipRepository(relationships: relationships);
 
         // Act
-        var result = await repo.GetRelationshipsFromEntityAsync("npc", 1);
+        var result = await repo.GetRelationshipsFromEntityAsync("npc", 1, 1);
 
         // Assert
         var relList = result.ToList();
@@ -325,7 +325,7 @@ public class RelationshipRepositoryTests
         var repo = new FakeRelationshipRepository(relationships: relationships);
 
         // Act
-        var result = await repo.GetRelationshipsToEntityAsync("organization", 5);
+        var result = await repo.GetRelationshipsToEntityAsync("organization", 5, 1);
 
         // Assert
         var relList = result.ToList();
@@ -363,7 +363,7 @@ public class RelationshipRepositoryTests
         var repo = new FakeRelationshipRepository(relationships: relationships);
 
         // Act
-        var result = await repo.GetRelationshipsByTypeAsync("npc", 1, 10); // Friend type
+        var result = await repo.GetRelationshipsByTypeAsync("npc", 1, 10, 1); // Friend type
 
         // Assert
         var relList = result.ToList();
@@ -403,7 +403,7 @@ public class RelationshipRepositoryTests
         var repo = new FakeRelationshipRepository(relationships: relationships);
 
         // Act
-        var result = await repo.GetRelationshipsByCampaignAsync(1);
+        var result = await repo.GetRelationshipsByCampaignAsync(1, 1);
 
         // Assert
         var relList = result.ToList();
@@ -432,7 +432,7 @@ public class RelationshipRepositoryTests
 
         // Act
         var id = await repo.CreateRelationshipAsync(relationship);
-        var retrieved = await repo.GetRelationshipByIdAsync(id);
+        var retrieved = await repo.GetRelationshipByIdAsync(id, 1);
 
         // Assert
         Assert.NotNull(retrieved);
@@ -471,7 +471,7 @@ public class RelationshipRepositoryTests
 
         // Act
         await repo.UpdateRelationshipAsync(updated);
-        var result = await repo.GetRelationshipByIdAsync(1);
+        var result = await repo.GetRelationshipByIdAsync(1, 1);
 
         // Assert
         Assert.NotNull(result);
@@ -526,7 +526,7 @@ public class RelationshipRepositoryTests
         var repo = new FakeRelationshipRepository(relationships: relationships);
 
         // Act
-        var result = (await repo.GetPcStancesForNpcAsync(1)).ToList();
+        var result = (await repo.GetPcStancesForNpcAsync(1, 1)).ToList();
 
         // Assert — only relationships 1 and 2 involve NPC 1 ↔ PC
         Assert.Equal(2, result.Count);
@@ -568,7 +568,7 @@ public class RelationshipRepositoryTests
         var repo = new FakeRelationshipRepository(relationships: relationships);
 
         // Act
-        var result = (await repo.GetPcStancesForNpcAsync(1, campaignId: 1)).ToList();
+        var result = (await repo.GetPcStancesForNpcAsync(1, 1, campaignId: 1)).ToList();
 
         // Assert
         Assert.Single(result);
@@ -605,7 +605,7 @@ public class RelationshipRepositoryTests
         var repo = new FakeRelationshipRepository(relationships: relationships);
 
         // Act
-        var result = (await repo.GetPcStancesForNpcAsync(1)).ToList();
+        var result = (await repo.GetPcStancesForNpcAsync(1, 1)).ToList();
 
         // Assert
         Assert.Single(result);
@@ -648,7 +648,7 @@ public class RelationshipRepositoryTests
 
         // Act
         await repo.UpdateRelationshipAsync(updated);
-        var result = await repo.GetRelationshipByIdAsync(1);
+        var result = await repo.GetRelationshipByIdAsync(1, 1);
 
         // Assert
         Assert.NotNull(result);
@@ -674,7 +674,7 @@ public class RelationshipRepositoryTests
 
         // Act
         await repo.DeleteRelationshipAsync(1);
-        var result = await repo.GetRelationshipByIdAsync(1);
+        var result = await repo.GetRelationshipByIdAsync(1, 1);
 
         // Assert
         Assert.Null(result);
@@ -698,7 +698,7 @@ public class RelationshipRepositoryTests
 
         // Act
         await repo.DeactivateRelationshipAsync(1);
-        var result = await repo.GetRelationshipByIdAsync(1);
+        var result = await repo.GetRelationshipByIdAsync(1, 1);
 
         // Assert
         Assert.NotNull(result);
@@ -723,7 +723,7 @@ public class RelationshipRepositoryTests
 
         // Act
         await repo.ReactivateRelationshipAsync(1);
-        var result = await repo.GetRelationshipByIdAsync(1);
+        var result = await repo.GetRelationshipByIdAsync(1, 1);
 
         // Assert
         Assert.NotNull(result);
@@ -742,12 +742,13 @@ public class RelationshipRepositoryTests
             target_entity_type = "pc",
             target_entity_id = 2,
             relationship_type_id = 1,
+            campaign_id = 1,
             is_active = true
         };
         var repo = new FakeRelationshipRepository(relationships: new[] { relationship });
 
         // Act
-        var exists = await repo.RelationshipExistsAsync("npc", 1, "pc", 2, 1);
+        var exists = await repo.RelationshipExistsAsync("npc", 1, "pc", 2, 1, 1);
 
         // Assert
         Assert.True(exists);
@@ -760,16 +761,17 @@ public class RelationshipRepositoryTests
         var repo = new FakeRelationshipRepository();
 
         // Act
-        var exists = await repo.RelationshipExistsAsync("npc", 1, "pc", 2, 1);
+        var exists = await repo.RelationshipExistsAsync("npc", 1, "pc", 2, 1, 1);
 
         // Assert
         Assert.False(exists);
     }
 
     [Fact]
-    public async Task RelationshipExists_ReturnsFalse_WhenRelationshipInactive()
+    public async Task RelationshipExists_ReturnsTrue_WhenRelationshipInactive()
     {
-        // Arrange
+        // Arrange — deactivated relationships still exist in DB (unique constraint),
+        // so existence check must find them to avoid insert failures
         var relationship = new EntityRelationship
         {
             entity_relationship_id = 1,
@@ -778,15 +780,16 @@ public class RelationshipRepositoryTests
             target_entity_type = "pc",
             target_entity_id = 2,
             relationship_type_id = 1,
+            campaign_id = 1,
             is_active = false
         };
         var repo = new FakeRelationshipRepository(relationships: new[] { relationship });
 
         // Act
-        var exists = await repo.RelationshipExistsAsync("npc", 1, "pc", 2, 1);
+        var exists = await repo.RelationshipExistsAsync("npc", 1, "pc", 2, 1, 1);
 
         // Assert
-        Assert.False(exists);
+        Assert.True(exists);
     }
 
     #endregion

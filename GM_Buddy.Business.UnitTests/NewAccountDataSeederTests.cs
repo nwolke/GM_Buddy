@@ -138,7 +138,7 @@ public class NewAccountDataSeederTests
         var campaigns = await campaignRepo.GetByAccountIdAsync(testAccountId);
         var campaign = campaigns.First();
 
-        var relationships = await relationshipRepo.GetRelationshipsByCampaignAsync(campaign.campaign_id);
+        var relationships = await relationshipRepo.GetRelationshipsByCampaignAsync(campaign.campaign_id, testAccountId);
         var relationshipList = relationships.ToList();
 
         Assert.Single(relationshipList);
