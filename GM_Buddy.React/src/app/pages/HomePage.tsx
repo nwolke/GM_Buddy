@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Network, Lock, ArrowRight, LogIn } from "lucide-react";
+import { Network, Lock, ArrowRight, LogIn, RefreshCw } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import { Card, CardContent } from "@/app/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
@@ -86,7 +86,19 @@ function ToolCard(props: ToolCardProps) {
 }
 
 export function HomePage() {
-  const { isAuthenticated, loginWithCognito } = useAuth();
+  const { isAuthenticated, isLoggingIn, loginWithCognito } = useAuth();
+
+  // Show full-screen loading overlay during OAuth callback token exchange
+  if (isLoggingIn && window.location.pathname === '/callback') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20 flex items-center justify-center">
+        <div className="text-center">
+          <RefreshCw className="size-8 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Signing in...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20">
@@ -125,11 +137,21 @@ export function HomePage() {
               </p>
               <Button
                 onClick={loginWithCognito}
+                disabled={isLoggingIn}
                 size="lg"
                 className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 shadow-lg"
               >
-                <LogIn className="size-4 mr-2" />
-                Sign In
+                {isLoggingIn ? (
+                  <>
+                    <RefreshCw className="size-4 mr-2 animate-spin" />
+                    Signing In...
+                  </>
+                ) : (
+                  <>
+                    <LogIn className="size-4 mr-2" />
+                    Sign In
+                  </>
+                )}
               </Button>
             </div>
           </div>

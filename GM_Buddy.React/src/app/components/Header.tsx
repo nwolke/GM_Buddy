@@ -1,4 +1,4 @@
-import { Scroll, LogIn, LogOut, Settings, Info, UserCircle, ChevronRight, Home } from "lucide-react";
+import { Scroll, LogIn, LogOut, Settings, Info, UserCircle, ChevronRight, Home, RefreshCw } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import {
   DropdownMenu,
@@ -21,7 +21,7 @@ interface HeaderProps {
 }
 
 export function Header({ breadcrumbs }: HeaderProps) {
-  const { isAuthenticated, user, loginWithCognito, logout } = useAuth();
+  const { isAuthenticated, isLoggingIn, user, loginWithCognito, logout } = useAuth();
   const navigate = useNavigate();
 
   return (
@@ -82,9 +82,18 @@ export function Header({ breadcrumbs }: HeaderProps) {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button variant="default" size="sm" onClick={loginWithCognito}>
-              <LogIn className="size-4 mr-2" />
-              Sign In
+            <Button variant="default" size="sm" onClick={loginWithCognito} disabled={isLoggingIn}>
+              {isLoggingIn ? (
+                <>
+                  <RefreshCw className="size-4 mr-2 animate-spin" />
+                  Signing In...
+                </>
+              ) : (
+                <>
+                  <LogIn className="size-4 mr-2" />
+                  Sign In
+                </>
+              )}
             </Button>
           )}
         </div>

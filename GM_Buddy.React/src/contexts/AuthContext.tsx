@@ -18,6 +18,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isAuthenticated: false,
     user: null,
     loading: true,
+    isLoggingIn: false,
   });
 
   const isCognitoMode = cognito.isCognitoEnabled();
@@ -33,6 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Check if this is a Cognito callback
       if (window.location.pathname === '/callback' && isCognitoMode) {
         console.log('[AuthContext] Handling Cognito callback...');
+        setAuthState(prev => ({ ...prev, isLoggingIn: true }));
         const cognitoUser = await cognito.handleCallback();
         if (cognitoUser) {
           try {
@@ -44,7 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               accountId: syncResponse.accountId,
             };
             localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
-            setAuthState({ isAuthenticated: true, user, loading: false });
+            setAuthState({ isAuthenticated: true, user, loading: false, isLoggingIn: false });
             // Clear the URL params
             window.history.replaceState({}, '', '/');
             return;
@@ -52,6 +54,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             console.error('[AuthContext] Failed to sync Cognito user:', err);
           }
         }
+        // Callback completed without successful auth — reset isLoggingIn
+        setAuthState(prev => ({ ...prev, isLoggingIn: false }));
       }
 
       // Check for existing session
@@ -67,20 +71,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             console.log('[AuthContext] Tokens expired and refresh failed, clearing session...');
             localStorage.removeItem(STORAGE_KEY);
             cognito.clearTokens();
-            setAuthState({ isAuthenticated: false, user: null, loading: false });
+            setAuthState({ isAuthenticated: false, user: null, loading: false, isLoggingIn: false });
             return;
           }
           
           console.log('[AuthContext] Restored session for user:', user.email, 'accountId:', user.accountId);
-          setAuthState({ isAuthenticated: true, user, loading: false });
+          setAuthState({ isAuthenticated: true, user, loading: false, isLoggingIn: false });
         } catch {
           console.log('[AuthContext] Invalid stored auth data, clearing...');
           localStorage.removeItem(STORAGE_KEY);
-          setAuthState({ isAuthenticated: false, user: null, loading: false });
+          setAuthState({ isAuthenticated: false, user: null, loading: false, isLoggingIn: false });
         }
       } else {
         console.log('[AuthContext] No stored session found');
-        setAuthState({ isAuthenticated: false, user: null, loading: false });
+        setAuthState({ isAuthenticated: false, user: null, loading: false, isLoggingIn: false });
       }
     };
 
@@ -90,6 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Cognito Hosted UI login
   const loginWithCognito = () => {
     if (isCognitoMode) {
+      setAuthState(prev => ({ ...prev, isLoggingIn: true }));
       cognito.redirectToLogin();
     } else {
       console.warn('[AuthContext] Cognito is not configured. Authentication will not work.');
@@ -107,6 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuthenticated: false,
         user: null,
         loading: false,
+        isLoggingIn: false,
       });
     }
   };
