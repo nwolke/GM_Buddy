@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor, renderHook } from '@testing-library/react'
+import { render, screen, waitFor, renderHook, act } from '@testing-library/react'
 import { AuthProvider, useAuth } from '@/contexts/AuthContext'
 import { accountApi } from '@/services/api'
 import * as cognito from '@/services/cognito'
@@ -27,6 +27,7 @@ function TestComponent() {
     <div>
       <div data-testid="is-authenticated">{auth.isAuthenticated.toString()}</div>
       <div data-testid="loading">{auth.loading.toString()}</div>
+      <div data-testid="is-logging-in">{auth.isLoggingIn.toString()}</div>
       <div data-testid="user-email">{auth.user?.email || 'none'}</div>
       <div data-testid="cognito-mode">{auth.isCognitoMode.toString()}</div>
       <button onClick={auth.loginWithCognito}>Login with Cognito</button>
@@ -151,8 +152,53 @@ describe('AuthContext', () => {
     })
 
     expect(screen.getByTestId('is-authenticated')).toHaveTextContent('true')
+    expect(screen.getByTestId('is-logging-in')).toHaveTextContent('false')
     expect(screen.getByTestId('user-email')).toHaveTextContent('cognito@test.com')
     expect(accountApi.syncAccount).toHaveBeenCalledWith('cognito@test.com')
+  })
+
+  it('should reset isLoggingIn when callback fails', async () => {
+    vi.mocked(cognito.isCognitoEnabled).mockReturnValue(true)
+    vi.mocked(cognito.handleCallback).mockResolvedValue(null)
+
+    window.history.replaceState({}, '', '/callback?code=test-code')
+
+    render(
+      <AuthProvider>
+        <TestComponent />
+      </AuthProvider>
+    )
+
+    await waitFor(() => {
+      expect(screen.getByTestId('loading')).toHaveTextContent('false')
+    })
+
+    expect(screen.getByTestId('is-logging-in')).toHaveTextContent('false')
+    expect(screen.getByTestId('is-authenticated')).toHaveTextContent('false')
+  })
+
+  it('should reset isLoggingIn when syncAccount throws', async () => {
+    vi.mocked(cognito.isCognitoEnabled).mockReturnValue(true)
+    vi.mocked(cognito.handleCallback).mockResolvedValue({
+      sub: 'cognito-sub',
+      email: 'cognito@test.com',
+    })
+    vi.mocked(accountApi.syncAccount).mockRejectedValue(new Error('sync failed'))
+
+    window.history.replaceState({}, '', '/callback?code=test-code')
+
+    render(
+      <AuthProvider>
+        <TestComponent />
+      </AuthProvider>
+    )
+
+    await waitFor(() => {
+      expect(screen.getByTestId('loading')).toHaveTextContent('false')
+    })
+
+    expect(screen.getByTestId('is-logging-in')).toHaveTextContent('false')
+    expect(screen.getByTestId('is-authenticated')).toHaveTextContent('false')
   })
 
   it('should redirect to Cognito login when loginWithCognito is called in Cognito mode', async () => {
@@ -169,9 +215,12 @@ describe('AuthContext', () => {
     })
 
     const loginButton = screen.getByText('Login with Cognito')
-    loginButton.click()
+    act(() => {
+      loginButton.click()
+    })
 
     expect(cognito.redirectToLogin).toHaveBeenCalled()
+    expect(screen.getByTestId('is-logging-in')).toHaveTextContent('true')
   })
 
   it('should logout and clear storage', async () => {
