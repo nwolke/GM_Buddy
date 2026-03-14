@@ -52,10 +52,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             return;
           } catch (err) {
             console.error('[AuthContext] Failed to sync Cognito user:', err);
-            setAuthState(prev => ({ ...prev, isLoggingIn: false }));
           }
         }
-        // Callback failed — reset isLoggingIn
+        // Callback completed without successful auth — reset isLoggingIn
         setAuthState(prev => ({ ...prev, isLoggingIn: false }));
       }
 
