@@ -1,4 +1,4 @@
-import { Scroll, LogIn, LogOut, Settings, Info, UserCircle, ChevronRight, Home, RefreshCw } from "lucide-react";
+import { Scroll, LogIn, LogOut, Settings, Info, Menu, ChevronRight, Home, RefreshCw } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import {
   DropdownMenu,
@@ -51,51 +51,53 @@ export function Header({ breadcrumbs }: HeaderProps) {
 
         {/* Right: Account */}
         <div className="flex items-center gap-3">
-          {isAuthenticated ? (
-            <DropdownMenu>
+          <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="outline"
                   size="icon"
-                  title={user?.email || 'Account'}
-                  aria-label="Account menu"
+                  title={isAuthenticated ? (user?.email || 'Account') : 'Menu'}
+                  aria-label={isAuthenticated ? 'Account menu' : 'Menu'}
+                  disabled={isLoggingIn}
                 >
-                  <UserCircle className="size-5" />
+                  {isLoggingIn ? (
+                    <RefreshCw className="size-5 animate-spin" />
+                  ) : (
+                    <Menu className="size-5" />
+                  )}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" sideOffset={8} className="w-56">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => navigate('/account')}>
-                  <Settings className="size-4 mr-2" />
-                  Account Settings
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('/about')}>
-                  <Info className="size-4 mr-2" />
-                  About
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => logout()}>
-                  <LogOut className="size-4 mr-2" />
-                  Logout
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            <Button variant="default" size="sm" onClick={loginWithCognito} disabled={isLoggingIn}>
-              {isLoggingIn ? (
-                <>
-                  <RefreshCw className="size-4 mr-2 animate-spin" />
-                  Signing In...
-                </>
+              {isAuthenticated ? (
+                <DropdownMenuContent align="end" sideOffset={8} className="w-56">
+                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigate('/account')}>
+                    <Settings className="size-4 mr-2" />
+                    Account Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/about')}>
+                    <Info className="size-4 mr-2" />
+                    About
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => logout()}>
+                    <LogOut className="size-4 mr-2" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
               ) : (
-                <>
-                  <LogIn className="size-4 mr-2" />
-                  Sign In
-                </>
+                <DropdownMenuContent align="end" sideOffset={8} className="w-56">
+                  <DropdownMenuItem onClick={loginWithCognito} disabled={isLoggingIn}>
+                    <LogIn className="size-4 mr-2" />
+                    Sign In
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/about')}>
+                    <Info className="size-4 mr-2" />
+                    About
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
               )}
-            </Button>
-          )}
+          </DropdownMenu>
         </div>
       </div>
 

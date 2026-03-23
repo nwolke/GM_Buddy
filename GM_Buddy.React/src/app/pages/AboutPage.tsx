@@ -1,7 +1,7 @@
 import { Header } from "@/app/components/Header";
 import { Button } from "@/app/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/components/ui/card";
-import { ArrowLeft, Mail, Scale, Code } from "lucide-react";
+import { ArrowLeft, Mail, Code, Github } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export function AboutPage() {
@@ -56,8 +56,17 @@ export function AboutPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Content will be provided by the site creator.
+                GM Buddy was built by Nathan Wolke, a software developer and tabletop RPG enthusiast.
               </p>
+              <a
+                href="https://github.com/nwolke/GM_Buddy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
+              >
+                <Github className="size-4" />
+                github.com/nwolke/GM_Buddy
+              </a>
             </CardContent>
           </Card>
 
@@ -72,36 +81,27 @@ export function AboutPage() {
                 Get in touch
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Contact details to be determined.
-              </p>
+            <CardContent className="space-y-3">
+              <a
+                href="mailto:gmbuddy@outlook.com"
+                className="flex items-center gap-2 text-sm text-primary hover:underline"
+              >
+                <Mail className="size-4" />
+                gmbuddy@outlook.com
+              </a>
+              <a
+                href="https://github.com/nwolke"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-sm text-primary hover:underline"
+              >
+                <Github className="size-4" />
+                github.com/nwolke
+              </a>
             </CardContent>
           </Card>
 
-          {/* Legal Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Scale className="size-5" />
-                Legal Information
-              </CardTitle>
-              <CardDescription>
-                D&D SRD and legal declarations
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <h3 className="font-semibold text-sm">System Reference Document</h3>
-                <p className="text-sm text-muted-foreground">
-                  This application uses content from the Dungeons &amp; Dragons 5th Edition System Reference Document (SRD).
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  D&D SRD content and associated images will be properly attributed here.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+
         </div>
       </div>
     </div>
