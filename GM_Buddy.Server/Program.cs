@@ -12,9 +12,16 @@ using System.IO.Compression;
 using System.Net;
 using System.Net.Security;
 using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+// Configure forwarded headers so rate limiting uses real client IPs behind reverse proxy/load balancer
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+});
 
 builder.AddServiceDefaults();
 
@@ -168,7 +175,12 @@ builder.Services.AddRateLimiter(options =>
         context.HttpContext.Response.ContentType = "application/json";
         if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
         {
-            context.HttpContext.Response.Headers.RetryAfter = ((int)retryAfter.TotalSeconds).ToString();
+            var retryAfterSeconds = (int)Math.Ceiling(retryAfter.TotalSeconds);
+            if (retryAfterSeconds < 1)
+            {
+                retryAfterSeconds = 1;
+            }
+            context.HttpContext.Response.Headers.RetryAfter = retryAfterSeconds.ToString();
         }
         await context.HttpContext.Response.WriteAsync(
             """{"error":"Too many requests. Please try again later."}""", cancellationToken);
@@ -185,13 +197,16 @@ builder.Services.AddRateLimiter(options =>
                 QueueLimit = 0
             }));
 
-    // Stricter policy for sensitive account endpoints (sync, delete)
-    options.AddFixedWindowLimiter("sensitive", limiterOptions =>
-    {
-        limiterOptions.PermitLimit = 10;
-        limiterOptions.Window = TimeSpan.FromMinutes(1);
-        limiterOptions.QueueLimit = 0;
-    });
+    // Stricter policy for sensitive account endpoints (sync, delete) - per IP
+    options.AddPolicy("sensitive", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
 });
 
 // CORS Configuration - allow both HTTP and HTTPS for local dev
@@ -215,6 +230,9 @@ builder.Services.AddCors(options =>
 WebApplication app = builder.Build();
 
 app.MapDefaultEndpoints();
+
+// Process forwarded headers first so downstream middleware sees real client IPs
+app.UseForwardedHeaders();
 
 app.UseDefaultFiles();
 app.UseStaticFiles();
