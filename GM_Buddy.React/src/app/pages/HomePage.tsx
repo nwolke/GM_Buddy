@@ -168,7 +168,7 @@ export function HomePage() {
 
             <ToolCard
               title="More Tools Coming"
-              description="Additional GM tools are on the way. Stay tuned for encounter builders, world maps, and more."
+              description="More tools may find their way here someday. No promises, just possibilities."
               icon={<Lock className="size-16 text-white/80" />}
               gradientFrom="hsl(220, 30%, 30%)"
               gradientTo="hsl(250, 30%, 35%)"
