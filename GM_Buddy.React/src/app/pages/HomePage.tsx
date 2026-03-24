@@ -121,7 +121,7 @@ export function HomePage() {
             Welcome to GM Buddy
           </h2>
           <p className="text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed">
-            Your ultimate companion for managing campaigns, tracking characters, and bringing your world to life.
+            Handy tools to help your game run a little smoother — so you can focus on the story.
           </p>
         </div>
 
