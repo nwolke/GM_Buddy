@@ -21,6 +21,12 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+
+    // Clear default loopback-only restrictions so headers from non-loopback proxies are trusted.
+    // ForwardLimit = 1 means we trust exactly one hop (the immediate proxy/LB).
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+    options.ForwardLimit = 1;
 });
 
 builder.AddServiceDefaults();
