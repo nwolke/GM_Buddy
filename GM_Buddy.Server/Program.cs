@@ -11,6 +11,8 @@ using Microsoft.OpenApi.Models;
 using System.IO.Compression;
 using System.Net;
 using System.Net.Security;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -156,6 +158,42 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+// Rate Limiting Configuration
+builder.Services.AddRateLimiter(options =>
+{
+    // Return 429 Too Many Requests with Retry-After header
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.OnRejected = async (context, cancellationToken) =>
+    {
+        context.HttpContext.Response.ContentType = "application/json";
+        if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
+        {
+            context.HttpContext.Response.Headers.RetryAfter = ((int)retryAfter.TotalSeconds).ToString();
+        }
+        await context.HttpContext.Response.WriteAsync(
+            """{"error":"Too many requests. Please try again later."}""", cancellationToken);
+    };
+
+    // Global policy: 60 requests per minute per IP
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 60,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
+
+    // Stricter policy for sensitive account endpoints (sync, delete)
+    options.AddFixedWindowLimiter("sensitive", limiterOptions =>
+    {
+        limiterOptions.PermitLimit = 10;
+        limiterOptions.Window = TimeSpan.FromMinutes(1);
+        limiterOptions.QueueLimit = 0;
+    });
+});
+
 // CORS Configuration - allow both HTTP and HTTPS for local dev
 builder.Services.AddCors(options =>
 {
@@ -207,6 +245,9 @@ app.UseMiddleware<MetricsLoggingMiddleware>();
 
 // CORS must come BEFORE Authentication/Authorization and MapControllers
 app.UseCors("AllowSpecificOrigins");
+
+// Rate limiting - after CORS so preflight requests aren't rate-limited
+app.UseRateLimiter();
 
 // Output Cache for API responses
 app.UseOutputCache();

@@ -2,6 +2,7 @@ using GM_Buddy.Contracts.DbEntities;
 using GM_Buddy.Contracts.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Claims;
 
 namespace GM_Buddy.Server.Controllers;
@@ -33,6 +34,7 @@ public class AccountController : ControllerBase
     /// </summary>
     [HttpPost("sync")]
     [Authorize]
+    [EnableRateLimiting("sensitive")]
     public async Task<ActionResult<AccountResponse>> SyncAccount([FromBody] SyncAccountRequest request)
     {
         // Extract cognitoSub from JWT token (the 'sub' claim) - NEVER trust it from request body
@@ -100,6 +102,7 @@ public class AccountController : ControllerBase
     /// </summary>
     [HttpDelete]
     [Authorize]
+    [EnableRateLimiting("sensitive")]
     public async Task<ActionResult> DeleteAccount()
     {
         var cognitoSubClaim = User.FindFirst(ClaimTypes.NameIdentifier);
@@ -130,6 +133,7 @@ public class AccountController : ControllerBase
     /// </summary>
     [HttpGet("export")]
     [Authorize]
+    [EnableRateLimiting("sensitive")]
     public async Task<ActionResult> ExportAccountData()
     {
         var cognitoSubClaim = User.FindFirst(ClaimTypes.NameIdentifier);
