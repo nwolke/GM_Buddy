@@ -83,7 +83,6 @@ export function useCampaignData(): UseCampaignDataReturn {
   const saveCampaign = async (campaignData: Omit<Campaign, 'id'> | Campaign) => {
     try {
       if ('id' in campaignData && campaignData.id) {
-        // Update existing campaign (game_system_id cannot be changed)
         console.log('[useCampaignData] Updating campaign:', campaignData.id);
         
         const updateRequest: UpdateCampaignRequest = {

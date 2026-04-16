@@ -185,7 +185,6 @@ internal class FakeRelationshipRepository : IRelationshipRepository
         {
             existing.description = relationship.description;
             existing.custom_type = relationship.custom_type;
-            existing.strength = relationship.strength;
             existing.attitude_score = relationship.attitude_score;
             existing.is_active = relationship.is_active;
             existing.campaign_id = relationship.campaign_id;

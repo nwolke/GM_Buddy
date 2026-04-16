@@ -128,8 +128,7 @@ public class RelationshipRepositoryTests
             source_entity_id = 1,
             target_entity_type = "pc",
             target_entity_id = 2,
-            relationship_type_id = 1,
-            strength = 8
+            relationship_type_id = 1
         };
 
         // Act
@@ -138,7 +137,7 @@ public class RelationshipRepositoryTests
 
         // Assert
         Assert.NotNull(retrieved);
-        Assert.Equal(8, retrieved.strength);
+        Assert.Equal(1, retrieved.relationship_type_id);
     }
 
     #endregion
@@ -628,7 +627,6 @@ public class RelationshipRepositoryTests
             target_entity_type = "pc",
             target_entity_id = 2,
             relationship_type_id = 1,
-            strength = 5,
             is_active = true
         };
         var repo = new FakeRelationshipRepository(relationships: new[] { relationship });
@@ -640,7 +638,6 @@ public class RelationshipRepositoryTests
             source_entity_id = 1,
             target_entity_type = "pc",
             target_entity_id = 2,
-            strength = 10,
             description = "Best friends now",
             is_active = true,
             relationship_type_id = 1
@@ -652,7 +649,6 @@ public class RelationshipRepositoryTests
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(10, result.strength);
         Assert.Equal("Best friends now", result.description);
     }
 

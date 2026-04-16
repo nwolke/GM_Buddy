@@ -77,8 +77,7 @@ public class NewAccountDataSeeder : INewAccountDataSeeder
             relationship_type_id = allyRelationshipType.relationship_type_id,
             description = "Gorath and Lathel have formed a strong alliance to face the challenges ahead.",
             is_directional = false,
-            is_active = true,
-            strength = 8
+            is_active = true
         };
         await _relationshipRepository.CreateRelationshipAsync(relationship);
     }

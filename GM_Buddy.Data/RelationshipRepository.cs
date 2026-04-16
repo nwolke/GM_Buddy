@@ -95,7 +95,6 @@ public class RelationshipRepository : IRelationshipRepository
                 relationship_type_id,
                 description,
                 custom_type,
-                strength,
                 attitude_score,
                 is_active,
                 campaign_id
@@ -108,7 +107,6 @@ public class RelationshipRepository : IRelationshipRepository
                 @relationship_type_id,
                 @description,
                 @custom_type,
-                @strength,
                 @attitude_score,
                 @is_active,
                 @campaign_id
@@ -132,7 +130,6 @@ public class RelationshipRepository : IRelationshipRepository
                 er.relationship_type_id,
                 er.description,
                 er.custom_type,
-                er.strength,
                 er.attitude_score,
                 er.is_active,
                 er.campaign_id,
@@ -321,7 +318,6 @@ public class RelationshipRepository : IRelationshipRepository
             UPDATE public.entity_relationship
             SET description = @description,
                 custom_type = @custom_type,
-                strength = @strength,
                 attitude_score = @attitude_score,
                 is_active = @is_active,
                 campaign_id = @campaign_id,
@@ -444,7 +440,6 @@ public class RelationshipRepository : IRelationshipRepository
                 er.relationship_type_id,
                 er.description,
                 er.custom_type,
-                er.strength,
                 er.attitude_score,
                 er.is_active,
                 er.campaign_id,

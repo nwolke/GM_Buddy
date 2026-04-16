@@ -10,7 +10,7 @@ namespace GM_Buddy.Business.UnitTests;
 public class NewAccountDataSeederTests
 {
     [Fact]
-    public async Task SeedDefaultDataForNewAccountAsync_CreatesDefaultCampaignWithGenericGameSystem()
+    public async Task SeedDefaultDataForNewAccountAsync_CreatesDefaultCampaign()
     {
         // Arrange
         var npcRepo = new FakeNpcRepository();
@@ -149,7 +149,6 @@ public class NewAccountDataSeederTests
         Assert.Equal("Gorath and Lathel have formed a strong alliance to face the challenges ahead.", relationship.description);
         Assert.False(relationship.is_directional);
         Assert.True(relationship.is_active);
-        Assert.Equal(8, relationship.strength);
 
         // Verify it's using the "Ally" relationship type
         var allyType = await relationshipRepo.GetRelationshipTypeByNameAsync("Ally");
