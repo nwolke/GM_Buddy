@@ -10,6 +10,7 @@ import { EntityGraph } from "@/app/components/EntityGraph";
 import { EntityDetailPanel } from "@/app/components/EntityDetailPanel";
 import { NPCForm } from "@/app/components/NPCForm";
 import { PCForm } from "@/app/components/PCForm";
+import { PlotHookModal } from "@/app/components/PlotHookModal";
 import { Header } from "@/app/components/Header";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
@@ -23,6 +24,7 @@ import {
   Plus,
   Pencil,
   Trash2,
+  Sparkles,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -107,6 +109,9 @@ export function CampaignPage() {
   // PC form state
   const [pcFormOpen, setPcFormOpen] = useState(false);
   const [editingPC, setEditingPC] = useState<PC | null>(null);
+
+  // Plot Hook modal state
+  const [plotHookModalOpen, setPlotHookModalOpen] = useState(false);
 
   // Canvas sizing
   const canvasContainerRef = useRef<HTMLDivElement>(null);
@@ -266,6 +271,17 @@ export function CampaignPage() {
               aria-label="Refresh"
             >
               <RefreshCw className={`size-4 ${loading ? 'animate-spin' : ''}`} />
+            </Button>
+
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setPlotHookModalOpen(true)}
+              className="border-primary/30 text-primary hover:bg-primary/10 gap-1.5"
+              title="Generate plot hooks for this campaign"
+            >
+              <Sparkles className="size-3.5" />
+              Generate Hooks
             </Button>
 
             {/* Entity type toggles */}
@@ -494,6 +510,14 @@ export function CampaignPage() {
         editingPC={editingPC}
         campaignId={campaignId}
       />
+      {campaignId && (
+        <PlotHookModal
+          open={plotHookModalOpen}
+          onOpenChange={setPlotHookModalOpen}
+          campaignId={campaignId}
+          entities={entities}
+        />
+      )}
     </div>
   );
 }

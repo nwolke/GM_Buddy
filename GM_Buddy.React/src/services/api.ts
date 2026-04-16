@@ -547,6 +547,40 @@ export const pcApi = {
   },
 };
 
+// Plot Hook Generator types and API
+
+export interface PlotHookRequest {
+  tones: string[];
+  hookCount: 3 | 5 | 10;
+  focusEntityId?: number;
+  focusEntityType?: 'npc' | 'pc';
+}
+
+export interface PlotHook {
+  title: string;
+  setup: string;
+  involvedEntities: string[];
+  conflict: string;
+  nextScene: string;
+}
+
+export interface PlotHookResponse {
+  hooks: PlotHook[];
+}
+
+export const plotHookApi = {
+  // Generate plot hooks for a campaign using AI
+  // Uses a longer timeout since AI generation takes time
+  async generatePlotHooks(campaignId: number, request: PlotHookRequest): Promise<PlotHookResponse> {
+    const response = await apiClient.post<PlotHookResponse>(
+      `/Campaigns/${campaignId}/plot-hooks`,
+      request,
+      { timeout: 60000 },
+    );
+    return response.data;
+  },
+};
+
 // Export transformation functions for use in hooks
 export { transformApiRelationshipToRelationship };
 
