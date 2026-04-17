@@ -47,11 +47,6 @@ public class EntityRelationship
     public string? custom_type { get; set; }
 
     /// <summary>
-    /// Relationship strength/importance (1-10, where 10 is strongest)
-    /// </summary>
-    public int? strength { get; set; }
-
-    /// <summary>
     /// Attitude score from source toward target (-5 hostile to +5 friendly)
     /// </summary>
     public int attitude_score { get; set; } = 0;

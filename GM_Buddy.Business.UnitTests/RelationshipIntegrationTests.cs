@@ -21,7 +21,6 @@ public class RelationshipIntegrationTests
             target_entity_type = EntityTypes.Pc,
             target_entity_id = 5,
             relationship_type_id = 1, // Friend
-            strength = 8,
             description = "Met during the Battle of Silverforge"
         };
 
@@ -35,7 +34,6 @@ public class RelationshipIntegrationTests
         Assert.Equal(1, retrieved.source_entity_id);
         Assert.Equal(EntityTypes.Pc, retrieved.target_entity_type);
         Assert.Equal(5, retrieved.target_entity_id);
-        Assert.Equal(8, retrieved.strength);
     }
 
     [Fact]
@@ -92,7 +90,6 @@ public class RelationshipIntegrationTests
             target_entity_type = EntityTypes.Organization,
             target_entity_id = 2,
             relationship_type_id = 3, // Enemy
-            strength = 10,
             description = "Ancient blood feud",
             is_active = true
         };
@@ -104,7 +101,7 @@ public class RelationshipIntegrationTests
         // Assert
         var enemyList = enemies.ToList();
         Assert.Single(enemyList);
-        Assert.Equal(10, enemyList[0].strength);
+        Assert.Equal("Ancient blood feud", enemyList[0].description);
     }
 
     [Fact]
