@@ -6,15 +6,20 @@
 
 BEGIN;
 
--- Create the demo account (skip if already exists)
+-- Create the demo account (skip if already exists on any unique column)
 INSERT INTO auth.account (cognito_sub, email, username, subscription_tier)
-VALUES (
+SELECT
     '189113d0-e051-706c-6261-9717745d6070',
     'gmbuddy@outlook.com',
     'demo',
     'premium'
-)
-ON CONFLICT (cognito_sub) DO NOTHING;
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM auth.account
+    WHERE cognito_sub = '189113d0-e051-706c-6261-9717745d6070'
+       OR email = 'gmbuddy@outlook.com'
+       OR username = 'demo'
+);
 
 DO $$
 DECLARE
@@ -39,22 +44,41 @@ DECLARE
     v_brennan_id   INTEGER;
     v_aldus_id     INTEGER;
 
-    -- Relationship type IDs (from public.relationship_type)
-    RT_ACQUAINTANCE CONSTANT INTEGER := 1;
-    RT_ALLY         CONSTANT INTEGER := 2;
-    RT_CONTACT      CONSTANT INTEGER := 4;
-    RT_EMPLOYEE     CONSTANT INTEGER := 5;
-    RT_EMPLOYER     CONSTANT INTEGER := 6;
-    RT_ENEMY        CONSTANT INTEGER := 7;
-    RT_FRIEND       CONSTANT INTEGER := 10;
-    RT_INFORMANT    CONSTANT INTEGER := 11;
-    RT_MENTOR       CONSTANT INTEGER := 15;
-    RT_PATRON       CONSTANT INTEGER := 17;
-    RT_RIVAL        CONSTANT INTEGER := 19;
+    -- Relationship type IDs (resolved by name to avoid hardcoded identity PK assumptions)
+    RT_ACQUAINTANCE INTEGER;
+    RT_ALLY         INTEGER;
+    RT_CONTACT      INTEGER;
+    RT_EMPLOYEE     INTEGER;
+    RT_EMPLOYER     INTEGER;
+    RT_ENEMY        INTEGER;
+    RT_FRIEND       INTEGER;
+    RT_INFORMANT    INTEGER;
+    RT_MENTOR       INTEGER;
+    RT_PATRON       INTEGER;
+    RT_RIVAL        INTEGER;
 BEGIN
     SELECT id INTO v_account_id
     FROM auth.account
     WHERE cognito_sub = '189113d0-e051-706c-6261-9717745d6070';
+
+    SELECT relationship_type_id INTO RT_ACQUAINTANCE FROM public.relationship_type WHERE relationship_type_name = 'Acquaintance';
+    SELECT relationship_type_id INTO RT_ALLY         FROM public.relationship_type WHERE relationship_type_name = 'Ally';
+    SELECT relationship_type_id INTO RT_CONTACT      FROM public.relationship_type WHERE relationship_type_name = 'Contact';
+    SELECT relationship_type_id INTO RT_EMPLOYEE     FROM public.relationship_type WHERE relationship_type_name = 'Employee';
+    SELECT relationship_type_id INTO RT_EMPLOYER     FROM public.relationship_type WHERE relationship_type_name = 'Employer';
+    SELECT relationship_type_id INTO RT_ENEMY        FROM public.relationship_type WHERE relationship_type_name = 'Enemy';
+    SELECT relationship_type_id INTO RT_FRIEND       FROM public.relationship_type WHERE relationship_type_name = 'Friend';
+    SELECT relationship_type_id INTO RT_INFORMANT    FROM public.relationship_type WHERE relationship_type_name = 'Informant';
+    SELECT relationship_type_id INTO RT_MENTOR       FROM public.relationship_type WHERE relationship_type_name = 'Mentor';
+    SELECT relationship_type_id INTO RT_PATRON       FROM public.relationship_type WHERE relationship_type_name = 'Patron';
+    SELECT relationship_type_id INTO RT_RIVAL        FROM public.relationship_type WHERE relationship_type_name = 'Rival';
+
+    -- Skip if demo data already exists
+    IF NOT EXISTS (
+        SELECT 1 FROM public.campaign
+        WHERE account_id = v_account_id
+          AND name = 'Thornveil Unraveled — Demo'
+    ) THEN
 
     -- ===========================
     -- CAMPAIGN
@@ -170,127 +194,166 @@ BEGIN
 
     -- Lord Vane → all PCs (enemy)
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
-    VALUES ('npc', v_vane_id, 'pc', v_mira_id, RT_ENEMY, 'Vane''s agents have been watching Mira since she got too close to his dock operations. She is a loose thread he intends to cut.', -4, true, v_campaign_id);
+    VALUES ('npc', v_vane_id, 'pc', v_mira_id, RT_ENEMY, 'Vane''s agents have been watching Mira since she got too close to his dock operations. She is a loose thread he intends to cut.', -4, true, v_campaign_id)
+    ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
-    VALUES ('npc', v_vane_id, 'pc', v_caelan_id, RT_ENEMY, 'Vane suspects Caelan is searching for Greymantle and knows that if he finds him, old secrets surface.', -5, true, v_campaign_id);
+    VALUES ('npc', v_vane_id, 'pc', v_caelan_id, RT_ENEMY, 'Vane suspects Caelan is searching for Greymantle and knows that if he finds him, old secrets surface.', -5, true, v_campaign_id)
+    ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
-    VALUES ('npc', v_vane_id, 'pc', v_tessa_id, RT_ENEMY, 'Tessa''s investigation into civic corruption is the most direct threat to Vane''s position. He considers her the most dangerous of the group.', -5, true, v_campaign_id);
+    VALUES ('npc', v_vane_id, 'pc', v_tessa_id, RT_ENEMY, 'Tessa''s investigation into civic corruption is the most direct threat to Vane''s position. He considers her the most dangerous of the group.', -5, true, v_campaign_id)
+    ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
-    VALUES ('npc', v_vane_id, 'pc', v_dusk_id, RT_RIVAL, 'Dusk witnessed something in the wilderness outside the city that connects to Vane. Vane wants that memory buried.', -3, true, v_campaign_id);
+    VALUES ('npc', v_vane_id, 'pc', v_dusk_id, RT_RIVAL, 'Dusk witnessed something in the wilderness outside the city that connects to Vane. Vane wants that memory buried.', -3, true, v_campaign_id)
+    ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     -- Seraphine → all PCs (friend / ally)
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
-    VALUES ('npc', v_seraphine_id, 'pc', v_mira_id, RT_FRIEND, 'Has known Mira since she was a street kid stealing scraps near the Flagon. Treats her like a wayward daughter.', 5, true, v_campaign_id);
+    VALUES ('npc', v_seraphine_id, 'pc', v_mira_id, RT_FRIEND, 'Has known Mira since she was a street kid stealing scraps near the Flagon. Treats her like a wayward daughter.', 5, true, v_campaign_id)
+    ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
-    VALUES ('npc', v_seraphine_id, 'pc', v_caelan_id, RT_FRIEND, 'Rents him a room and feeds him when he forgets to eat. Motherly exasperation, genuine warmth.', 4, true, v_campaign_id);
+    VALUES ('npc', v_seraphine_id, 'pc', v_caelan_id, RT_FRIEND, 'Rents him a room and feeds him when he forgets to eat. Motherly exasperation, genuine warmth.', 4, true, v_campaign_id)
+    ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
-    VALUES ('npc', v_seraphine_id, 'pc', v_tessa_id, RT_ALLY, 'Respects Tessa''s convictions. Passes along useful gossip from patrons without being asked.', 4, true, v_campaign_id);
+    VALUES ('npc', v_seraphine_id, 'pc', v_tessa_id, RT_ALLY, 'Respects Tessa''s convictions. Passes along useful gossip from patrons without being asked.', 4, true, v_campaign_id)
+    ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
-    VALUES ('npc', v_seraphine_id, 'pc', v_dusk_id, RT_FRIEND, 'Dusk''s quiet nature suits her fine. She leaves a plate out and asks no questions.', 3, true, v_campaign_id);
+    VALUES ('npc', v_seraphine_id, 'pc', v_dusk_id, RT_FRIEND, 'Dusk''s quiet nature suits her fine. She leaves a plate out and asks no questions.', 3, true, v_campaign_id)
+    ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     -- Gretch → PCs (varied)
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
-    VALUES ('npc', v_gretch_id, 'pc', v_mira_id, RT_EMPLOYER, 'Has hired Mira for jobs before. Respects her skill. Would not hurt her unless cornered into it.', 1, true, v_campaign_id);
+    VALUES ('npc', v_gretch_id, 'pc', v_mira_id, RT_EMPLOYER, 'Has hired Mira for jobs before. Respects her skill. Would not hurt her unless cornered into it.', 1, true, v_campaign_id)
+    ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
-    VALUES ('npc', v_gretch_id, 'pc', v_caelan_id, RT_CONTACT, 'Gretch once needed a mage. Caelan helped. Gretch owes him a favor, which puts Gretch in an uncomfortable position.', 1, true, v_campaign_id);
+    VALUES ('npc', v_gretch_id, 'pc', v_caelan_id, RT_CONTACT, 'Gretch once needed a mage. Caelan helped. Gretch owes him a favor, which puts Gretch in an uncomfortable position.', 1, true, v_campaign_id)
+    ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
-    VALUES ('npc', v_gretch_id, 'pc', v_tessa_id, RT_ENEMY, 'Tessa has disrupted two of his operations. He considers her a problem to manage rather than escalate — for now.', -3, true, v_campaign_id);
+    VALUES ('npc', v_gretch_id, 'pc', v_tessa_id, RT_ENEMY, 'Tessa has disrupted two of his operations. He considers her a problem to manage rather than escalate — for now.', -3, true, v_campaign_id)
+    ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
-    VALUES ('npc', v_gretch_id, 'pc', v_dusk_id, RT_ALLY, 'Dusk helped track a smuggler through the wilds outside the city. Gretch respects competence above almost everything.', 2, true, v_campaign_id);
+    VALUES ('npc', v_gretch_id, 'pc', v_dusk_id, RT_ALLY, 'Dusk helped track a smuggler through the wilds outside the city. Gretch respects competence above almost everything.', 2, true, v_campaign_id)
+    ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     -- Sister Rowena → all PCs (ally / friend)
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
-    VALUES ('npc', v_rowena_id, 'pc', v_mira_id, RT_ALLY, 'Has patched Mira up more times than she can count. Offers care without judgment.', 4, true, v_campaign_id);
+    VALUES ('npc', v_rowena_id, 'pc', v_mira_id, RT_ALLY, 'Has patched Mira up more times than she can count. Offers care without judgment.', 4, true, v_campaign_id)
+    ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
-    VALUES ('npc', v_rowena_id, 'pc', v_caelan_id, RT_ALLY, 'Shares temple records with Caelan carefully — one page at a time — as trust is built.', 3, true, v_campaign_id);
+    VALUES ('npc', v_rowena_id, 'pc', v_caelan_id, RT_ALLY, 'Shares temple records with Caelan carefully — one page at a time — as trust is built.', 3, true, v_campaign_id)
+    ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
-    VALUES ('npc', v_rowena_id, 'pc', v_tessa_id, RT_FRIEND, 'Sees Tessa''s faith as a mirror of her own — and a warning of what unchecked zeal can become.', 5, true, v_campaign_id);
+    VALUES ('npc', v_rowena_id, 'pc', v_tessa_id, RT_FRIEND, 'Sees Tessa''s faith as a mirror of her own — and a warning of what unchecked zeal can become.', 5, true, v_campaign_id)
+    ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
-    VALUES ('npc', v_rowena_id, 'pc', v_dusk_id, RT_ALLY, 'Has helped Dusk heal wounds that were more than physical. Speaks little, listens completely.', 3, true, v_campaign_id);
+    VALUES ('npc', v_rowena_id, 'pc', v_dusk_id, RT_ALLY, 'Has helped Dusk heal wounds that were more than physical. Speaks little, listens completely.', 3, true, v_campaign_id)
+    ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     -- Captain Harro → all PCs (informant / contact / ally)
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
-    VALUES ('npc', v_harro_id, 'pc', v_mira_id, RT_CONTACT, 'Turns a blind eye to Mira''s activities in exchange for intelligence on Syndicate movements.', 2, true, v_campaign_id);
+    VALUES ('npc', v_harro_id, 'pc', v_mira_id, RT_CONTACT, 'Turns a blind eye to Mira''s activities in exchange for intelligence on Syndicate movements.', 2, true, v_campaign_id)
+    ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
-    VALUES ('npc', v_harro_id, 'pc', v_caelan_id, RT_INFORMANT, 'Passed Caelan one clue about Greymantle''s disappearance. Does not know how much Caelan already knows.', 2, true, v_campaign_id);
+    VALUES ('npc', v_harro_id, 'pc', v_caelan_id, RT_INFORMANT, 'Passed Caelan one clue about Greymantle''s disappearance. Does not know how much Caelan already knows.', 2, true, v_campaign_id)
+    ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
-    VALUES ('npc', v_harro_id, 'pc', v_tessa_id, RT_ALLY, 'Secretly hopes Tessa will expose Vane so he does not have to. Feeds her evidence with trembling caution.', 3, true, v_campaign_id);
+    VALUES ('npc', v_harro_id, 'pc', v_tessa_id, RT_ALLY, 'Secretly hopes Tessa will expose Vane so he does not have to. Feeds her evidence with trembling caution.', 3, true, v_campaign_id)
+    ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
-    VALUES ('npc', v_harro_id, 'pc', v_dusk_id, RT_CONTACT, 'Has hired Dusk twice as an unofficial scout beyond the city walls. Pays from his own coin.', 2, true, v_campaign_id);
+    VALUES ('npc', v_harro_id, 'pc', v_dusk_id, RT_CONTACT, 'Has hired Dusk twice as an unofficial scout beyond the city walls. Pays from his own coin.', 2, true, v_campaign_id)
+    ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     -- The Whisper → all PCs (informant / contact)
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
-    VALUES ('npc', v_whisper_id, 'pc', v_mira_id, RT_CONTACT, 'A professional arrangement built on mutual usefulness. Information for coin — or favors owed.', 0, true, v_campaign_id);
+    VALUES ('npc', v_whisper_id, 'pc', v_mira_id, RT_CONTACT, 'A professional arrangement built on mutual usefulness. Information for coin — or favors owed.', 0, true, v_campaign_id)
+    ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
-    VALUES ('npc', v_whisper_id, 'pc', v_caelan_id, RT_INFORMANT, 'Has sold Caelan fragments of information about Greymantle. Always wants more than coin in return.', 0, true, v_campaign_id);
+    VALUES ('npc', v_whisper_id, 'pc', v_caelan_id, RT_INFORMANT, 'Has sold Caelan fragments of information about Greymantle. Always wants more than coin in return.', 0, true, v_campaign_id)
+    ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
-    VALUES ('npc', v_whisper_id, 'pc', v_tessa_id, RT_CONTACT, 'Reached out to Tessa once with a warning she did not ask for. Has not explained the reason.', 1, true, v_campaign_id);
+    VALUES ('npc', v_whisper_id, 'pc', v_tessa_id, RT_CONTACT, 'Reached out to Tessa once with a warning she did not ask for. Has not explained the reason.', 1, true, v_campaign_id)
+    ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
-    VALUES ('npc', v_whisper_id, 'pc', v_dusk_id, RT_ACQUAINTANCE, 'Met Dusk once in the wilderness. Already knew who they were. Left before questions could be asked.', 0, true, v_campaign_id);
+    VALUES ('npc', v_whisper_id, 'pc', v_dusk_id, RT_ACQUAINTANCE, 'Met Dusk once in the wilderness. Already knew who they were. Left before questions could be asked.', 0, true, v_campaign_id)
+    ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     -- Elara Dawnforge → all PCs (contact / ally)
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
-    VALUES ('npc', v_elara_id, 'pc', v_mira_id, RT_CONTACT, 'Provides custom blades and asks no questions about how they are used. Strictly professional.', 2, true, v_campaign_id);
+    VALUES ('npc', v_elara_id, 'pc', v_mira_id, RT_CONTACT, 'Provides custom blades and asks no questions about how they are used. Strictly professional.', 2, true, v_campaign_id)
+    ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
-    VALUES ('npc', v_elara_id, 'pc', v_caelan_id, RT_CONTACT, 'Crafts enchantment-ready components for Caelan. Fascinated by his arcane work despite herself.', 2, true, v_campaign_id);
+    VALUES ('npc', v_elara_id, 'pc', v_caelan_id, RT_CONTACT, 'Crafts enchantment-ready components for Caelan. Fascinated by his arcane work despite herself.', 2, true, v_campaign_id)
+    ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
-    VALUES ('npc', v_elara_id, 'pc', v_tessa_id, RT_FRIEND, 'Repaired Tessa''s armor after a brutal fight and refused payment. Quietly admires her principles.', 3, true, v_campaign_id);
+    VALUES ('npc', v_elara_id, 'pc', v_tessa_id, RT_FRIEND, 'Repaired Tessa''s armor after a brutal fight and refused payment. Quietly admires her principles.', 3, true, v_campaign_id)
+    ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
-    VALUES ('npc', v_elara_id, 'pc', v_dusk_id, RT_CONTACT, 'Supplies arrows and trail gear. The two share a mutual appreciation for silence and clean work.', 2, true, v_campaign_id);
+    VALUES ('npc', v_elara_id, 'pc', v_dusk_id, RT_CONTACT, 'Supplies arrows and trail gear. The two share a mutual appreciation for silence and clean work.', 2, true, v_campaign_id)
+    ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     -- Sylvara → all PCs (mysterious contact)
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
-    VALUES ('npc', v_sylvara_id, 'pc', v_mira_id, RT_CONTACT, 'Warned Mira about an ambush before it happened. Mira doesn''t know what to make of her — which is exactly how Sylvara prefers it.', 1, true, v_campaign_id);
+    VALUES ('npc', v_sylvara_id, 'pc', v_mira_id, RT_CONTACT, 'Warned Mira about an ambush before it happened. Mira doesn''t know what to make of her — which is exactly how Sylvara prefers it.', 1, true, v_campaign_id)
+    ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
-    VALUES ('npc', v_sylvara_id, 'pc', v_caelan_id, RT_ALLY, 'Has appeared to Caelan in moments of magical crisis. Seems drawn to his arcane presence for reasons she has not shared.', 2, true, v_campaign_id);
+    VALUES ('npc', v_sylvara_id, 'pc', v_caelan_id, RT_ALLY, 'Has appeared to Caelan in moments of magical crisis. Seems drawn to his arcane presence for reasons she has not shared.', 2, true, v_campaign_id)
+    ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
-    VALUES ('npc', v_sylvara_id, 'pc', v_tessa_id, RT_CONTACT, 'Passed cryptic warnings to Tessa about a darkness within the upper temple hierarchy. Has not elaborated.', 1, true, v_campaign_id);
+    VALUES ('npc', v_sylvara_id, 'pc', v_tessa_id, RT_CONTACT, 'Passed cryptic warnings to Tessa about a darkness within the upper temple hierarchy. Has not elaborated.', 1, true, v_campaign_id)
+    ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
-    VALUES ('npc', v_sylvara_id, 'pc', v_dusk_id, RT_ALLY, 'Dusk has encountered Sylvara in the wilderness three times. Each time, something dangerous was narrowly avoided. Coincidence is a word Dusk no longer uses.', 2, true, v_campaign_id);
+    VALUES ('npc', v_sylvara_id, 'pc', v_dusk_id, RT_ALLY, 'Dusk has encountered Sylvara in the wilderness three times. Each time, something dangerous was narrowly avoided. Coincidence is a word Dusk no longer uses.', 2, true, v_campaign_id)
+    ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     -- Brennan Cole → all PCs (friend / contact)
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
-    VALUES ('npc', v_brennan_id, 'pc', v_mira_id, RT_ALLY, 'Buys and sells through Mira regularly. Gives fair cuts and useful rumors. Reliable.', 3, true, v_campaign_id);
+    VALUES ('npc', v_brennan_id, 'pc', v_mira_id, RT_ALLY, 'Buys and sells through Mira regularly. Gives fair cuts and useful rumors. Reliable.', 3, true, v_campaign_id)
+    ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
-    VALUES ('npc', v_brennan_id, 'pc', v_caelan_id, RT_CONTACT, 'Has sourced rare books and arcane components at below-market prices. Enjoys the intellectual company.', 2, true, v_campaign_id);
+    VALUES ('npc', v_brennan_id, 'pc', v_caelan_id, RT_CONTACT, 'Has sourced rare books and arcane components at below-market prices. Enjoys the intellectual company.', 2, true, v_campaign_id)
+    ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
-    VALUES ('npc', v_brennan_id, 'pc', v_tessa_id, RT_FRIEND, 'Tessa once recovered something precious he had lost. He has been quietly useful to her cause ever since.', 3, true, v_campaign_id);
+    VALUES ('npc', v_brennan_id, 'pc', v_tessa_id, RT_FRIEND, 'Tessa once recovered something precious he had lost. He has been quietly useful to her cause ever since.', 3, true, v_campaign_id)
+    ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
-    VALUES ('npc', v_brennan_id, 'pc', v_dusk_id, RT_ACQUAINTANCE, 'Fellow traveler, different roads. Brennan respects Dusk''s self-reliance. They share a drink occasionally and leave it at that.', 2, true, v_campaign_id);
+    VALUES ('npc', v_brennan_id, 'pc', v_dusk_id, RT_ACQUAINTANCE, 'Fellow traveler, different roads. Brennan respects Dusk''s self-reliance. They share a drink occasionally and leave it at that.', 2, true, v_campaign_id)
+    ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     -- Aldus Greymantle → ONLY Caelan (mentor — backstory connection)
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
     VALUES ('npc', v_aldus_id, 'pc', v_caelan_id, RT_MENTOR,
-        'Aldus trained Caelan from adolescence and is the closest thing to a father he has known. His disappearance is what brought Caelan to Thornveil. Whatever Aldus uncovered, he believed it was worth vanishing for.', 5, true, v_campaign_id);
+        'Aldus trained Caelan from adolescence and is the closest thing to a father he has known. His disappearance is what brought Caelan to Thornveil. Whatever Aldus uncovered, he believed it was worth vanishing for.', 5, true, v_campaign_id)
+    ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     RAISE NOTICE 'Demo seed complete. Account ID: %, Campaign ID: %', v_account_id, v_campaign_id;
+
+    END IF;
 
 END $$;
 
