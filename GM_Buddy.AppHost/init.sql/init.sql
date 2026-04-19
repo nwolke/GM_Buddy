@@ -165,7 +165,7 @@ UPDATE public.relationship_type SET inverse_type_id = (SELECT relationship_type_
 -- Dev user for local development and seed data
 INSERT INTO auth.account (username, first_name, last_name, email, cognito_sub, subscription_tier)
 VALUES
-  ('gm_admin', 'GM', 'Admin', 'admin@gmbuddy.local', 'c801b3d0-3071-709f-ebb9-c69f61e297f5', 'premium')
+  ('gm_admin', 'GM', 'Admin', 'admin@gmbuddy.local', '5821f310-a001-70b7-2c0a-cb1483564fbe', 'premium')
 ON CONFLICT (username) DO NOTHING;
 
 -- Insert sample campaigns (generic fantasy content)
