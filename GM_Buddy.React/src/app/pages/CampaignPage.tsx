@@ -444,14 +444,16 @@ export function CampaignPage() {
             </div>
 
             {/* RIGHT SIDEBAR — entity detail + actions */}
-            <div className="w-64 shrink-0 bg-card/50 border border-primary/20 rounded-2xl overflow-hidden flex flex-col">
-              <EntityDetailPanel
-                entity={selectedEntity}
-                relationships={relationships}
-                allEntities={entities}
-                onAddRelationship={addRelationship}
-                onDeleteRelationship={deleteRelationship}
-              />
+            <div className="w-72 shrink-0 bg-card/50 border border-primary/20 rounded-2xl overflow-hidden flex flex-col min-h-0">
+              <div className="flex-1 min-h-0">
+                <EntityDetailPanel
+                  entity={selectedEntity}
+                  relationships={relationships}
+                  allEntities={entities}
+                  onAddRelationship={addRelationship}
+                  onDeleteRelationship={deleteRelationship}
+                />
+              </div>
               {/* Edit/Delete actions for selected entity */}
               {selectedEntity && (
                 <div className="p-3 border-t border-primary/20 flex gap-2">
