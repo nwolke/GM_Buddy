@@ -8,6 +8,7 @@ var postgres = builder.AddPostgres("postgres", userName: postgresUsername, passw
     .WithImage("postgres", "17-alpine")
     .WithBindMount("./db-data/", "/var/lib/postgresql/data")
     .WithBindMount("./init.sql/init.sql", "/docker-entrypoint-initdb.d/init.sql", isReadOnly: true)
+    .WithBindMount("./init.sql/demo-data.sql", "/docker-entrypoint-initdb.d/zzz-demo-data.sql", isReadOnly: true)
     .WithEnvironment("POSTGRES_DB", builder.Configuration["POSTGRES_DB"] ?? "gm_buddy");
 
 var db = postgres.AddDatabase("gm-buddy-db", "gm_buddy");
