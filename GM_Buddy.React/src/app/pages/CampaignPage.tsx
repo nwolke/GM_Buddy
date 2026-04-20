@@ -120,6 +120,8 @@ export function CampaignPage() {
   }, []);
 
   useEffect(() => {
+    if (activeCenterTab !== "graph") return;
+
     const container = canvasContainerRef.current;
     if (!container) return;
 

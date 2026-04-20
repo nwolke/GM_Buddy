@@ -159,8 +159,8 @@ const normalizeApiNpc = (apiNpc: ApiNpc): {
 };
 
 export interface ApiRelationshipType {
-  relationship_type_id: number;
-  relationshipTypeId?: number;
+  relationship_type_id?: number | string;
+  relationshipTypeId?: number | string;
   type_name?: string;
   typeName?: string;
   relationship_type_name?: string;
@@ -175,8 +175,8 @@ export interface ApiEntityRelationship {
   source_entity_id: number;
   target_entity_type: string;
   target_entity_id: number;
-  relationship_type_id: number;
-  relationshipTypeId?: number;
+  relationship_type_id?: number | string;
+  relationshipTypeId?: number | string;
   relationship_type_name?: string;
   relationshipTypeName?: string;
   type_name?: string;
@@ -209,6 +209,21 @@ const relationshipTypeMap = new Map<number, string>();
 const relationshipTypeNameToIdMap = new Map<string, number>();
 let hasLoggedLegacyRelationshipTypeFieldWarning = false;
 
+const normalizeRelationshipTypeId = (value: unknown): number | undefined => {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === 'string') {
+    const parsed = Number(value.trim());
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+
+  return undefined;
+};
+
 // Transform API EntityRelationship to frontend Relationship
 const transformApiRelationshipToRelationship = (apiRel: ApiEntityRelationship): {
   id: number;
@@ -223,15 +238,18 @@ const transformApiRelationshipToRelationship = (apiRel: ApiEntityRelationship): 
   campaignId?: number;
 } => {
   const id = (apiRel.entity_relationship_id ?? apiRel.relationship_id) || 0;
-  const relationshipTypeId = apiRel.relationship_type_id ?? apiRel.relationshipTypeId;
-  const mappedTypeName = relationshipTypeMap.get(relationshipTypeId);
+  const rawRelationshipTypeId = apiRel.relationship_type_id ?? apiRel.relationshipTypeId;
+  const relationshipTypeId = normalizeRelationshipTypeId(rawRelationshipTypeId);
+  const mappedTypeName = relationshipTypeId !== undefined
+    ? relationshipTypeMap.get(relationshipTypeId)
+    : undefined;
   const fallbackTypeName = apiRel.relationship_type_name?.trim()
     || apiRel.relationshipTypeName?.trim()
     || apiRel.type_name?.trim()
     || apiRel.typeName?.trim();
   const typeName = mappedTypeName?.toLowerCase() || fallbackTypeName?.toLowerCase();
   if (!typeName) {
-    console.warn(`[transformApiRelationship] Unknown relationship_type_id: ${relationshipTypeId}, defaulting to 'neutral'`);
+    console.warn(`[transformApiRelationship] Unknown relationship_type_id: ${rawRelationshipTypeId}, defaulting to 'neutral'`);
   }
 
   return {
@@ -340,7 +358,8 @@ export const relationshipApi = {
     relationshipTypeNameToIdMap.clear();
     // Populate the type maps for transformations
     response.data.forEach(type => {
-      const relationshipTypeId = type.relationship_type_id ?? type.relationshipTypeId;
+      const rawRelationshipTypeId = type.relationship_type_id ?? type.relationshipTypeId;
+      const relationshipTypeId = normalizeRelationshipTypeId(rawRelationshipTypeId);
       const normalizedTypeName = type.type_name?.trim() || type.typeName?.trim();
       const normalizedLegacyTypeName = type.relationship_type_name?.trim() || type.relationshipTypeName?.trim();
       const rawTypeName = normalizedTypeName || normalizedLegacyTypeName;
@@ -354,7 +373,10 @@ export const relationshipApi = {
         relationshipTypeMap.set(relationshipTypeId, typeName);
         relationshipTypeNameToIdMap.set(typeName, relationshipTypeId);
       } else {
-        console.warn('[relationshipApi] Skipping relationship type with missing id or name:', type);
+        console.warn('[relationshipApi] Skipping relationship type with missing id or name:', {
+          ...type,
+          rawRelationshipTypeId,
+        });
       }
     });
 

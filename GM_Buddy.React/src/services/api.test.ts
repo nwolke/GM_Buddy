@@ -242,6 +242,27 @@ describe('API Service - relationship type mapping', () => {
     expect(transformed.type).toBe('rival');
   });
 
+  it('maps relationship type ids when API returns id values as strings', async () => {
+    vi.mocked(cognito.getIdToken).mockResolvedValue('valid-token');
+    mockAxios.onGet('/Relationships/types').reply(200, [
+      { relationship_type_id: '10', relationship_type_name: 'Friend' },
+    ]);
+
+    await relationshipApi.getRelationshipTypes();
+
+    const transformed = transformApiRelationshipToRelationship({
+      relationship_id: 5,
+      source_entity_type: 'npc',
+      source_entity_id: 21,
+      target_entity_type: 'pc',
+      target_entity_id: 22,
+      relationship_type_id: '10',
+      attitude_score: 4,
+    });
+
+    expect(transformed.type).toBe('friend');
+  });
+
   it('logs legacy relationship type warning at most once across repeated loads', async () => {
     vi.mocked(cognito.getIdToken).mockResolvedValue('valid-token');
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
