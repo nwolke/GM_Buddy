@@ -111,11 +111,14 @@ export function EntityGraph({
   useEffect(() => {
     if (graphRef.current) {
       graphRef.current.d3Force('charge').strength(GRAPH_CHARGE_STRENGTH);
-      graphRef.current.d3Force('link')
-        .distance(GRAPH_LINK_DISTANCE)
-        .strength(GRAPH_LINK_STRENGTH);
+      const linkForce = graphRef.current.d3Force('link');
+      if (linkForce) {
+        linkForce
+          .distance(GRAPH_LINK_DISTANCE)
+          .strength(GRAPH_LINK_STRENGTH);
+      }
     }
-  }, []);
+  }, [entities.length, relationships.length]);
 
   if (entities.length === 0) {
     return (
