@@ -36,7 +36,8 @@ export type RelationshipType =
   | 'rival'
   | 'stranger'
   | 'vassal/follower'
-  | 'neutral';
+  | 'neutral'
+  | 'student';
 
 export const CUSTOM_RELATIONSHIP_SENTINEL = "__custom__";
 export const DEFAULT_CUSTOM_RELATIONSHIP_TYPE: RelationshipType = 'stranger';
