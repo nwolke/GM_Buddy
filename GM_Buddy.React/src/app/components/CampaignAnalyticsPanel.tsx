@@ -53,20 +53,10 @@ const formatRelationshipTypeLabel = (type: string) =>
     .replace(/_/g, " ")
     .replace(/\b\w/g, match => match.toUpperCase());
 
-const isRelationshipActive = (relationship: Relationship) => {
-  const relationshipWithActiveFields = relationship as Relationship & {
-    is_active?: boolean;
-    isActive?: boolean;
-  };
-
-  if (typeof relationshipWithActiveFields.isActive === "boolean") {
-    return relationshipWithActiveFields.isActive;
-  }
-
-  if (typeof relationshipWithActiveFields.is_active === "boolean") {
-    return relationshipWithActiveFields.is_active;
-  }
-
+const isRelationshipActive = (_relationship: Relationship) => {
+  // The current `Relationship` shape used by this component does not include
+  // an active/inactive flag, so all provided relationships are treated as active.
+  // This preserves existing behavior without probing for unsupported fields.
   return true;
 };
 
