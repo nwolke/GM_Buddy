@@ -176,6 +176,11 @@ export interface ApiEntityRelationship {
   target_entity_type: string;
   target_entity_id: number;
   relationship_type_id: number;
+  relationshipTypeId?: number;
+  relationship_type_name?: string;
+  relationshipTypeName?: string;
+  type_name?: string;
+  typeName?: string;
   description?: string;
   attitude_score?: number;
   custom_type?: string;
@@ -202,6 +207,7 @@ const transformApiNpcToNpc = (apiNpc: ApiNpc): NPC => {
 // This will be populated when relationship types are loaded
 const relationshipTypeMap = new Map<number, string>();
 const relationshipTypeNameToIdMap = new Map<string, number>();
+let hasLoggedLegacyRelationshipTypeFieldWarning = false;
 
 // Transform API EntityRelationship to frontend Relationship
 const transformApiRelationshipToRelationship = (apiRel: ApiEntityRelationship): {
@@ -217,9 +223,15 @@ const transformApiRelationshipToRelationship = (apiRel: ApiEntityRelationship): 
   campaignId?: number;
 } => {
   const id = (apiRel.entity_relationship_id ?? apiRel.relationship_id) || 0;
-  const typeName = relationshipTypeMap.get(apiRel.relationship_type_id);
+  const relationshipTypeId = apiRel.relationship_type_id ?? apiRel.relationshipTypeId;
+  const mappedTypeName = relationshipTypeMap.get(relationshipTypeId);
+  const inlineTypeName = apiRel.relationship_type_name?.trim()
+    || apiRel.relationshipTypeName?.trim()
+    || apiRel.type_name?.trim()
+    || apiRel.typeName?.trim();
+  const typeName = mappedTypeName || inlineTypeName?.toLowerCase();
   if (!typeName) {
-    console.warn(`[transformApiRelationship] Unknown relationship_type_id: ${apiRel.relationship_type_id}, defaulting to 'neutral'`);
+    console.warn(`[transformApiRelationship] Unknown relationship_type_id: ${relationshipTypeId}, defaulting to 'neutral'`);
   }
 
   return {
@@ -346,7 +358,8 @@ export const relationshipApi = {
       }
     });
 
-    if (usedLegacyField) {
+    if (usedLegacyField && !hasLoggedLegacyRelationshipTypeFieldWarning) {
+      hasLoggedLegacyRelationshipTypeFieldWarning = true;
       console.warn('[relationshipApi] Received legacy relationship type field: relationship_type_name');
     }
 

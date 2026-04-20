@@ -202,7 +202,6 @@ describe('API Service - relationship type mapping', () => {
 
   it('falls back to relationship_type_name when type_name is blank', async () => {
     vi.mocked(cognito.getIdToken).mockResolvedValue('valid-token');
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     mockAxios.onGet('/Relationships/types').reply(200, [
       { relationship_type_id: 42, type_name: '   ', relationship_type_name: 'Enemy' },
     ]);
@@ -220,10 +219,6 @@ describe('API Service - relationship type mapping', () => {
     });
 
     expect(transformed.type).toBe('enemy');
-    expect(warnSpy).toHaveBeenCalledWith(
-      '[relationshipApi] Received legacy relationship type field: relationship_type_name'
-    );
-    warnSpy.mockRestore();
   });
 
   it('maps camelCase relationship type fields from /Relationships/types', async () => {
@@ -245,5 +240,37 @@ describe('API Service - relationship type mapping', () => {
     });
 
     expect(transformed.type).toBe('rival');
+  });
+
+  it('logs legacy relationship type warning at most once across repeated loads', async () => {
+    vi.mocked(cognito.getIdToken).mockResolvedValue('valid-token');
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    mockAxios.onGet('/Relationships/types').reply(200, [
+      { relationship_type_id: 7, relationship_type_name: 'Contact' },
+    ]);
+
+    await relationshipApi.getRelationshipTypes();
+    await relationshipApi.getRelationshipTypes();
+
+    const legacyWarnings = warnSpy.mock.calls.filter(
+      ([message]) => message === '[relationshipApi] Received legacy relationship type field: relationship_type_name'
+    );
+    expect(legacyWarnings.length).toBeLessThanOrEqual(1);
+    warnSpy.mockRestore();
+  });
+
+  it('uses inline relationship_type_name when type map does not contain the id', () => {
+    const transformed = transformApiRelationshipToRelationship({
+      relationship_id: 4,
+      source_entity_type: 'npc',
+      source_entity_id: 9,
+      target_entity_type: 'pc',
+      target_entity_id: 12,
+      relationship_type_id: 999,
+      relationship_type_name: 'Ally',
+      attitude_score: 1,
+    });
+
+    expect(transformed.type).toBe('ally');
   });
 });
