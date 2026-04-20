@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { useParams, Navigate } from "react-router-dom";
 import { NPC } from "@/types/npc";
 import { PC } from "@/types/pc";
@@ -114,14 +114,14 @@ export function CampaignPage() {
   // Canvas sizing
   const canvasContainerRef = useRef<HTMLDivElement>(null);
   const [canvasSize, setCanvasSize] = useState({ width: 800, height: 600 });
+  const updateCanvasSize = useCallback((width: number, height: number) => {
+    if (width <= 0 || height <= 0) return;
+    setCanvasSize({ width: Math.floor(width), height: Math.floor(height) });
+  }, []);
 
   useEffect(() => {
     const container = canvasContainerRef.current;
     if (!container) return;
-    const updateCanvasSize = (width: number, height: number) => {
-      if (width <= 0 || height <= 0) return;
-      setCanvasSize({ width: Math.floor(width), height: Math.floor(height) });
-    };
 
     const rect = container.getBoundingClientRect();
     updateCanvasSize(rect.width, rect.height);
@@ -134,7 +134,7 @@ export function CampaignPage() {
     });
     observer.observe(container);
     return () => observer.disconnect();
-  }, [activeCenterTab]);
+  }, [activeCenterTab, updateCanvasSize]);
 
   // Filter entities
   const filteredEntities = entities.filter(e => {
