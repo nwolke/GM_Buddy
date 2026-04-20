@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
-import apiClient from './api';
+import apiClient, { relationshipApi, transformApiRelationshipToRelationship } from './api';
 import * as cognito from './cognito';
 
 // Mock the cognito service
@@ -164,5 +164,140 @@ describe('API Service - 401 Interceptor', () => {
 
     expect(response.status).toBe(200);
     expect(response.data).toEqual({ data: 'public data' });
+  });
+});
+
+describe('API Service - relationship type mapping', () => {
+  let mockAxios: MockAdapter;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockAxios = new MockAdapter(apiClient);
+  });
+
+  afterEach(() => {
+    mockAxios.restore();
+  });
+
+  it('maps relationship_type_name values from /Relationships/types', async () => {
+    vi.mocked(cognito.getIdToken).mockResolvedValue('valid-token');
+    mockAxios.onGet('/Relationships/types').reply(200, [
+      { relationship_type_id: 10, relationship_type_name: 'Friend' },
+    ]);
+
+    await relationshipApi.getRelationshipTypes();
+
+    const transformed = transformApiRelationshipToRelationship({
+      relationship_id: 1,
+      source_entity_type: 'npc',
+      source_entity_id: 1,
+      target_entity_type: 'pc',
+      target_entity_id: 2,
+      relationship_type_id: 10,
+      attitude_score: 2,
+    });
+
+    expect(transformed.type).toBe('friend');
+  });
+
+  it('falls back to relationship_type_name when type_name is blank', async () => {
+    vi.mocked(cognito.getIdToken).mockResolvedValue('valid-token');
+    mockAxios.onGet('/Relationships/types').reply(200, [
+      { relationship_type_id: 42, type_name: '   ', relationship_type_name: 'Enemy' },
+    ]);
+
+    await relationshipApi.getRelationshipTypes();
+
+    const transformed = transformApiRelationshipToRelationship({
+      relationship_id: 2,
+      source_entity_type: 'npc',
+      source_entity_id: 3,
+      target_entity_type: 'pc',
+      target_entity_id: 4,
+      relationship_type_id: 42,
+      attitude_score: -3,
+    });
+
+    expect(transformed.type).toBe('enemy');
+  });
+
+  it('maps camelCase relationship type fields from /Relationships/types', async () => {
+    vi.mocked(cognito.getIdToken).mockResolvedValue('valid-token');
+    mockAxios.onGet('/Relationships/types').reply(200, [
+      { relationshipTypeId: 77, typeName: 'Rival' },
+    ]);
+
+    await relationshipApi.getRelationshipTypes();
+
+    const transformed = transformApiRelationshipToRelationship({
+      relationship_id: 3,
+      source_entity_type: 'npc',
+      source_entity_id: 7,
+      target_entity_type: 'pc',
+      target_entity_id: 8,
+      relationship_type_id: 77,
+      attitude_score: -1,
+    });
+
+    expect(transformed.type).toBe('rival');
+  });
+
+  it('maps relationship type ids when API returns id values as strings', async () => {
+    vi.mocked(cognito.getIdToken).mockResolvedValue('valid-token');
+    mockAxios.onGet('/Relationships/types').reply(200, [
+      { relationship_type_id: '10', relationship_type_name: 'Friend' },
+    ]);
+
+    await relationshipApi.getRelationshipTypes();
+
+    const transformed = transformApiRelationshipToRelationship({
+      relationship_id: 5,
+      source_entity_type: 'npc',
+      source_entity_id: 21,
+      target_entity_type: 'pc',
+      target_entity_id: 22,
+      relationship_type_id: '10',
+      attitude_score: 4,
+    });
+
+    expect(transformed.type).toBe('friend');
+  });
+
+  it('logs legacy relationship type warning at most once across repeated loads', async () => {
+    vi.mocked(cognito.getIdToken).mockResolvedValue('valid-token');
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    mockAxios.onGet('/Relationships/types').reply(200, [
+      { relationship_type_id: 7, relationship_type_name: 'Contact' },
+    ]);
+
+    await relationshipApi.getRelationshipTypes();
+    await relationshipApi.getRelationshipTypes();
+
+    const legacyWarnings = warnSpy.mock.calls.filter(
+      ([message]) => message === '[relationshipApi] Received legacy relationship type field: relationship_type_name'
+    );
+    expect(legacyWarnings.length).toBeLessThanOrEqual(1);
+    warnSpy.mockRestore();
+  });
+
+  it('uses inline relationship_type_name when type map does not contain the id', async () => {
+    vi.mocked(cognito.getIdToken).mockResolvedValue('valid-token');
+    mockAxios.onGet('/Relationships/types').reply(200, [
+      { relationship_type_id: 1, relationship_type_name: 'Friend' },
+    ]);
+    await relationshipApi.getRelationshipTypes();
+
+    const transformed = transformApiRelationshipToRelationship({
+      relationship_id: 4,
+      source_entity_type: 'npc',
+      source_entity_id: 9,
+      target_entity_type: 'pc',
+      target_entity_id: 12,
+      relationship_type_id: 999,
+      relationship_type_name: 'Ally',
+      attitude_score: 1,
+    });
+
+    expect(transformed.type).toBe('ally');
   });
 });

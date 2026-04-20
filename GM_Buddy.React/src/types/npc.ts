@@ -45,4 +45,3 @@ export interface AuthState {
   loading: boolean;
   isLoggingIn: boolean;
 }
-

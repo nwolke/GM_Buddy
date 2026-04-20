@@ -22,6 +22,14 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 })
 
+class ResizeObserverMock {
+  observe = vi.fn()
+  unobserve = vi.fn()
+  disconnect = vi.fn()
+}
+
+global.ResizeObserver = ResizeObserverMock as any
+
 // Mock localStorage / sessionStorage with in-memory implementation
 const createStorageMock = () => {
   const store = new Map<string, string>()
