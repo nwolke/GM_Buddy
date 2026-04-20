@@ -259,7 +259,13 @@ describe('API Service - relationship type mapping', () => {
     warnSpy.mockRestore();
   });
 
-  it('uses inline relationship_type_name when type map does not contain the id', () => {
+  it('uses inline relationship_type_name when type map does not contain the id', async () => {
+    vi.mocked(cognito.getIdToken).mockResolvedValue('valid-token');
+    mockAxios.onGet('/Relationships/types').reply(200, [
+      { relationship_type_id: 1, relationship_type_name: 'Friend' },
+    ]);
+    await relationshipApi.getRelationshipTypes();
+
     const transformed = transformApiRelationshipToRelationship({
       relationship_id: 4,
       source_entity_type: 'npc',
