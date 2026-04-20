@@ -19,6 +19,8 @@ export interface Relationship {
   type: RelationshipType;
   description?: string;
   attitudeScore: number;
+  is_active?: boolean;
+  isActive?: boolean;
   customType?: string;
   campaignId?: number;
 }
@@ -45,4 +47,3 @@ export interface AuthState {
   loading: boolean;
   isLoggingIn: boolean;
 }
-

@@ -11,9 +11,11 @@ import { EntityDetailPanel } from "@/app/components/EntityDetailPanel";
 import { NPCForm } from "@/app/components/NPCForm";
 import { PCForm } from "@/app/components/PCForm";
 import { Header } from "@/app/components/Header";
+import { CampaignAnalyticsPanel } from "@/app/components/CampaignAnalyticsPanel";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { ScrollArea } from "@/app/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import {
   RefreshCw,
   LogIn,
@@ -402,45 +404,58 @@ export function CampaignPage() {
               </div>
             </div>
 
-            {/* CENTER — graph canvas + legend */}
+            {/* CENTER — graph / analytics */}
             <div className="flex-1 flex flex-col min-w-0 gap-2">
-              <div ref={canvasContainerRef} className="flex-1 min-h-0 overflow-hidden">
-                <EntityGraph
-                  entities={filteredEntities}
-                  relationships={filteredRelationships}
-                  selectedEntityId={selectedEntity?.id}
-                  selectedEntityType={selectedEntity?.entityType}
-                  onNodeClick={entity => setSelectedEntity(prev =>
-                    prev?.id === entity.id && prev?.entityType === entity.entityType ? null : entity
-                  )}
-                  width={canvasSize.width}
-                  height={canvasSize.height}
-                />
-              </div>
+              <Tabs defaultValue="graph" className="flex-1 min-h-0">
+                <TabsList className="w-full sm:w-auto">
+                  <TabsTrigger value="graph">Graph View</TabsTrigger>
+                  <TabsTrigger value="analytics">Analytics</TabsTrigger>
+                </TabsList>
 
-              {/* Legend */}
-              <div className="flex items-center gap-3 flex-wrap px-2 py-1.5 bg-card/40 border border-primary/20 rounded-xl">
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Relationships:
-                </span>
-                {relationshipLegend.map(({ type, color, label }) => (
-                  <div key={type} className="flex items-center gap-1.5">
-                    <span
-                      className="inline-block w-2.5 h-2.5 rounded-full shrink-0"
-                      style={{ backgroundColor: color }}
+                <TabsContent value="graph" className="flex-1 min-h-0 flex flex-col gap-2">
+                  <div ref={canvasContainerRef} className="flex-1 min-h-0 overflow-hidden">
+                    <EntityGraph
+                      entities={filteredEntities}
+                      relationships={filteredRelationships}
+                      selectedEntityId={selectedEntity?.id}
+                      selectedEntityType={selectedEntity?.entityType}
+                      onNodeClick={entity => setSelectedEntity(prev =>
+                        prev?.id === entity.id && prev?.entityType === entity.entityType ? null : entity
+                      )}
+                      width={canvasSize.width}
+                      height={canvasSize.height}
                     />
-                    <span className="text-xs text-muted-foreground">{label}</span>
                   </div>
-                ))}
-                <div className="flex items-center gap-1.5 ml-2 border-l border-primary/20 pl-2">
-                  <span className="inline-block w-2.5 h-2.5 rounded-full bg-primary/70 shrink-0" />
-                  <span className="text-xs text-muted-foreground">NPC</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="inline-block w-2.5 h-2.5 rounded-full bg-green-500/70 shrink-0" />
-                  <span className="text-xs text-muted-foreground">PC</span>
-                </div>
-              </div>
+
+                  {/* Legend */}
+                  <div className="flex items-center gap-3 flex-wrap px-2 py-1.5 bg-card/40 border border-primary/20 rounded-xl">
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      Relationships:
+                    </span>
+                    {relationshipLegend.map(({ type, color, label }) => (
+                      <div key={type} className="flex items-center gap-1.5">
+                        <span
+                          className="inline-block w-2.5 h-2.5 rounded-full shrink-0"
+                          style={{ backgroundColor: color }}
+                        />
+                        <span className="text-xs text-muted-foreground">{label}</span>
+                      </div>
+                    ))}
+                    <div className="flex items-center gap-1.5 ml-2 border-l border-primary/20 pl-2">
+                      <span className="inline-block w-2.5 h-2.5 rounded-full bg-primary/70 shrink-0" />
+                      <span className="text-xs text-muted-foreground">NPC</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="inline-block w-2.5 h-2.5 rounded-full bg-green-500/70 shrink-0" />
+                      <span className="text-xs text-muted-foreground">PC</span>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="analytics" className="flex-1 min-h-0">
+                  <CampaignAnalyticsPanel npcs={npcs} pcs={pcs} relationships={relationships} />
+                </TabsContent>
+              </Tabs>
             </div>
 
             {/* RIGHT SIDEBAR — entity detail + actions */}
