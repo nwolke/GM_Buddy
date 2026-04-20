@@ -53,11 +53,15 @@ const formatRelationshipTypeLabel = (type: string) =>
     .replace(/_/g, " ")
     .replace(/\b\w/g, match => match.toUpperCase());
 
-const isRelationshipActive = (_relationship: Relationship) => {
-  // The current `Relationship` shape used by this component does not include
-  // an active/inactive flag, so all provided relationships are treated as active.
-  // This preserves existing behavior without probing for unsupported fields.
-  return true;
+const isRelationshipActive = (relationship: Relationship) => {
+  // Relationships are treated as active by default, but an explicit inactive
+  // flag from either API naming style should exclude them from analytics.
+  const relationshipWithActiveFlag = relationship as Relationship & {
+    is_active?: boolean;
+    isActive?: boolean;
+  };
+
+  return relationshipWithActiveFlag.is_active !== false && relationshipWithActiveFlag.isActive !== false;
 };
 
 export function CampaignAnalyticsPanel({
