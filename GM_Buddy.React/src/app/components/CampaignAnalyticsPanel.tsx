@@ -140,7 +140,14 @@ export function CampaignAnalyticsPanel({
       const name = entityNameByKey.get(key);
       if (!name) return;
 
-      if (!topEntity || count > topEntity.count || (count === topEntity.count && name.localeCompare(topEntity.name) < 0)) {
+      if (!topEntity) {
+        topEntity = { name, count };
+        return;
+      }
+
+      const hasHigherCount = count > topEntity.count;
+      const isTieWithEarlierName = count === topEntity.count && name.localeCompare(topEntity.name) < 0;
+      if (hasHigherCount || isTieWithEarlierName) {
         topEntity = { name, count };
       }
     });
