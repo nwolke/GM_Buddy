@@ -1,8 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
-import apiClient from './api';
-import { relationshipApi, transformApiRelationshipToRelationship } from './api';
+import apiClient, { relationshipApi, transformApiRelationshipToRelationship } from './api';
 import * as cognito from './cognito';
 
 // Mock the cognito service
