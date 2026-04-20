@@ -48,7 +48,6 @@ DECLARE
     RT_ACQUAINTANCE INTEGER;
     RT_ALLY         INTEGER;
     RT_CONTACT      INTEGER;
-    RT_EMPLOYEE     INTEGER;
     RT_EMPLOYER     INTEGER;
     RT_ENEMY        INTEGER;
     RT_FRIEND       INTEGER;
@@ -63,12 +62,11 @@ BEGIN
 
     SELECT relationship_type_id INTO RT_ACQUAINTANCE FROM public.relationship_type WHERE relationship_type_name = 'Acquaintance';
     SELECT relationship_type_id INTO RT_ALLY         FROM public.relationship_type WHERE relationship_type_name = 'Ally';
-    SELECT relationship_type_id INTO RT_CONTACT      FROM public.relationship_type WHERE relationship_type_name = 'Contact';
-    SELECT relationship_type_id INTO RT_EMPLOYEE     FROM public.relationship_type WHERE relationship_type_name = 'Employee';
+    SELECT relationship_type_id INTO RT_CONTACT      FROM public.relationship_type WHERE relationship_type_name = 'Contact/Informant';
     SELECT relationship_type_id INTO RT_EMPLOYER     FROM public.relationship_type WHERE relationship_type_name = 'Employer';
     SELECT relationship_type_id INTO RT_ENEMY        FROM public.relationship_type WHERE relationship_type_name = 'Enemy';
-    SELECT relationship_type_id INTO RT_FRIEND       FROM public.relationship_type WHERE relationship_type_name = 'Friend';
-    SELECT relationship_type_id INTO RT_INFORMANT    FROM public.relationship_type WHERE relationship_type_name = 'Informant';
+    SELECT relationship_type_id INTO RT_FRIEND       FROM public.relationship_type WHERE relationship_type_name = 'Ally';
+    SELECT relationship_type_id INTO RT_INFORMANT    FROM public.relationship_type WHERE relationship_type_name = 'Contact/Informant';
     SELECT relationship_type_id INTO RT_MENTOR       FROM public.relationship_type WHERE relationship_type_name = 'Mentor';
     SELECT relationship_type_id INTO RT_PATRON       FROM public.relationship_type WHERE relationship_type_name = 'Patron';
     SELECT relationship_type_id INTO RT_RIVAL        FROM public.relationship_type WHERE relationship_type_name = 'Rival';

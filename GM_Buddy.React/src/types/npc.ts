@@ -24,13 +24,19 @@ export interface Relationship {
 }
 
 export type RelationshipType =
-  | 'acquaintance' | 'ally' | 'child' | 'contact'
-  | 'employee' | 'employer' | 'enemy' | 'family'
-  | 'follower' | 'friend' | 'informant' | 'leader'
-  | 'lover' | 'member' | 'mentor' | 'parent'
-  | 'patron' | 'protege' | 'rival' | 'sibling'
-  | 'spouse' | 'stranger' | 'student' | 'vassal'
-  | 'custom' | 'neutral';
+  | 'acquaintance'
+  | 'ally'
+  | 'contact/informant'
+  | 'employer'
+  | 'enemy'
+  | 'family'
+  | 'lover'
+  | 'mentor'
+  | 'patron'
+  | 'rival'
+  | 'stranger'
+  | 'vassal/follower'
+  | 'neutral';
 
 // Auth context types
 export interface User {
@@ -45,4 +51,3 @@ export interface AuthState {
   loading: boolean;
   isLoggingIn: boolean;
 }
-

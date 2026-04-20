@@ -30,12 +30,10 @@ interface RelationshipAddModalProps {
 }
 
 const relationshipTypes: RelationshipType[] = [
-  'acquaintance', 'ally', 'child', 'contact', 'employee', 'employer',
-  'enemy', 'family', 'follower', 'friend', 'informant', 'leader',
-  'lover', 'member', 'mentor', 'parent', 'patron', 'protege',
-  'rival', 'sibling', 'spouse', 'stranger', 'student', 'vassal',
-  'custom',
+  'acquaintance', 'ally', 'contact/informant', 'employer', 'enemy',
+  'family', 'lover', 'mentor', 'patron', 'rival', 'stranger', 'vassal/follower',
 ];
+const CUSTOM_RELATIONSHIP_OPTION = "__custom__";
 
 export function RelationshipAddModal({
   open,
@@ -46,7 +44,7 @@ export function RelationshipAddModal({
   onAdd,
 }: RelationshipAddModalProps) {
   const [targetId, setTargetId] = useState<string>("");
-  const [relationshipType, setRelationshipType] = useState<RelationshipType>("ally");
+  const [relationshipType, setRelationshipType] = useState<RelationshipType | typeof CUSTOM_RELATIONSHIP_OPTION>("ally");
   const [attitudeScore, setAttitudeScore] = useState(0);
   const [customType, setCustomType] = useState("");
   const [description, setDescription] = useState("");
@@ -88,10 +86,10 @@ export function RelationshipAddModal({
         npcId2: numericTargetId,
         entityType1: sourceEntity.entityType,
         entityType2: targetType,
-        type: relationshipType,
+        type: relationshipType === CUSTOM_RELATIONSHIP_OPTION ? 'stranger' : relationshipType,
         description: description || undefined,
         attitudeScore,
-        customType: relationshipType === 'custom' ? customType.trim() || undefined : undefined,
+        customType: relationshipType === CUSTOM_RELATIONSHIP_OPTION ? customType.trim() || undefined : undefined,
       });
       // Only clear and close on success
       setTargetId("");
@@ -165,7 +163,7 @@ export function RelationshipAddModal({
             <Label htmlFor="type-select">Relationship Type</Label>
             <Select
               value={relationshipType}
-              onValueChange={(val) => setRelationshipType(val as RelationshipType)}
+              onValueChange={(val) => setRelationshipType(val as RelationshipType | typeof CUSTOM_RELATIONSHIP_OPTION)}
             >
               <SelectTrigger id="type-select">
                 <SelectValue />
@@ -173,14 +171,15 @@ export function RelationshipAddModal({
               <SelectContent>
                 {relationshipTypes.map(type => (
                   <SelectItem key={type} value={type}>
-                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                    {type.split('/').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join('/')}
                   </SelectItem>
                 ))}
+                <SelectItem value={CUSTOM_RELATIONSHIP_OPTION}>Custom...</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          {relationshipType === 'custom' && (
+          {relationshipType === CUSTOM_RELATIONSHIP_OPTION && (
             <div className="grid gap-2">
               <Label htmlFor="custom-type">Custom Type Name <span className="text-destructive">*</span></Label>
               <Input
@@ -190,7 +189,7 @@ export function RelationshipAddModal({
                 placeholder="e.g. Blood Oath, Sworn Shield"
                 maxLength={100}
               />
-              {relationshipType === 'custom' && !customType.trim() && (
+              {relationshipType === CUSTOM_RELATIONSHIP_OPTION && !customType.trim() && (
                 <p className="text-xs text-muted-foreground">A custom type name is required.</p>
               )}
             </div>
@@ -205,21 +204,19 @@ export function RelationshipAddModal({
                 ({attitudeScore <= -4 ? 'Hostile' : attitudeScore <= -2 ? 'Unfriendly' : attitudeScore <= 1 ? 'Neutral' : attitudeScore <= 3 ? 'Friendly' : 'Devoted'})
               </span>
             </Label>
-            <input
+            <Input
               id="attitude-score"
-              type="range"
+              type="number"
               min={-5}
               max={5}
               step={1}
               value={attitudeScore}
-              onChange={(e) => setAttitudeScore(Number(e.target.value))}
-              className="w-full accent-primary"
+              onChange={(e) => {
+                const next = Number(e.target.value);
+                if (Number.isNaN(next)) return;
+                setAttitudeScore(Math.max(-5, Math.min(5, Math.trunc(next))));
+              }}
             />
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span>-5 Hostile</span>
-              <span>0</span>
-              <span>+5 Devoted</span>
-            </div>
           </div>
 
           <div className="grid gap-2">
@@ -242,7 +239,7 @@ export function RelationshipAddModal({
           </Button>
           <Button
             onClick={handleAdd}
-            disabled={!targetId || saving || (relationshipType === 'custom' && !customType.trim())}
+            disabled={!targetId || saving || (relationshipType === CUSTOM_RELATIONSHIP_OPTION && !customType.trim())}
             className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
           >
             {saving ? 'Adding...' : 'Add Relationship'}
