@@ -322,9 +322,11 @@ export const relationshipApi = {
 
     // Populate the type maps for transformations
     response.data.forEach(type => {
-      const rawTypeName = type.type_name ?? type.relationship_type_name;
+      const normalizedTypeName = type.type_name?.trim();
+      const normalizedLegacyTypeName = type.relationship_type_name?.trim();
+      const rawTypeName = normalizedTypeName || normalizedLegacyTypeName;
 
-      if (!type.type_name && type.relationship_type_name) {
+      if (!normalizedTypeName && normalizedLegacyTypeName) {
         usedLegacyField = true;
       }
 
