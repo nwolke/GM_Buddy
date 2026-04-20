@@ -323,6 +323,9 @@ export const relationshipApi = {
     const response = await apiClient.get<ApiRelationshipType[]>('/Relationships/types');
     let usedLegacyField = false;
 
+    // Reset the type maps so they always reflect the latest API response
+    relationshipTypeMap.clear();
+    relationshipTypeNameToIdMap.clear();
     // Populate the type maps for transformations
     response.data.forEach(type => {
       const relationshipTypeId = type.relationship_type_id ?? type.relationshipTypeId;
