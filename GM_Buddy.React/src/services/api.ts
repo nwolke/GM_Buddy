@@ -318,12 +318,14 @@ export const relationshipApi = {
   // Get all relationship types and populate the type map
   async getRelationshipTypes(): Promise<ApiRelationshipType[]> {
     const response = await apiClient.get<ApiRelationshipType[]>('/Relationships/types');
+    let usedLegacyField = false;
+
     // Populate the type maps for transformations
     response.data.forEach(type => {
       const rawTypeName = type.type_name ?? type.relationship_type_name;
 
       if (!type.type_name && type.relationship_type_name) {
-        console.warn('[relationshipApi] Received legacy relationship type field: relationship_type_name');
+        usedLegacyField = true;
       }
 
       if (rawTypeName) {
@@ -334,6 +336,11 @@ export const relationshipApi = {
         console.warn('[relationshipApi] Skipping relationship type with missing name:', type);
       }
     });
+
+    if (usedLegacyField) {
+      console.warn('[relationshipApi] Received legacy relationship type field: relationship_type_name');
+    }
+
     return response.data;
   },
 
