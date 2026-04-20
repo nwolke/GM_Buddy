@@ -160,8 +160,11 @@ const normalizeApiNpc = (apiNpc: ApiNpc): {
 
 export interface ApiRelationshipType {
   relationship_type_id: number;
+  relationshipTypeId?: number;
   type_name?: string;
+  typeName?: string;
   relationship_type_name?: string;
+  relationshipTypeName?: string;
   description?: string;
 }
 
@@ -322,20 +325,21 @@ export const relationshipApi = {
 
     // Populate the type maps for transformations
     response.data.forEach(type => {
-      const normalizedTypeName = type.type_name?.trim();
-      const normalizedLegacyTypeName = type.relationship_type_name?.trim();
+      const relationshipTypeId = type.relationship_type_id ?? type.relationshipTypeId;
+      const normalizedTypeName = type.type_name?.trim() || type.typeName?.trim();
+      const normalizedLegacyTypeName = type.relationship_type_name?.trim() || type.relationshipTypeName?.trim();
       const rawTypeName = normalizedTypeName || normalizedLegacyTypeName;
 
       if (!normalizedTypeName && normalizedLegacyTypeName) {
         usedLegacyField = true;
       }
 
-      if (rawTypeName) {
+      if (typeof relationshipTypeId === 'number' && rawTypeName) {
         const typeName = rawTypeName.toLowerCase();
-        relationshipTypeMap.set(type.relationship_type_id, typeName);
-        relationshipTypeNameToIdMap.set(typeName, type.relationship_type_id);
+        relationshipTypeMap.set(relationshipTypeId, typeName);
+        relationshipTypeNameToIdMap.set(typeName, relationshipTypeId);
       } else {
-        console.warn('[relationshipApi] Skipping relationship type with missing name:', type);
+        console.warn('[relationshipApi] Skipping relationship type with missing id or name:', type);
       }
     });
 

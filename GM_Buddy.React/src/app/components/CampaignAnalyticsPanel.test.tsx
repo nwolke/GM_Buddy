@@ -16,7 +16,7 @@ describe("CampaignAnalyticsPanel", () => {
     { id: 11, name: "Ely", description: "Ranger", campaignId: 1 },
   ];
 
-  const relationships: Array<Relationship & { is_active?: boolean }> = [
+  const relationships: Relationship[] = [
     {
       id: 101,
       npcId1: 1,
@@ -43,7 +43,6 @@ describe("CampaignAnalyticsPanel", () => {
       entityType2: "pc",
       type: "enemy",
       attitudeScore: -5,
-      is_active: false,
     },
   ];
 
@@ -59,10 +58,10 @@ describe("CampaignAnalyticsPanel", () => {
     expect(organizationCard).toHaveTextContent("2");
   });
 
-  it("computes average attitude from active relationships only", () => {
+  it("computes average attitude from all relationships", () => {
     render(<CampaignAnalyticsPanel npcs={npcs} pcs={pcs} relationships={relationships} />);
 
-    expect(screen.getByText("3.00")).toBeInTheDocument();
+    expect(screen.getByText("0.33")).toBeInTheDocument();
   });
 
   it("shows the most-connected entity using inbound and outbound relationships", () => {

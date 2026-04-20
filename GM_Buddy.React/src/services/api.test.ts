@@ -225,4 +225,25 @@ describe('API Service - relationship type mapping', () => {
     );
     warnSpy.mockRestore();
   });
+
+  it('maps camelCase relationship type fields from /Relationships/types', async () => {
+    vi.mocked(cognito.getIdToken).mockResolvedValue('valid-token');
+    mockAxios.onGet('/Relationships/types').reply(200, [
+      { relationshipTypeId: 77, typeName: 'Rival' },
+    ]);
+
+    await relationshipApi.getRelationshipTypes();
+
+    const transformed = transformApiRelationshipToRelationship({
+      relationship_id: 3,
+      source_entity_type: 'npc',
+      source_entity_id: 7,
+      target_entity_type: 'pc',
+      target_entity_id: 8,
+      relationship_type_id: 77,
+      attitude_score: -1,
+    });
+
+    expect(transformed.type).toBe('rival');
+  });
 });

@@ -53,17 +53,6 @@ const formatRelationshipTypeLabel = (type: string) =>
     .replace(/_/g, " ")
     .replace(/\b\w/g, match => match.toUpperCase());
 
-const isRelationshipActive = (relationship: Relationship) => {
-  // Relationships are treated as active by default, but an explicit inactive
-  // flag from either API naming style should exclude them from analytics.
-  const relationshipWithActiveFlag = relationship as Relationship & {
-    is_active?: boolean;
-    isActive?: boolean;
-  };
-
-  return relationshipWithActiveFlag.is_active !== false && relationshipWithActiveFlag.isActive !== false;
-};
-
 export function CampaignAnalyticsPanel({
   npcs,
   pcs,
@@ -100,17 +89,16 @@ export function CampaignAnalyticsPanel({
   }, [relationships]);
 
   const averageAttitudeScore = useMemo(() => {
-    const activeRelationships = relationships.filter(isRelationshipActive);
-    if (activeRelationships.length === 0) {
+    if (relationships.length === 0) {
       return null;
     }
 
-    const total = activeRelationships.reduce(
+    const total = relationships.reduce(
       (sum, relationship) => sum + (relationship.attitudeScore ?? 0),
       0,
     );
 
-    return total / activeRelationships.length;
+    return total / relationships.length;
   }, [relationships]);
 
   const mostConnectedEntity = useMemo<{ name: string; count: number } | null>(() => {
@@ -199,7 +187,7 @@ export function CampaignAnalyticsPanel({
           <Card className="bg-card/50 border-primary/20">
             <CardHeader className="pb-0">
               <CardTitle className="text-base">Campaign Health Snapshot</CardTitle>
-              <CardDescription>Derived from active campaign relationships</CardDescription>
+              <CardDescription>Derived from campaign relationships</CardDescription>
             </CardHeader>
             <CardContent className="space-y-5 pt-4">
               <div className="space-y-1">
