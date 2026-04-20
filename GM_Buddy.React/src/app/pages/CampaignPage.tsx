@@ -120,22 +120,23 @@ export function CampaignPage() {
   }, []);
 
   useEffect(() => {
-    if (activeCenterTab !== "graph") return;
-
     const container = canvasContainerRef.current;
-    if (!container) return;
+    let observer: ResizeObserver | null = null;
 
-    const rect = container.getBoundingClientRect();
-    updateCanvasSize(rect.width, rect.height);
+    if (activeCenterTab === "graph" && container) {
+      const rect = container.getBoundingClientRect();
+      updateCanvasSize(rect.width, rect.height);
 
-    const observer = new ResizeObserver(entries => {
-      for (const entry of entries) {
-        const { width, height } = entry.contentRect;
-        updateCanvasSize(width, height);
-      }
-    });
-    observer.observe(container);
-    return () => observer.disconnect();
+      observer = new ResizeObserver(entries => {
+        for (const entry of entries) {
+          const { width, height } = entry.contentRect;
+          updateCanvasSize(width, height);
+        }
+      });
+      observer.observe(container);
+    }
+
+    return () => observer?.disconnect();
   }, [activeCenterTab, updateCanvasSize]);
 
   // Filter entities
