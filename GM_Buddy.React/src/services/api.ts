@@ -160,7 +160,10 @@ const normalizeApiNpc = (apiNpc: ApiNpc): {
 
 export interface ApiRelationshipType {
   relationship_type_id: number;
-  type_name: string;
+  type_name?: string;
+  relationship_type_name?: string;
+  Type_Name?: string;
+  Relationship_Type_Name?: string;
   description?: string;
 }
 
@@ -319,8 +322,14 @@ export const relationshipApi = {
     const response = await apiClient.get<ApiRelationshipType[]>('/Relationships/types');
     // Populate the type maps for transformations
     response.data.forEach(type => {
-      if (type.type_name) {
-        const typeName = type.type_name.toLowerCase();
+      const rawTypeName =
+        type.type_name ??
+        type.relationship_type_name ??
+        type.Type_Name ??
+        type.Relationship_Type_Name;
+
+      if (rawTypeName) {
+        const typeName = rawTypeName.toLowerCase();
         relationshipTypeMap.set(type.relationship_type_id, typeName);
         relationshipTypeNameToIdMap.set(typeName, type.relationship_type_id);
       } else {

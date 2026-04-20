@@ -101,6 +101,7 @@ export function CampaignPage() {
   const [search, setSearch] = useState("");
   const [showNPCs, setShowNPCs] = useState(true);
   const [showPCs, setShowPCs] = useState(true);
+  const [activeCenterTab, setActiveCenterTab] = useState("graph");
 
   // NPC form state
   const [npcFormOpen, setNpcFormOpen] = useState(false);
@@ -117,15 +118,24 @@ export function CampaignPage() {
   useEffect(() => {
     const container = canvasContainerRef.current;
     if (!container) return;
+    const updateCanvasSize = () => {
+      const { width, height } = container.getBoundingClientRect();
+      if (width <= 0 || height <= 0) return;
+      setCanvasSize({ width: Math.floor(width), height: Math.floor(height) });
+    };
+
+    updateCanvasSize();
+
     const observer = new ResizeObserver(entries => {
       for (const entry of entries) {
         const { width, height } = entry.contentRect;
+        if (width <= 0 || height <= 0) continue;
         setCanvasSize({ width: Math.floor(width), height: Math.floor(height) });
       }
     });
     observer.observe(container);
     return () => observer.disconnect();
-  }, []);
+  }, [activeCenterTab]);
 
   // Filter entities
   const filteredEntities = entities.filter(e => {
@@ -406,7 +416,11 @@ export function CampaignPage() {
 
             {/* CENTER — graph / analytics */}
             <div className="flex-1 flex flex-col min-w-0 gap-2">
-              <Tabs defaultValue="graph" className="flex-1 min-h-0">
+              <Tabs
+                value={activeCenterTab}
+                onValueChange={setActiveCenterTab}
+                className="flex-1 min-h-0"
+              >
                 <TabsList className="w-full sm:w-auto">
                   <TabsTrigger value="graph">Graph View</TabsTrigger>
                   <TabsTrigger value="analytics">Analytics</TabsTrigger>

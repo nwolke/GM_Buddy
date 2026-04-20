@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 import apiClient from './api';
+import { relationshipApi, transformApiRelationshipToRelationship } from './api';
 import * as cognito from './cognito';
 
 // Mock the cognito service
@@ -164,5 +165,39 @@ describe('API Service - 401 Interceptor', () => {
 
     expect(response.status).toBe(200);
     expect(response.data).toEqual({ data: 'public data' });
+  });
+});
+
+describe('API Service - relationship type mapping', () => {
+  let mockAxios: MockAdapter;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockAxios = new MockAdapter(apiClient);
+  });
+
+  afterEach(() => {
+    mockAxios.restore();
+  });
+
+  it('maps relationship_type_name values from /Relationships/types', async () => {
+    vi.mocked(cognito.getIdToken).mockResolvedValue('valid-token');
+    mockAxios.onGet('/Relationships/types').reply(200, [
+      { relationship_type_id: 10, relationship_type_name: 'Friend' },
+    ]);
+
+    await relationshipApi.getRelationshipTypes();
+
+    const transformed = transformApiRelationshipToRelationship({
+      relationship_id: 1,
+      source_entity_type: 'npc',
+      source_entity_id: 1,
+      target_entity_type: 'pc',
+      target_entity_id: 2,
+      relationship_type_id: 10,
+      attitude_score: 2,
+    });
+
+    expect(transformed.type).toBe('friend');
   });
 });
