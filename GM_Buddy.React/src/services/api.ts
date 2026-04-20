@@ -162,8 +162,6 @@ export interface ApiRelationshipType {
   relationship_type_id: number;
   type_name?: string;
   relationship_type_name?: string;
-  Type_Name?: string;
-  Relationship_Type_Name?: string;
   description?: string;
 }
 
@@ -322,11 +320,11 @@ export const relationshipApi = {
     const response = await apiClient.get<ApiRelationshipType[]>('/Relationships/types');
     // Populate the type maps for transformations
     response.data.forEach(type => {
-      const rawTypeName =
-        type.type_name ??
-        type.relationship_type_name ??
-        type.Type_Name ??
-        type.Relationship_Type_Name;
+      const rawTypeName = type.type_name ?? type.relationship_type_name;
+
+      if (!type.type_name && type.relationship_type_name) {
+        console.warn('[relationshipApi] Received legacy relationship type field: relationship_type_name');
+      }
 
       if (rawTypeName) {
         const typeName = rawTypeName.toLowerCase();

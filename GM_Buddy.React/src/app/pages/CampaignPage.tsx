@@ -118,19 +118,18 @@ export function CampaignPage() {
   useEffect(() => {
     const container = canvasContainerRef.current;
     if (!container) return;
-    const updateCanvasSize = () => {
-      const { width, height } = container.getBoundingClientRect();
+    const updateCanvasSize = (width: number, height: number) => {
       if (width <= 0 || height <= 0) return;
       setCanvasSize({ width: Math.floor(width), height: Math.floor(height) });
     };
 
-    updateCanvasSize();
+    const rect = container.getBoundingClientRect();
+    updateCanvasSize(rect.width, rect.height);
 
     const observer = new ResizeObserver(entries => {
       for (const entry of entries) {
         const { width, height } = entry.contentRect;
-        if (width <= 0 || height <= 0) continue;
-        setCanvasSize({ width: Math.floor(width), height: Math.floor(height) });
+        updateCanvasSize(width, height);
       }
     });
     observer.observe(container);
