@@ -215,7 +215,12 @@ const normalizeRelationshipTypeId = (value: unknown): number | undefined => {
   }
 
   if (typeof value === 'string') {
-    const parsed = Number(value.trim());
+    const trimmed = value.trim();
+    if (trimmed.length === 0) {
+      return undefined;
+    }
+
+    const parsed = Number(trimmed);
     if (Number.isFinite(parsed)) {
       return parsed;
     }
