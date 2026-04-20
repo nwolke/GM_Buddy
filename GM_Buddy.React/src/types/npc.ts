@@ -38,6 +38,9 @@ export type RelationshipType =
   | 'vassal/follower'
   | 'neutral';
 
+export const CUSTOM_RELATIONSHIP_SENTINEL = "__custom__";
+export const DEFAULT_CUSTOM_RELATIONSHIP_TYPE: RelationshipType = 'stranger';
+
 // Auth context types
 export interface User {
   cognitoSub: string;

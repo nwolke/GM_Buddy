@@ -1,5 +1,11 @@
 import { useState } from "react";
-import { NPC, Relationship, RelationshipType } from "@/types/npc";
+import {
+  NPC,
+  Relationship,
+  RelationshipType,
+  CUSTOM_RELATIONSHIP_SENTINEL,
+  DEFAULT_CUSTOM_RELATIONSHIP_TYPE,
+} from "@/types/npc";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
 import { Button } from "@/app/components/ui/button";
 import { Label } from "@/app/components/ui/label";
@@ -22,7 +28,6 @@ const relationshipTypes: RelationshipType[] = [
   'acquaintance', 'ally', 'contact/informant', 'employer', 'enemy',
   'family', 'lover', 'mentor', 'patron', 'rival', 'stranger', 'vassal/follower',
 ];
-const CUSTOM_RELATIONSHIP_OPTION = "__custom__";
 
 const relationshipColors: Record<string, string> = {
   acquaintance: 'bg-slate-500',
@@ -51,7 +56,7 @@ export function RelationshipManager({
   onDeleteRelationship
 }: RelationshipManagerProps) {
   const [selectedNPCId, setSelectedNPCId] = useState<string>("");
-  const [relationshipType, setRelationshipType] = useState<RelationshipType | typeof CUSTOM_RELATIONSHIP_OPTION>("ally");
+  const [relationshipType, setRelationshipType] = useState<RelationshipType | typeof CUSTOM_RELATIONSHIP_SENTINEL>("ally");
   const [attitudeScore, setAttitudeScore] = useState(0);
   const [customType, setCustomType] = useState("");
   const [description, setDescription] = useState("");
@@ -86,10 +91,10 @@ export function RelationshipManager({
       npcId2: numericNPCId,
       entityType1: 'npc',
       entityType2: 'npc',
-      type: relationshipType === CUSTOM_RELATIONSHIP_OPTION ? 'stranger' : relationshipType,
+      type: relationshipType === CUSTOM_RELATIONSHIP_SENTINEL ? DEFAULT_CUSTOM_RELATIONSHIP_TYPE : relationshipType,
       description: description || undefined,
       attitudeScore,
-      customType: relationshipType === CUSTOM_RELATIONSHIP_OPTION ? customType.trim() || undefined : undefined,
+      customType: relationshipType === CUSTOM_RELATIONSHIP_SENTINEL ? customType.trim() || undefined : undefined,
     });
 
     setSelectedNPCId("");
@@ -182,7 +187,7 @@ export function RelationshipManager({
                   <Label htmlFor="type-select">Relationship Type</Label>
                   <Select
                     value={relationshipType}
-                    onValueChange={(val) => setRelationshipType(val as RelationshipType | typeof CUSTOM_RELATIONSHIP_OPTION)}
+                    onValueChange={(val) => setRelationshipType(val as RelationshipType | typeof CUSTOM_RELATIONSHIP_SENTINEL)}
                   >
                     <SelectTrigger id="type-select">
                       <SelectValue />
@@ -193,12 +198,12 @@ export function RelationshipManager({
                           {type.split('/').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join('/')}
                         </SelectItem>
                       ))}
-                      <SelectItem value={CUSTOM_RELATIONSHIP_OPTION}>Custom...</SelectItem>
+                      <SelectItem value={CUSTOM_RELATIONSHIP_SENTINEL}>Custom...</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
-                {relationshipType === CUSTOM_RELATIONSHIP_OPTION && (
+                {relationshipType === CUSTOM_RELATIONSHIP_SENTINEL && (
                   <div className="grid gap-2">
                     <Label htmlFor="custom-type">Custom Type Name</Label>
                     <Input
@@ -238,7 +243,7 @@ export function RelationshipManager({
                   />
                 </div>
 
-                <Button onClick={handleAddRelationship} disabled={!selectedNPCId || (relationshipType === CUSTOM_RELATIONSHIP_OPTION && !customType.trim())}>
+                <Button onClick={handleAddRelationship} disabled={!selectedNPCId || (relationshipType === CUSTOM_RELATIONSHIP_SENTINEL && !customType.trim())}>
                   Add Relationship
                 </Button>
               </div>

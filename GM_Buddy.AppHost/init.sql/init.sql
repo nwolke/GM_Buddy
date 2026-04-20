@@ -136,9 +136,7 @@ INSERT INTO public.relationship_type (relationship_type_name, description, is_di
     ('Vassal/Follower', 'Sworn servant, vassal, devotee, or loyal follower', true)
 ON CONFLICT (relationship_type_name) DO NOTHING;
 
--- Set inverse type pairs for directional relationships
-UPDATE public.relationship_type SET inverse_type_id = (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Vassal/Follower') WHERE relationship_type_name = 'Employer';
-UPDATE public.relationship_type SET inverse_type_id = (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Employer') WHERE relationship_type_name = 'Vassal/Follower';
+-- No inverse pairs are seeded for the condensed directional set
 
 
 -- Seed data
