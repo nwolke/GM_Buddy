@@ -56,6 +56,10 @@ const PC_GLOW_COLOR = 'rgba(34, 197, 94, 0.6)';
 const PC_BORDER_COLOR = '#86efac';
 const PC_LABEL_COLOR = '#86efac';
 
+const GRAPH_CHARGE_STRENGTH = -600;
+const GRAPH_LINK_DISTANCE = 200;
+const GRAPH_LINK_STRENGTH = 0.2;
+
 export function EntityGraph({
   entities,
   relationships,
@@ -106,8 +110,10 @@ export function EntityGraph({
 
   useEffect(() => {
     if (graphRef.current) {
-      graphRef.current.d3Force('charge').strength(-400);
-      graphRef.current.d3Force('link').distance(100);
+      graphRef.current.d3Force('charge').strength(GRAPH_CHARGE_STRENGTH);
+      graphRef.current.d3Force('link')
+        .distance(GRAPH_LINK_DISTANCE)
+        .strength(GRAPH_LINK_STRENGTH);
     }
   }, []);
 
