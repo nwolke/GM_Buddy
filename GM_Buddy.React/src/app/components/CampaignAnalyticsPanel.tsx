@@ -54,12 +54,17 @@ const formatRelationshipTypeLabel = (type: string) =>
     .replace(/\b\w/g, match => match.toUpperCase());
 
 const isRelationshipActive = (relationship: Relationship) => {
-  if (typeof relationship.isActive === "boolean") {
-    return relationship.isActive;
+  const relationshipWithActiveFields = relationship as Relationship & {
+    is_active?: boolean;
+    isActive?: boolean;
+  };
+
+  if (typeof relationshipWithActiveFields.isActive === "boolean") {
+    return relationshipWithActiveFields.isActive;
   }
 
-  if (typeof relationship.is_active === "boolean") {
-    return relationship.is_active;
+  if (typeof relationshipWithActiveFields.is_active === "boolean") {
+    return relationshipWithActiveFields.is_active;
   }
 
   return true;
@@ -123,6 +128,7 @@ export function CampaignAnalyticsPanel({
     entityNameByKey.forEach((_, key) => counts.set(key, 0));
 
     relationships.forEach(relationship => {
+      // These IDs can refer to NPCs or PCs; entityType1/entityType2 disambiguate.
       const sourceKey = `${relationship.entityType1}-${relationship.npcId1}`;
       const targetKey = `${relationship.entityType2}-${relationship.npcId2}`;
       counts.set(sourceKey, (counts.get(sourceKey) ?? 0) + 1);

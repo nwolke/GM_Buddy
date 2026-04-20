@@ -16,7 +16,7 @@ describe("CampaignAnalyticsPanel", () => {
     { id: 11, name: "Ely", description: "Ranger", campaignId: 1 },
   ];
 
-  const relationships: Relationship[] = [
+  const relationships: Array<Relationship & { is_active?: boolean }> = [
     {
       id: 101,
       npcId1: 1,
