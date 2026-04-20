@@ -229,7 +229,7 @@ const transformApiRelationshipToRelationship = (apiRel: ApiEntityRelationship): 
     || apiRel.relationshipTypeName?.trim()
     || apiRel.type_name?.trim()
     || apiRel.typeName?.trim();
-  const typeName = mappedTypeName || fallbackTypeName?.toLowerCase();
+  const typeName = mappedTypeName?.toLowerCase() || fallbackTypeName?.toLowerCase();
   if (!typeName) {
     console.warn(`[transformApiRelationship] Unknown relationship_type_id: ${relationshipTypeId}, defaulting to 'neutral'`);
   }
