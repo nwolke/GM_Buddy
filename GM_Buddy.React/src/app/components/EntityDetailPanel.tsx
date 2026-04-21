@@ -174,7 +174,7 @@ function EditableRelationshipRow({
             onChange={(event) => updateDraft({ ...draft, description: event.target.value })}
             onBlur={() => {
               setIsDescriptionEditing(false);
-              void autoSave.flush();
+              void autoSave.flush().catch(() => {});
             }}
             onKeyDown={handleDescriptionKeyDown}
             autoFocus
