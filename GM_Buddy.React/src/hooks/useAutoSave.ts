@@ -120,7 +120,6 @@ export function useAutoSave<T>(saveFn: (value: T) => Promise<void>, delay = 300)
 
       event.preventDefault();
       event.returnValue = '';
-      void flush().catch(() => undefined);
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);

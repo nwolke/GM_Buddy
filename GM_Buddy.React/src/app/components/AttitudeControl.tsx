@@ -21,7 +21,7 @@ export function AttitudeControl({
     <div className="inline-flex items-center gap-1">
       <button
         type="button"
-        className="h-11 w-11 rounded-full border border-border/70 hover:bg-gray-200 hover:text-foreground active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+        className="h-11 w-11 rounded-full border border-border/70 hover:bg-accent hover:text-foreground active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
         onClick={onDecrement}
         disabled={atMin}
         aria-label="Decrease attitude score"
@@ -36,7 +36,7 @@ export function AttitudeControl({
       </div>
       <button
         type="button"
-        className="h-11 w-11 rounded-full border border-border/70 hover:bg-gray-200 hover:text-foreground active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+        className="h-11 w-11 rounded-full border border-border/70 hover:bg-accent hover:text-foreground active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
         onClick={onIncrement}
         disabled={atMax}
         aria-label="Increase attitude score"

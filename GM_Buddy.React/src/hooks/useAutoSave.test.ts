@@ -29,7 +29,7 @@ describe('useAutoSave', () => {
     expect(result.current.status).toBe('saved');
   });
 
-  it('flushes pending saves on beforeunload', async () => {
+  it('marks beforeunload when there is a pending save', async () => {
     const saveFn = vi.fn(async () => Promise.resolve());
     const { result } = renderHook(() => useAutoSave(saveFn, 300));
 
@@ -37,13 +37,16 @@ describe('useAutoSave', () => {
       result.current.scheduleSave('pending');
     });
 
-    await act(async () => {
-      window.dispatchEvent(new Event('beforeunload'));
-      await Promise.resolve();
+    const event = new Event('beforeunload', { cancelable: true });
+    Object.defineProperty(event, 'returnValue', {
+      writable: true,
+      configurable: true,
+      value: undefined,
     });
+    window.dispatchEvent(event);
 
-    expect(saveFn).toHaveBeenCalledTimes(1);
-    expect(saveFn).toHaveBeenCalledWith('pending');
+    expect((event as Event & { returnValue?: string }).returnValue).toBe('');
+    expect(saveFn).not.toHaveBeenCalled();
   });
 
   it('supports retry after save failure', async () => {
