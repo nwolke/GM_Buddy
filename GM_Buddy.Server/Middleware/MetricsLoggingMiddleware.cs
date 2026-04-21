@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Text;
+using Microsoft.AspNetCore.Routing;
 
 namespace GM_Buddy.Server.Middleware;
 
@@ -63,7 +64,7 @@ public class MetricsLoggingMiddleware
             var elapsedMilliseconds = stopwatch.Elapsed.TotalMilliseconds;
             var requestStatusCode = context.Response.StatusCode;
             var requestMethod = request.Method;
-            var routeTemplate = (context.GetEndpoint() as Microsoft.AspNetCore.Routing.RouteEndpoint)?.RoutePattern?.RawText;
+            var routeTemplate = (context.GetEndpoint() as RouteEndpoint)?.RoutePattern?.RawText;
             var requestPath = request.Path.ToString();
             var routeTagValue = string.IsNullOrWhiteSpace(routeTemplate) ? "unmatched" : routeTemplate;
             var allocatedBytesDelta = Math.Max(0, GC.GetTotalAllocatedBytes() - totalAllocatedBytesAtStart);
