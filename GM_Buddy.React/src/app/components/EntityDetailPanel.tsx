@@ -82,9 +82,11 @@ function EditableRelationshipRow({
   const autoSave = useAutoSave(async (nextDraft: typeof draft) => {
     const previousDraft = draftRef.current;
     try {
+      const trimmedDescription = nextDraft.description.trim();
+
       await onUpdateRelationship(relationship.id, {
         type: nextDraft.type,
-        description: nextDraft.description.trim() ? nextDraft.description : undefined,
+        description: trimmedDescription ? trimmedDescription : undefined,
         attitudeScore: nextDraft.attitudeScore,
       });
       draftRef.current = nextDraft;
