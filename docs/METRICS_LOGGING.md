@@ -1,7 +1,7 @@
 # Metrics Logging
 
 ## Overview
-This implementation adds stopwatch-based timing metrics to all HTTP requests in the GM Buddy API.
+This implementation adds OpenTelemetry-powered diagnostics to all HTTP requests in the GM Buddy API.
 
 ## Implementation Details
 
@@ -10,10 +10,18 @@ Located in `GM_Buddy.Server/Middleware/MetricsLoggingMiddleware.cs`
 
 This middleware:
 - Uses `System.Diagnostics.Stopwatch` to measure request execution time
+- Records request duration, per-request allocated memory, and working set memory into OpenTelemetry metrics
+- Enriches OpenTelemetry trace spans with request diagnostics tags
 - Captures query string parameters (with sensitive parameter filtering)
 - Captures route parameters (excluding controller/action)
 - Logs all metrics via `ILogger<T>` at Information level
 - Executes in the finally block to ensure metrics are logged even if errors occur
+
+### OpenTelemetry + Aspire
+- Shared OpenTelemetry configuration is defined in `GM_Buddy.ServiceDefaults/Extensions.cs`
+- Runtime, process, ASP.NET Core, and HTTP client instrumentation are enabled
+- Custom server diagnostics metrics are exported through the `GM_Buddy.Server.Diagnostics` meter
+- When running with .NET Aspire, these diagnostics are visible in the Aspire dashboard for local debugging
 
 ### Security Features
 The middleware includes built-in protection against logging sensitive data:

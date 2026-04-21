@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using System.Text;
 
 namespace GM_Buddy.Server.Middleware;
@@ -8,6 +9,28 @@ namespace GM_Buddy.Server.Middleware;
 /// </summary>
 public class MetricsLoggingMiddleware
 {
+    public const string MeterName = "GM_Buddy.Server.Diagnostics";
+
+    public const string ActivitySourceName = "GM_Buddy.Server.RequestDiagnostics";
+
+    private static readonly Meter Meter = new(MeterName);
+    private static readonly Histogram<double> RequestDurationMilliseconds = Meter.CreateHistogram<double>(
+        "gm_buddy.request.duration",
+        unit: "ms",
+        description: "Duration of inbound HTTP requests.");
+    private static readonly Histogram<long> RequestAllocatedBytes = Meter.CreateHistogram<long>(
+        "gm_buddy.request.allocated_bytes",
+        unit: "By",
+        description: "Managed memory allocated while handling an HTTP request.");
+    private static readonly Histogram<long> RequestWorkingSetBytes = Meter.CreateHistogram<long>(
+        "gm_buddy.request.working_set_bytes",
+        unit: "By",
+        description: "Process working set memory sampled at the end of each HTTP request.");
+    private static readonly Counter<long> RequestCounter = Meter.CreateCounter<long>(
+        "gm_buddy.request.count",
+        description: "Number of inbound HTTP requests.");
+    private static readonly ActivitySource ActivitySource = new(ActivitySourceName);
+
     private readonly RequestDelegate _next;
     private readonly ILogger<MetricsLoggingMiddleware> _logger;
 
@@ -19,21 +42,62 @@ public class MetricsLoggingMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
+        var request = context.Request;
+        var allocatedBytesAtStart = GC.GetTotalAllocatedBytes();
         var stopwatch = Stopwatch.StartNew();
+        Exception? requestException = null;
 
+        using var activity = ActivitySource.StartActivity("request.diagnostics", ActivityKind.Internal);
         try
         {
             // Continue processing the request
             await _next(context);
         }
+        catch (Exception ex)
+        {
+            requestException = ex;
+            activity?.SetTag("error.type", ex.GetType().FullName);
+            activity?.SetTag("error.message", ex.Message);
+            throw;
+        }
         finally
         {
             stopwatch.Stop();
-            LogRequestMetrics(context, stopwatch.ElapsedMilliseconds);
+
+            var elapsedMilliseconds = stopwatch.Elapsed.TotalMilliseconds;
+            var requestStatusCode = context.Response.StatusCode;
+            var requestMethod = request.Method;
+            var requestPath = request.Path.ToString();
+            var requestRoute = request.Path.HasValue ? request.Path.Value : "/";
+            var allocatedBytes = Math.Max(0, GC.GetTotalAllocatedBytes() - allocatedBytesAtStart);
+            var workingSetBytes = Environment.WorkingSet;
+            var requestTags = new TagList
+            {
+                { "http.method", requestMethod },
+                { "http.route", requestRoute },
+                { "http.status_code", requestStatusCode },
+                { "request.failed", requestException is not null }
+            };
+
+            RequestDurationMilliseconds.Record(elapsedMilliseconds, requestTags);
+            RequestAllocatedBytes.Record(allocatedBytes, requestTags);
+            RequestWorkingSetBytes.Record(workingSetBytes, requestTags);
+            RequestCounter.Add(1, requestTags);
+
+            activity?.SetTag("http.method", requestMethod);
+            activity?.SetTag("http.route", requestRoute);
+            activity?.SetTag("http.path", requestPath);
+            activity?.SetTag("http.status_code", requestStatusCode);
+            activity?.SetTag("gm_buddy.request.duration_ms", elapsedMilliseconds);
+            activity?.SetTag("gm_buddy.request.allocated_bytes", allocatedBytes);
+            activity?.SetTag("gm_buddy.request.working_set_bytes", workingSetBytes);
+            activity?.SetTag("request.failed", requestException is not null);
+
+            LogRequestMetrics(context, elapsedMilliseconds, allocatedBytes, workingSetBytes);
         }
     }
 
-    private void LogRequestMetrics(HttpContext context, long elapsedMilliseconds)
+    private void LogRequestMetrics(HttpContext context, double elapsedMilliseconds, long allocatedBytes, long workingSetBytes)
     {
         var request = context.Request;
         var response = context.Response;
@@ -73,11 +137,13 @@ public class MetricsLoggingMiddleware
         var parameters = parametersBuilder.Length > 0 ? parametersBuilder.ToString() : "None";
 
         _logger.LogInformation(
-            "Request Metrics: {Method} {Path} | Status: {StatusCode} | Duration: {DurationMs}ms | Parameters: {Parameters}",
+            "Request Metrics: {Method} {Path} | Status: {StatusCode} | Duration: {DurationMs}ms | AllocatedBytes: {AllocatedBytes} | WorkingSetBytes: {WorkingSetBytes} | Parameters: {Parameters}",
             request.Method,
             request.Path,
             response.StatusCode,
-            elapsedMilliseconds,
+            Math.Round(elapsedMilliseconds, 2),
+            allocatedBytes,
+            workingSetBytes,
             parameters);
     }
 
