@@ -42,11 +42,6 @@ public class EntityRelationship
     public string? description { get; set; }
 
     /// <summary>
-    /// Optional custom relationship type label (overrides relationship_type_name when set)
-    /// </summary>
-    public string? custom_type { get; set; }
-
-    /// <summary>
     /// Attitude score from source toward target (-5 hostile to +5 friendly)
     /// </summary>
     public int attitude_score { get; set; } = 0;

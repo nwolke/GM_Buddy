@@ -439,7 +439,7 @@ public class RelationshipRepositoryTests
     }
 
     [Fact]
-    public async Task UpdateRelationship_PersistsAttitudeScoreAndCustomType()
+    public async Task UpdateRelationship_PersistsAttitudeScore()
     {
         // Arrange
         var relationship = new EntityRelationship
@@ -464,7 +464,6 @@ public class RelationshipRepositoryTests
             target_entity_id = 2,
             relationship_type_id = 10,
             attitude_score = -4,
-            custom_type = "Blood Oath",
             is_active = true
         };
 
@@ -475,7 +474,6 @@ public class RelationshipRepositoryTests
         // Assert
         Assert.NotNull(result);
         Assert.Equal(-4, result.attitude_score);
-        Assert.Equal("Blood Oath", result.custom_type);
     }
 
     #endregion

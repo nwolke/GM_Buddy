@@ -29,7 +29,6 @@ const relationshipBadgeColors: Record<string, string> = {
   rival: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
   stranger: 'bg-zinc-500/20 text-zinc-400 border-zinc-500/30',
   'vassal/follower': 'bg-stone-500/20 text-stone-400 border-stone-500/30',
-  custom: 'bg-lime-500/20 text-lime-400 border-lime-500/30',
   neutral: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
 };
 
@@ -176,13 +175,9 @@ export function EntityDetailPanel({
                       <div className="flex items-center gap-1.5 shrink-0 mt-0.5">
                         <Badge
                           variant="outline"
-                          className={`text-xs ${
-                            rel.customType
-                              ? (relationshipBadgeColors.custom ?? relationshipBadgeColors.neutral)
-                              : (relationshipBadgeColors[rel.type] ?? relationshipBadgeColors.neutral)
-                          }`}
+                          className={`text-xs ${relationshipBadgeColors[rel.type] ?? relationshipBadgeColors.neutral}`}
                         >
-                          {rel.customType || rel.type}
+                          {rel.type}
                         </Badge>
                         <span className={`text-xs font-semibold ${
                           rel.attitudeScore > 0 ? 'text-green-400' : rel.attitudeScore < 0 ? 'text-red-400' : 'text-muted-foreground'
@@ -242,7 +237,7 @@ export function EntityDetailPanel({
                       {pcStances.map(({ relationship, pc }) => (
                         <tr key={relationship.id} className="border-t border-border/50">
                           <td className="px-3 py-2">{pc?.name ?? "Unknown PC"}</td>
-                          <td className="px-3 py-2">{relationship.customType || relationship.type}</td>
+                          <td className="px-3 py-2">{relationship.type}</td>
                           <td className={`px-3 py-2 font-semibold ${
                             relationship.attitudeScore > 0 ? 'text-green-400' : relationship.attitudeScore < 0 ? 'text-red-400' : 'text-muted-foreground'
                           }`}>

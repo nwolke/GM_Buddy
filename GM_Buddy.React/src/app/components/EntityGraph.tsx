@@ -27,7 +27,6 @@ const relationshipColors: Record<string, string> = {
   rival: '#f97316',
   stranger: '#71717a',
   'vassal/follower': '#78716c',
-  custom: '#84cc16',
   neutral: '#6b7280',
 };
 
@@ -78,9 +77,7 @@ export function EntityGraph({
       const width = 1.5 + absDisp * 0.5; // Range: 1.5 to 4.0
 
       // For negative attitude, override color to red tones regardless of type
-      let color = rel.customType
-        ? (relationshipColors.custom ?? relationshipColors.neutral)
-        : (relationshipColors[rel.type] ?? relationshipColors.neutral);
+      let color = relationshipColors[rel.type] ?? relationshipColors.neutral;
       if (disp <= -3) color = '#ef4444'; // strong negative = red
       else if (disp < 0) color = '#f97316'; // mild negative = orange
 

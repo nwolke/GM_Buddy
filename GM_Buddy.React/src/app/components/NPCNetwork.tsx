@@ -22,7 +22,6 @@ const relationshipColors: Record<string, string> = {
   rival: '#f97316',
   stranger: '#71717a',
   'vassal/follower': '#78716c',
-  custom: '#84cc16',
   neutral: '#6b7280',
 };
 

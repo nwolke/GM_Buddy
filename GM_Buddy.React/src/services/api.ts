@@ -183,7 +183,6 @@ export interface ApiEntityRelationship {
   typeName?: string;
   description?: string;
   attitude_score?: number;
-  custom_type?: string;
   campaign_id?: number;
 }
 
@@ -239,7 +238,6 @@ const transformApiRelationshipToRelationship = (apiRel: ApiEntityRelationship): 
   type: string;
   description?: string;
   attitudeScore: number;
-  customType?: string;
   campaignId?: number;
 } => {
   const id = (apiRel.entity_relationship_id ?? apiRel.relationship_id) || 0;
@@ -274,7 +272,6 @@ const transformApiRelationshipToRelationship = (apiRel: ApiEntityRelationship): 
     type: typeName || 'neutral',
     description: apiRel.description,
     attitudeScore: apiRel.attitude_score ?? 0,
-    customType: apiRel.custom_type,
     campaignId: apiRel.campaign_id,
   };
 };
@@ -284,9 +281,7 @@ export const getRelationshipTypeId = (typeName: string): number => {
   const id = relationshipTypeNameToIdMap.get(typeName.toLowerCase());
   if (id) return id;
 
-  // For 'custom' type, map to 'stranger' as a safe structural default
-  // (the user's intent is captured in the custom_type field)
-  if (typeName.toLowerCase() === 'custom' || typeName.toLowerCase() === 'neutral') {
+  if (typeName.toLowerCase() === 'neutral') {
     const strangerId = relationshipTypeNameToIdMap.get('stranger');
     if (strangerId) return strangerId;
   }
