@@ -406,6 +406,11 @@ export const relationshipApi = {
     return response.data;
   },
 
+  // Update an existing relationship
+  async updateRelationship(id: number, relationship: ApiEntityRelationship): Promise<void> {
+    await apiClient.put(`/Relationships/${id}`, relationship);
+  },
+
   // Delete a relationship
   async deleteRelationship(id: number): Promise<void> {
     await apiClient.delete(`/Relationships/${id}`);

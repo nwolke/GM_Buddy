@@ -313,7 +313,8 @@ public class RelationshipRepository : IRelationshipRepository
         using IDbConnection dbConnection = _dbConnector.CreateConnection();
         const string sql = @"
             UPDATE public.entity_relationship
-            SET description = @description,
+            SET relationship_type_id = @relationship_type_id,
+                description = @description,
                 attitude_score = @attitude_score,
                 is_active = @is_active,
                 campaign_id = @campaign_id,

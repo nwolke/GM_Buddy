@@ -62,6 +62,7 @@ export function CampaignPage() {
     deleteNPC,
     addRelationship,
     deleteRelationship,
+    updateRelationship,
   } = useNPCData(campaignId);
 
   const {
@@ -484,6 +485,7 @@ export function CampaignPage() {
                   allEntities={entities}
                   onAddRelationship={addRelationship}
                   onDeleteRelationship={deleteRelationship}
+                  onUpdateRelationship={updateRelationship}
                 />
               </div>
               {/* Edit/Delete actions for selected entity */}

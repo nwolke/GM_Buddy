@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { KeyboardEvent, useEffect, useRef, useState } from "react";
 import { Relationship } from "@/types/npc";
 import { EntityItem } from "@/types/entity";
 import { Badge } from "@/app/components/ui/badge";
@@ -6,6 +6,9 @@ import { Button } from "@/app/components/ui/button";
 import { ScrollArea } from "@/app/components/ui/scroll-area";
 import { Separator } from "@/app/components/ui/separator";
 import { RelationshipAddModal } from "@/app/components/RelationshipAddModal";
+import { AttitudeControl } from "@/app/components/AttitudeControl";
+import { SaveIndicator } from "@/app/components/SaveIndicator";
+import { useAutoSave } from "@/hooks/useAutoSave";
 import { Trash2, Plus, Shield, User } from "lucide-react";
 
 interface EntityDetailPanelProps {
@@ -14,6 +17,218 @@ interface EntityDetailPanelProps {
   allEntities: EntityItem[];
   onAddRelationship: (relationship: Omit<Relationship, 'id'>) => Promise<void>;
   onDeleteRelationship: (id: number) => Promise<void>;
+  onUpdateRelationship: (
+    id: number,
+    updates: Partial<Pick<Relationship, 'type' | 'description' | 'attitudeScore'>>
+  ) => Promise<void>;
+}
+
+const editableRelationshipTypes: Relationship['type'][] = [
+  'acquaintance',
+  'ally',
+  'contact/informant',
+  'employer',
+  'enemy',
+  'family',
+  'lover',
+  'mentor',
+  'patron',
+  'rival',
+  'stranger',
+  'vassal/follower',
+  'neutral',
+];
+
+interface EditableRelationshipRowProps {
+  relationship: Relationship;
+  relatedEntity: EntityItem | undefined;
+  currentEntityId: number;
+  onUpdateRelationship: (
+    id: number,
+    updates: Partial<Pick<Relationship, 'type' | 'description' | 'attitudeScore'>>
+  ) => Promise<void>;
+  onDeleteRelationship: (id: number) => void;
+}
+
+const clampAttitudeScore = (score: number) => Math.min(5, Math.max(-5, score));
+
+function EditableRelationshipRow({
+  relationship,
+  relatedEntity,
+  currentEntityId,
+  onUpdateRelationship,
+  onDeleteRelationship,
+}: EditableRelationshipRowProps) {
+  const [draft, setDraft] = useState({
+    type: relationship.type,
+    description: relationship.description ?? '',
+    attitudeScore: relationship.attitudeScore ?? 0,
+  });
+  const [isTypeEditing, setIsTypeEditing] = useState(false);
+  const [isDescriptionEditing, setIsDescriptionEditing] = useState(false);
+  const [scoreErrorFlash, setScoreErrorFlash] = useState(false);
+  const draftRef = useRef(draft);
+  const scoreErrorFlashTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (scoreErrorFlashTimerRef.current !== null) {
+        clearTimeout(scoreErrorFlashTimerRef.current);
+      }
+    };
+  }, []);
+  useEffect(() => {
+    const nextDraft = {
+      type: relationship.type,
+      description: relationship.description ?? '',
+      attitudeScore: relationship.attitudeScore ?? 0,
+    };
+    setDraft(nextDraft);
+    draftRef.current = nextDraft;
+  }, [relationship.attitudeScore, relationship.description, relationship.type]);
+
+  const autoSave = useAutoSave(async (nextDraft: typeof draft) => {
+    const previousDraft = draftRef.current;
+    try {
+      const trimmedDescription = nextDraft.description.trim();
+
+      await onUpdateRelationship(relationship.id, {
+        type: nextDraft.type,
+        description: trimmedDescription ? trimmedDescription : undefined,
+        attitudeScore: nextDraft.attitudeScore,
+      });
+      draftRef.current = nextDraft;
+    } catch (error) {
+      setDraft(previousDraft);
+      draftRef.current = previousDraft;
+
+      if (nextDraft.attitudeScore !== previousDraft.attitudeScore) {
+        setScoreErrorFlash(true);
+        if (scoreErrorFlashTimerRef.current !== null) {
+          clearTimeout(scoreErrorFlashTimerRef.current);
+        }
+        scoreErrorFlashTimerRef.current = setTimeout(() => {
+          setScoreErrorFlash(false);
+          scoreErrorFlashTimerRef.current = null;
+        }, 300);
+      }
+
+      throw error;
+    }
+  }, 300);
+
+  const updateDraft = (nextDraft: typeof draft) => {
+    setDraft(nextDraft);
+    autoSave.scheduleSave(nextDraft);
+  };
+
+  const handleDescriptionKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      event.currentTarget.blur();
+    }
+  };
+
+  const relatedName = relatedEntity?.name
+    ?? `Entity #${relationship.npcId1 === currentEntityId ? relationship.npcId2 : relationship.npcId1}`;
+  const relatedLabel = relatedEntity?.entityType === 'npc' ? 'NPC' : 'Player Character';
+
+  return (
+    <div className="rounded-lg border border-border/50 bg-card/50 group p-2 space-y-2">
+      {/* Row 1: type (editable) + name + delete */}
+      <div className="flex items-start gap-2">
+        <div className="shrink-0 pt-0.5">
+          {isTypeEditing ? (
+            <select
+              className="h-7 rounded border border-border/60 bg-background px-1.5 text-xs"
+              value={draft.type}
+              onChange={(event) => {
+                const nextDraft = { ...draft, type: event.target.value as Relationship['type'] };
+                updateDraft(nextDraft);
+                setIsTypeEditing(false);
+              }}
+              onBlur={() => setIsTypeEditing(false)}
+              autoFocus
+            >
+              {editableRelationshipTypes.map(type => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <button
+              type="button"
+              title="Click to change type"
+              onClick={() => setIsTypeEditing(true)}
+              className={`inline-flex h-auto items-center rounded-md border px-2 py-0.5 text-xs font-semibold transition-colors cursor-pointer hover:opacity-80 ${relationshipBadgeColors[draft.type] ?? relationshipBadgeColors.neutral}`}
+            >
+              {draft.type}
+            </button>
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium truncate">{relatedName}</p>
+          <p className="text-xs text-muted-foreground">{relatedLabel}</p>
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/20 hover:text-destructive"
+          onClick={() => onDeleteRelationship(relationship.id)}
+          aria-label="Delete relationship"
+        >
+          <Trash2 className="size-3" />
+        </Button>
+      </div>
+
+      {/* Row 2: description (click to edit) */}
+      <div>
+        {isDescriptionEditing ? (
+          <input
+            className="h-7 w-full rounded border border-border/60 bg-background px-2 text-xs"
+            value={draft.description}
+            onChange={(event) => updateDraft({ ...draft, description: event.target.value })}
+            onBlur={() => {
+              setIsDescriptionEditing(false);
+              void autoSave.flush().catch(() => {});
+            }}
+            onKeyDown={handleDescriptionKeyDown}
+            autoFocus
+          />
+        ) : (
+          <button
+            type="button"
+            title="Click to edit description"
+            className="w-full text-left text-xs text-muted-foreground italic hover:text-foreground/80 transition-colors"
+            onClick={() => setIsDescriptionEditing(true)}
+          >
+            {draft.description || <span className="opacity-50">Add description…</span>}
+          </button>
+        )}
+      </div>
+
+      {/* Row 3: attitude +/- controls + save indicator */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <AttitudeControl
+          score={draft.attitudeScore}
+          showErrorFlash={scoreErrorFlash}
+          onIncrement={() => {
+            const nextScore = clampAttitudeScore(draft.attitudeScore + 1);
+            if (nextScore !== draft.attitudeScore) {
+              updateDraft({ ...draft, attitudeScore: nextScore });
+            }
+          }}
+          onDecrement={() => {
+            const nextScore = clampAttitudeScore(draft.attitudeScore - 1);
+            if (nextScore !== draft.attitudeScore) {
+              updateDraft({ ...draft, attitudeScore: nextScore });
+            }
+          }}
+        />
+        <SaveIndicator status={autoSave.status} error={autoSave.error} onRetry={autoSave.retry} />
+      </div>
+    </div>
+  );
 }
 
 const relationshipBadgeColors: Record<string, string> = {
@@ -38,6 +253,7 @@ export function EntityDetailPanel({
   allEntities,
   onAddRelationship,
   onDeleteRelationship,
+  onUpdateRelationship,
 }: EntityDetailPanelProps) {
   const [addModalOpen, setAddModalOpen] = useState(false);
 
@@ -68,18 +284,6 @@ export function EntityDetailPanel({
   };
 
   const isNpc = entity.entityType === 'npc';
-  const pcStances = isNpc
-    ? entityRelationships
-        .filter(rel =>
-          rel.entityType1 === 'pc' &&
-          rel.entityType2 === 'npc' &&
-          rel.npcId2 === entity.id
-        )
-        .map(rel => ({
-          relationship: rel,
-          pc: getRelatedEntity(rel),
-        }))
-    : [];
 
   return (
     <div className="flex flex-col h-full min-h-0">
@@ -168,89 +372,20 @@ export function EntityDetailPanel({
                 {entityRelationships.map(rel => {
                   const related = getRelatedEntity(rel);
                   return (
-                    <div
+                    <EditableRelationshipRow
                       key={rel.id}
-                      className="flex items-start gap-2 p-2 rounded-lg border border-border/50 bg-card/50 group"
-                    >
-                      <div className="flex items-center gap-1.5 shrink-0 mt-0.5">
-                        <Badge
-                          variant="outline"
-                          className={`text-xs ${relationshipBadgeColors[rel.type] ?? relationshipBadgeColors.neutral}`}
-                        >
-                          {rel.type}
-                        </Badge>
-                        <span className={`text-xs font-semibold ${
-                          rel.attitudeScore > 0 ? 'text-green-400' : rel.attitudeScore < 0 ? 'text-red-400' : 'text-muted-foreground'
-                        }`}>
-                          {rel.attitudeScore > 0 ? '+' : ''}{rel.attitudeScore}
-                        </span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">
-                          {related?.name ?? `Entity #${rel.npcId1 === entity.id ? rel.npcId2 : rel.npcId1}`}
-                        </p>
-                        {related && (
-                          <p className="text-xs text-muted-foreground">
-                            {related.entityType === 'npc' ? 'NPC' : 'Player Character'}
-                          </p>
-                        )}
-                        {rel.description && (
-                          <p className="text-xs text-muted-foreground mt-0.5 italic">{rel.description}</p>
-                        )}
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/20 hover:text-destructive"
-                        onClick={() => onDeleteRelationship(rel.id)}
-                        aria-label="Delete relationship"
-                      >
-                        <Trash2 className="size-3" />
-                      </Button>
-                    </div>
+                      relationship={rel}
+                      relatedEntity={related}
+                      currentEntityId={entity.id}
+                      onUpdateRelationship={onUpdateRelationship}
+                      onDeleteRelationship={onDeleteRelationship}
+                    />
                   );
                 })}
               </div>
             )}
           </div>
 
-          {isNpc && (
-            <div>
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                PC Stances ({pcStances.length})
-              </p>
-              {pcStances.length === 0 ? (
-                <p className="text-sm text-muted-foreground italic">
-                  No PC stances for this NPC yet.
-                </p>
-              ) : (
-                <div className="rounded-lg border border-border/50 overflow-hidden">
-                  <table className="w-full text-sm">
-                    <thead className="bg-muted/40">
-                      <tr className="text-left text-xs uppercase tracking-wider text-muted-foreground">
-                        <th scope="col" className="px-3 py-2">PC Name</th>
-                        <th scope="col" className="px-3 py-2">Type</th>
-                        <th scope="col" className="px-3 py-2">Attitude</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {pcStances.map(({ relationship, pc }) => (
-                        <tr key={relationship.id} className="border-t border-border/50">
-                          <td className="px-3 py-2">{pc?.name ?? "Unknown PC"}</td>
-                          <td className="px-3 py-2">{relationship.type}</td>
-                          <td className={`px-3 py-2 font-semibold ${
-                            relationship.attitudeScore > 0 ? 'text-green-400' : relationship.attitudeScore < 0 ? 'text-red-400' : 'text-muted-foreground'
-                          }`}>
-                            {relationship.attitudeScore > 0 ? '+' : ''}{relationship.attitudeScore}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          )}
         </div>
       </ScrollArea>
 

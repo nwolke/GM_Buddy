@@ -235,11 +235,22 @@ public class RelationshipsController : ControllerBase
             return BadRequest("attitude_score must be between -5 and 5");
         }
 
+        if (relationship.relationship_type_id <= 0)
+        {
+            return BadRequest("relationship_type_id is required");
+        }
+
         // Account-scoped fetch — returns null if not owned by this account
         EntityRelationship? existing = await _repository.GetRelationshipByIdAsync(id, accountId);
         if (existing == null)
         {
             return NotFound($"Relationship with ID {id} not found");
+        }
+
+        RelationshipType? relationshipType = await _repository.GetRelationshipTypeByIdAsync(relationship.relationship_type_id);
+        if (relationshipType == null)
+        {
+            return BadRequest("Invalid relationship_type_id");
         }
 
         // Lock identifying fields to existing values — prevents retargeting
@@ -249,7 +260,6 @@ public class RelationshipsController : ControllerBase
         relationship.source_entity_id = existing.source_entity_id;
         relationship.target_entity_type = existing.target_entity_type;
         relationship.target_entity_id = existing.target_entity_id;
-        relationship.relationship_type_id = existing.relationship_type_id;
 
         await _repository.UpdateRelationshipAsync(relationship);
         _logger.LogInformation("Updated relationship {RelationshipId} for account {AccountId}", id, accountId);
