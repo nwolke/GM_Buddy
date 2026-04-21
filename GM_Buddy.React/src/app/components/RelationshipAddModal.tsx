@@ -50,6 +50,7 @@ export function RelationshipAddModal({
   const [targetId, setTargetId] = useState<string>("");
   const [relationshipType, setRelationshipType] = useState<RelationshipType | typeof CUSTOM_RELATIONSHIP_SENTINEL>("ally");
   const [attitudeScore, setAttitudeScore] = useState(0);
+  const [attitudeScoreInput, setAttitudeScoreInput] = useState("0");
   const [customType, setCustomType] = useState("");
   const [description, setDescription] = useState("");
   const [saving, setSaving] = useState(false);
@@ -99,6 +100,7 @@ export function RelationshipAddModal({
       setTargetId("");
       setRelationshipType("ally");
       setAttitudeScore(0);
+      setAttitudeScoreInput("0");
       setCustomType("");
       setDescription("");
       onOpenChange(false);
@@ -214,11 +216,29 @@ export function RelationshipAddModal({
               min={-5}
               max={5}
               step={1}
-              value={attitudeScore}
+              value={attitudeScoreInput}
               onChange={(e) => {
-                const next = Number(e.target.value);
+                const rawValue = e.target.value;
+                if (rawValue === "" || rawValue === "-") {
+                  setAttitudeScoreInput(rawValue);
+                  return;
+                }
+
+                const next = Number(rawValue);
                 if (Number.isNaN(next)) return;
-                setAttitudeScore(Math.max(-5, Math.min(5, Math.trunc(next))));
+
+                const normalized = Math.max(-5, Math.min(5, Math.trunc(next)));
+                setAttitudeScore(normalized);
+                setAttitudeScoreInput(String(normalized));
+              }}
+              onBlur={() => {
+                const next = Number(attitudeScoreInput);
+                const normalized = Number.isNaN(next)
+                  ? attitudeScore
+                  : Math.max(-5, Math.min(5, Math.trunc(next)));
+
+                setAttitudeScore(normalized);
+                setAttitudeScoreInput(String(normalized));
               }}
             />
           </div>

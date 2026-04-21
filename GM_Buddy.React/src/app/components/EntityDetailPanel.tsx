@@ -72,8 +72,9 @@ export function EntityDetailPanel({
   const pcStances = isNpc
     ? entityRelationships
         .filter(rel =>
-          (rel.entityType1 === 'npc' && rel.npcId1 === entity.id && rel.entityType2 === 'pc') ||
-          (rel.entityType2 === 'npc' && rel.npcId2 === entity.id && rel.entityType1 === 'pc')
+          rel.entityType1 === 'pc' &&
+          rel.entityType2 === 'npc' &&
+          rel.npcId2 === entity.id
         )
         .map(rel => ({
           relationship: rel,
@@ -175,7 +176,11 @@ export function EntityDetailPanel({
                       <div className="flex items-center gap-1.5 shrink-0 mt-0.5">
                         <Badge
                           variant="outline"
-                          className={`text-xs ${relationshipBadgeColors[rel.type] ?? relationshipBadgeColors.neutral}`}
+                          className={`text-xs ${
+                            rel.customType
+                              ? (relationshipBadgeColors.custom ?? relationshipBadgeColors.neutral)
+                              : (relationshipBadgeColors[rel.type] ?? relationshipBadgeColors.neutral)
+                          }`}
                         >
                           {rel.customType || rel.type}
                         </Badge>

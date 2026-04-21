@@ -101,7 +101,7 @@ describe('Type Definitions', () => {
         'family',
         'rival',
         'mentor',
-        'student',
+        'stranger',
         'neutral',
       ]
 

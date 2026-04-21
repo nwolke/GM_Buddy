@@ -42,6 +42,7 @@ const relationshipColors: Record<string, string> = {
   rival: 'bg-orange-500',
   stranger: 'bg-zinc-500',
   'vassal/follower': 'bg-stone-500',
+  custom: 'bg-lime-500',
   neutral: 'bg-gray-500',
 };
 
@@ -57,6 +58,7 @@ export function RelationshipManager({
   const [selectedNPCId, setSelectedNPCId] = useState<string>("");
   const [relationshipType, setRelationshipType] = useState<RelationshipType | typeof CUSTOM_RELATIONSHIP_SENTINEL>("ally");
   const [attitudeScore, setAttitudeScore] = useState(0);
+  const [attitudeScoreInput, setAttitudeScoreInput] = useState("0");
   const [customType, setCustomType] = useState("");
   const [description, setDescription] = useState("");
 
@@ -99,6 +101,7 @@ export function RelationshipManager({
     setSelectedNPCId("");
     setRelationshipType("ally");
     setAttitudeScore(0);
+    setAttitudeScoreInput("0");
     setCustomType("");
     setDescription("");
   };
@@ -132,7 +135,10 @@ export function RelationshipManager({
                   return (
                     <div key={rel.id} className="flex items-center justify-between p-3 border rounded-lg">
                       <div className="flex items-center gap-3 flex-1">
-                        <Badge className={relationshipColors[rel.type] ?? relationshipColors.neutral}>
+                        <Badge className={rel.customType
+                          ? (relationshipColors.custom ?? relationshipColors.neutral)
+                          : (relationshipColors[rel.type] ?? relationshipColors.neutral)}
+                        >
                           {rel.customType || rel.type}
                         </Badge>
                         <span className={`text-xs font-semibold ${
@@ -223,25 +229,30 @@ export function RelationshipManager({
                     min={-5}
                     max={5}
                     step={1}
-                    defaultValue={attitudeScore}
+                    value={attitudeScoreInput}
                     onChange={(e) => {
                       const rawValue = e.target.value;
-                      if (rawValue === "" || rawValue === "-") return;
+                      if (rawValue === "" || rawValue === "-") {
+                        setAttitudeScoreInput(rawValue);
+                        return;
+                      }
 
                       const next = Number(rawValue);
                       if (Number.isNaN(next)) return;
 
-                      setAttitudeScore(Math.max(-5, Math.min(5, Math.trunc(next))));
+                      const normalized = Math.max(-5, Math.min(5, Math.trunc(next)));
+                      setAttitudeScore(normalized);
+                      setAttitudeScoreInput(String(normalized));
                     }}
-                    onBlur={(e) => {
-                      const rawValue = e.target.value;
+                    onBlur={() => {
+                      const rawValue = attitudeScoreInput;
                       const next = Number(rawValue);
                       const normalized = Number.isNaN(next)
                         ? attitudeScore
                         : Math.max(-5, Math.min(5, Math.trunc(next)));
 
                       setAttitudeScore(normalized);
-                      e.target.value = String(normalized);
+                      setAttitudeScoreInput(String(normalized));
                     }}
                   />
                 </div>

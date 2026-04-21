@@ -64,7 +64,7 @@ describe('Mock Data', () => {
     })
 
     it('should have valid relationship types', () => {
-      const validTypes = ['ally', 'enemy', 'family', 'rival', 'mentor', 'student', 'neutral']
+      const validTypes = ['ally', 'enemy', 'family', 'rival', 'mentor', 'stranger', 'neutral']
       
       mockRelationships.forEach(rel => {
         expect(validTypes).toContain(rel.type)
@@ -76,7 +76,7 @@ describe('Mock Data', () => {
     it('should have all relationship types', () => {
       expect(mockRelationshipTypes).toHaveLength(7)
       
-      const expectedTypes = ['ally', 'enemy', 'family', 'rival', 'mentor', 'student', 'neutral']
+      const expectedTypes = ['ally', 'enemy', 'family', 'rival', 'mentor', 'stranger', 'neutral']
       const actualTypes = mockRelationshipTypes.map(t => t.name)
       
       expectedTypes.forEach(type => {
