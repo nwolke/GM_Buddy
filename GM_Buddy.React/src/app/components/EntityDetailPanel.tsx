@@ -228,9 +228,9 @@ export function EntityDetailPanel({
                   <table className="w-full text-sm">
                     <thead className="bg-muted/40">
                       <tr className="text-left text-xs uppercase tracking-wider text-muted-foreground">
-                        <th className="px-3 py-2">PC Name</th>
-                        <th className="px-3 py-2">Type</th>
-                        <th className="px-3 py-2">Attitude</th>
+                        <th scope="col" className="px-3 py-2">PC Name</th>
+                        <th scope="col" className="px-3 py-2">Type</th>
+                        <th scope="col" className="px-3 py-2">Attitude</th>
                       </tr>
                     </thead>
                     <tbody>
