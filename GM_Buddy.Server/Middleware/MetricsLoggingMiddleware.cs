@@ -68,15 +68,14 @@ public class MetricsLoggingMiddleware
             var requestStatusCode = context.Response.StatusCode;
             var requestMethod = request.Method;
             var requestPath = request.Path.ToString();
-            var requestRoute = request.Path.HasValue ? request.Path.Value : "/";
             var allocatedBytes = Math.Max(0, GC.GetTotalAllocatedBytes() - allocatedBytesAtStart);
             var workingSetBytes = Environment.WorkingSet;
             var requestTags = new TagList
             {
                 { "http.method", requestMethod },
-                { "http.route", requestRoute },
+                { "http.route", requestPath },
                 { "http.status_code", requestStatusCode },
-                { "request.failed", requestException is not null }
+                { "error", requestException is not null }
             };
 
             RequestDurationMilliseconds.Record(elapsedMilliseconds, requestTags);
@@ -85,13 +84,12 @@ public class MetricsLoggingMiddleware
             RequestCounter.Add(1, requestTags);
 
             activity?.SetTag("http.method", requestMethod);
-            activity?.SetTag("http.route", requestRoute);
-            activity?.SetTag("http.path", requestPath);
+            activity?.SetTag("http.route", requestPath);
             activity?.SetTag("http.status_code", requestStatusCode);
             activity?.SetTag("gm_buddy.request.duration_ms", elapsedMilliseconds);
             activity?.SetTag("gm_buddy.request.allocated_bytes", allocatedBytes);
             activity?.SetTag("gm_buddy.request.working_set_bytes", workingSetBytes);
-            activity?.SetTag("request.failed", requestException is not null);
+            activity?.SetTag("error", requestException is not null);
 
             LogRequestMetrics(context, elapsedMilliseconds, allocatedBytes, workingSetBytes);
         }
