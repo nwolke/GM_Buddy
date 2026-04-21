@@ -11,8 +11,6 @@ public class MetricsLoggingMiddleware
 {
     public const string MeterName = "GM_Buddy.Server.Diagnostics";
 
-    public const string ActivitySourceName = "GM_Buddy.Server.RequestDiagnostics";
-
     private static readonly Meter Meter = new(MeterName);
     private static readonly Histogram<double> RequestDurationMilliseconds = Meter.CreateHistogram<double>(
         "gm_buddy.request.duration",
@@ -29,8 +27,6 @@ public class MetricsLoggingMiddleware
     private static readonly Counter<long> RequestCounter = Meter.CreateCounter<long>(
         "gm_buddy.request.count",
         description: "Number of inbound HTTP requests.");
-    private static readonly ActivitySource ActivitySource = new(ActivitySourceName);
-
     private readonly RequestDelegate _next;
     private readonly ILogger<MetricsLoggingMiddleware> _logger;
 
@@ -67,13 +63,15 @@ public class MetricsLoggingMiddleware
             var elapsedMilliseconds = stopwatch.Elapsed.TotalMilliseconds;
             var requestStatusCode = context.Response.StatusCode;
             var requestMethod = request.Method;
+            var routeTemplate = (context.GetEndpoint() as Microsoft.AspNetCore.Routing.RouteEndpoint)?.RoutePattern?.RawText;
             var requestPath = request.Path.ToString();
+            var routeTagValue = string.IsNullOrWhiteSpace(routeTemplate) ? "unmatched" : routeTemplate;
             var allocatedBytesDelta = Math.Max(0, GC.GetTotalAllocatedBytes() - totalAllocatedBytesAtStart);
             var workingSetBytes = Environment.WorkingSet;
             var requestTags = new TagList
             {
                 { "http.method", requestMethod },
-                { "http.route", requestPath },
+                { "http.route", routeTagValue },
                 { "http.status_code", requestStatusCode },
                 { "error", requestException is not null }
             };
@@ -84,7 +82,12 @@ public class MetricsLoggingMiddleware
             RequestCounter.Add(1, requestTags);
 
             activity?.SetTag("http.method", requestMethod);
-            activity?.SetTag("http.route", requestPath);
+            if (!string.IsNullOrWhiteSpace(routeTemplate))
+            {
+                activity?.SetTag("http.route", routeTemplate);
+            }
+
+            activity?.SetTag("url.path", requestPath);
             activity?.SetTag("http.status_code", requestStatusCode);
             activity?.SetTag("gm_buddy.request.duration_ms", elapsedMilliseconds);
             activity?.SetTag("gm_buddy.process.allocated_bytes_delta", allocatedBytesDelta);
