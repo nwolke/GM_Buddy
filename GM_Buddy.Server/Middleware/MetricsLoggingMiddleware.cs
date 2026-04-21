@@ -47,7 +47,7 @@ public class MetricsLoggingMiddleware
         var stopwatch = Stopwatch.StartNew();
         Exception? requestException = null;
 
-        using var activity = ActivitySource.StartActivity("request.diagnostics", ActivityKind.Internal);
+        var activity = Activity.Current;
         try
         {
             // Continue processing the request
