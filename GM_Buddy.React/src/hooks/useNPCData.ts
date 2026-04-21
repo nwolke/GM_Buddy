@@ -13,6 +13,10 @@ interface UseNPCDataReturn {
   deleteNPC: (id: number) => Promise<void>;
   addRelationship: (relationship: Omit<Relationship, 'id'>) => Promise<void>;
   deleteRelationship: (id: number) => Promise<void>;
+  updateRelationship: (
+    id: number,
+    updates: Partial<Pick<Relationship, 'type' | 'description' | 'attitudeScore'>>
+  ) => Promise<void>;
 }
 
 export function useNPCData(selectedCampaignId?: number): UseNPCDataReturn {
@@ -250,6 +254,52 @@ const [error, setError] = useState<string | null>(null);
     setRelationships(prev => prev.filter(rel => rel.id !== id));
   }, []);
 
+  const updateRelationship = useCallback(async (
+    id: number,
+    updates: Partial<Pick<Relationship, 'type' | 'description' | 'attitudeScore'>>
+  ) => {
+    let previousRelationship: Relationship | undefined;
+    let nextRelationship: Relationship | undefined;
+
+    setRelationships(prev => prev.map(rel => {
+      if (rel.id !== id) {
+        return rel;
+      }
+
+      previousRelationship = rel;
+      nextRelationship = {
+        ...rel,
+        ...updates,
+      };
+
+      return nextRelationship;
+    }));
+
+    if (!previousRelationship || !nextRelationship) {
+      return;
+    }
+
+    try {
+      const relationshipTypeId = getRelationshipTypeId(nextRelationship.type);
+      await relationshipApi.updateRelationship(id, {
+        entity_relationship_id: id,
+        source_entity_type: nextRelationship.entityType1,
+        source_entity_id: nextRelationship.npcId1,
+        target_entity_type: nextRelationship.entityType2,
+        target_entity_id: nextRelationship.npcId2,
+        relationship_type_id: relationshipTypeId,
+        description: nextRelationship.description,
+        attitude_score: nextRelationship.attitudeScore,
+        campaign_id: nextRelationship.campaignId,
+      });
+      console.log('[useNPCData] Updated relationship:', id, updates);
+    } catch (err) {
+      console.error('[useNPCData] Failed to update relationship:', id, err);
+      setRelationships(prev => prev.map(rel => rel.id === id ? previousRelationship as Relationship : rel));
+      throw err;
+    }
+  }, []);
+
   return {
     npcs,
     relationships,
@@ -260,5 +310,6 @@ const [error, setError] = useState<string | null>(null);
     deleteNPC,
     addRelationship,
     deleteRelationship,
+    updateRelationship,
   };
 }

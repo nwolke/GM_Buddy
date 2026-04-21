@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { KeyboardEvent, useEffect, useRef, useState } from "react";
 import { Relationship } from "@/types/npc";
 import { EntityItem } from "@/types/entity";
 import { Badge } from "@/app/components/ui/badge";
@@ -6,6 +6,9 @@ import { Button } from "@/app/components/ui/button";
 import { ScrollArea } from "@/app/components/ui/scroll-area";
 import { Separator } from "@/app/components/ui/separator";
 import { RelationshipAddModal } from "@/app/components/RelationshipAddModal";
+import { AttitudeControl } from "@/app/components/AttitudeControl";
+import { SaveIndicator } from "@/app/components/SaveIndicator";
+import { useAutoSave } from "@/hooks/useAutoSave";
 import { Trash2, Plus, Shield, User } from "lucide-react";
 
 interface EntityDetailPanelProps {
@@ -14,6 +17,179 @@ interface EntityDetailPanelProps {
   allEntities: EntityItem[];
   onAddRelationship: (relationship: Omit<Relationship, 'id'>) => Promise<void>;
   onDeleteRelationship: (id: number) => Promise<void>;
+  onUpdateRelationship: (
+    id: number,
+    updates: Partial<Pick<Relationship, 'type' | 'description' | 'attitudeScore'>>
+  ) => Promise<void>;
+}
+
+const editableRelationshipTypes: Relationship['type'][] = [
+  'acquaintance',
+  'ally',
+  'contact/informant',
+  'employer',
+  'enemy',
+  'family',
+  'lover',
+  'mentor',
+  'patron',
+  'rival',
+  'stranger',
+  'vassal/follower',
+  'neutral',
+];
+
+interface EditablePcStanceRowProps {
+  relationship: Relationship;
+  pcName: string;
+  onUpdateRelationship: (
+    id: number,
+    updates: Partial<Pick<Relationship, 'type' | 'description' | 'attitudeScore'>>
+  ) => Promise<void>;
+}
+
+const clampAttitudeScore = (score: number) => Math.min(5, Math.max(-5, score));
+
+function EditablePcStanceRow({
+  relationship,
+  pcName,
+  onUpdateRelationship,
+}: EditablePcStanceRowProps) {
+  const [draft, setDraft] = useState({
+    type: relationship.type,
+    description: relationship.description ?? '',
+    attitudeScore: relationship.attitudeScore ?? 0,
+  });
+  const [isTypeEditing, setIsTypeEditing] = useState(false);
+  const [isDescriptionEditing, setIsDescriptionEditing] = useState(false);
+  const [scoreErrorFlash, setScoreErrorFlash] = useState(false);
+  const draftRef = useRef(draft);
+
+  useEffect(() => {
+    const nextDraft = {
+      type: relationship.type,
+      description: relationship.description ?? '',
+      attitudeScore: relationship.attitudeScore ?? 0,
+    };
+    setDraft(nextDraft);
+    draftRef.current = nextDraft;
+  }, [relationship.attitudeScore, relationship.description, relationship.type]);
+
+  const autoSave = useAutoSave(async (nextDraft: typeof draft) => {
+    const previousDraft = draftRef.current;
+    try {
+      await onUpdateRelationship(relationship.id, {
+        type: nextDraft.type,
+        description: nextDraft.description.trim() ? nextDraft.description : undefined,
+        attitudeScore: nextDraft.attitudeScore,
+      });
+      draftRef.current = nextDraft;
+    } catch (error) {
+      setDraft(previousDraft);
+      draftRef.current = previousDraft;
+
+      if (nextDraft.attitudeScore !== previousDraft.attitudeScore) {
+        setScoreErrorFlash(true);
+        setTimeout(() => setScoreErrorFlash(false), 300);
+      }
+
+      throw error;
+    }
+  }, 300);
+
+  const updateDraft = (nextDraft: typeof draft) => {
+    setDraft(nextDraft);
+    autoSave.scheduleSave(nextDraft);
+  };
+
+  const handleDescriptionKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      event.currentTarget.blur();
+    }
+  };
+
+  return (
+    <div className="rounded-lg border border-border/50 bg-card/30 p-2">
+      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">PC</p>
+      <p className="text-sm font-medium">{pcName}</p>
+      <div className="mt-2">
+        <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Type</p>
+        {isTypeEditing ? (
+          <select
+            className="h-8 rounded border border-border/60 bg-background px-2 text-xs"
+            value={draft.type}
+            onChange={(event) => {
+              const nextDraft = { ...draft, type: event.target.value as Relationship['type'] };
+              updateDraft(nextDraft);
+              setIsTypeEditing(false);
+            }}
+            onBlur={() => setIsTypeEditing(false)}
+            autoFocus
+          >
+            {editableRelationshipTypes.map(type => (
+              <option key={type} value={type}>
+                {type}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <button
+            type="button"
+            className="text-xs underline decoration-dotted underline-offset-4"
+            onClick={() => setIsTypeEditing(true)}
+          >
+            {draft.type}
+          </button>
+        )}
+      </div>
+      <div className="mt-2">
+        <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Description</p>
+        {isDescriptionEditing ? (
+          <input
+            className="h-8 w-full rounded border border-border/60 bg-background px-2 text-xs"
+            value={draft.description}
+            onChange={(event) => updateDraft({ ...draft, description: event.target.value })}
+            onBlur={() => {
+              setIsDescriptionEditing(false);
+              void autoSave.flush();
+            }}
+            onKeyDown={handleDescriptionKeyDown}
+            autoFocus
+          />
+        ) : (
+          <button
+            type="button"
+            className="max-w-[220px] truncate text-left text-xs text-muted-foreground underline decoration-dotted underline-offset-4"
+            onClick={() => setIsDescriptionEditing(true)}
+          >
+            {draft.description || 'Add description'}
+          </button>
+        )}
+      </div>
+      <div className="mt-2">
+        <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Attitude</p>
+        <div className="flex flex-col items-start gap-1">
+          <AttitudeControl
+            score={draft.attitudeScore}
+            showErrorFlash={scoreErrorFlash}
+            onIncrement={() => {
+              const nextScore = clampAttitudeScore(draft.attitudeScore + 1);
+              if (nextScore !== draft.attitudeScore) {
+                updateDraft({ ...draft, attitudeScore: nextScore });
+              }
+            }}
+            onDecrement={() => {
+              const nextScore = clampAttitudeScore(draft.attitudeScore - 1);
+              if (nextScore !== draft.attitudeScore) {
+                updateDraft({ ...draft, attitudeScore: nextScore });
+              }
+            }}
+          />
+          <SaveIndicator status={autoSave.status} error={autoSave.error} onRetry={autoSave.retry} />
+        </div>
+      </div>
+    </div>
+  );
 }
 
 const relationshipBadgeColors: Record<string, string> = {
@@ -38,6 +214,7 @@ export function EntityDetailPanel({
   allEntities,
   onAddRelationship,
   onDeleteRelationship,
+  onUpdateRelationship,
 }: EntityDetailPanelProps) {
   const [addModalOpen, setAddModalOpen] = useState(false);
 
@@ -224,29 +401,15 @@ export function EntityDetailPanel({
                   No PC stances for this NPC yet.
                 </p>
               ) : (
-                <div className="rounded-lg border border-border/50 overflow-hidden">
-                  <table className="w-full text-sm">
-                    <thead className="bg-muted/40">
-                      <tr className="text-left text-xs uppercase tracking-wider text-muted-foreground">
-                        <th scope="col" className="px-3 py-2">PC Name</th>
-                        <th scope="col" className="px-3 py-2">Type</th>
-                        <th scope="col" className="px-3 py-2">Attitude</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {pcStances.map(({ relationship, pc }) => (
-                        <tr key={relationship.id} className="border-t border-border/50">
-                          <td className="px-3 py-2">{pc?.name ?? "Unknown PC"}</td>
-                          <td className="px-3 py-2">{relationship.type}</td>
-                          <td className={`px-3 py-2 font-semibold ${
-                            relationship.attitudeScore > 0 ? 'text-green-400' : relationship.attitudeScore < 0 ? 'text-red-400' : 'text-muted-foreground'
-                          }`}>
-                            {relationship.attitudeScore > 0 ? '+' : ''}{relationship.attitudeScore}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                <div className="space-y-2">
+                  {pcStances.map(({ relationship, pc }) => (
+                    <EditablePcStanceRow
+                      key={relationship.id}
+                      relationship={relationship}
+                      pcName={pc?.name ?? "Unknown PC"}
+                      onUpdateRelationship={onUpdateRelationship}
+                    />
+                  ))}
                 </div>
               )}
             </div>
