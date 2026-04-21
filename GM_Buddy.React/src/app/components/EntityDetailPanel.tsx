@@ -68,7 +68,15 @@ function EditableRelationshipRow({
   const [isDescriptionEditing, setIsDescriptionEditing] = useState(false);
   const [scoreErrorFlash, setScoreErrorFlash] = useState(false);
   const draftRef = useRef(draft);
+  const scoreErrorFlashTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  useEffect(() => {
+    return () => {
+      if (scoreErrorFlashTimerRef.current !== null) {
+        clearTimeout(scoreErrorFlashTimerRef.current);
+      }
+    };
+  }, []);
   useEffect(() => {
     const nextDraft = {
       type: relationship.type,
@@ -96,7 +104,13 @@ function EditableRelationshipRow({
 
       if (nextDraft.attitudeScore !== previousDraft.attitudeScore) {
         setScoreErrorFlash(true);
-        setTimeout(() => setScoreErrorFlash(false), 300);
+        if (scoreErrorFlashTimerRef.current !== null) {
+          clearTimeout(scoreErrorFlashTimerRef.current);
+        }
+        scoreErrorFlashTimerRef.current = setTimeout(() => {
+          setScoreErrorFlash(false);
+          scoreErrorFlashTimerRef.current = null;
+        }, 300);
       }
 
       throw error;

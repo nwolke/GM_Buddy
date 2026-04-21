@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { NPC, Relationship } from '@/types/npc';
 import { npcApi, CreateNpcRequest, relationshipApi, transformApiRelationshipToRelationship, getRelationshipTypeId } from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
@@ -23,6 +23,8 @@ export function useNPCData(selectedCampaignId?: number): UseNPCDataReturn {
 const { isAuthenticated } = useAuth();
 const [npcs, setNPCs] = useState<NPC[]>([]);
 const [relationships, setRelationships] = useState<Relationship[]>([]);
+  const relationshipsRef = useRef(relationships);
+  useEffect(() => { relationshipsRef.current = relationships; }, [relationships]);
 const [loading, setLoading] = useState(true);
 const [error, setError] = useState<string | null>(null);
 
@@ -258,26 +260,15 @@ const [error, setError] = useState<string | null>(null);
     id: number,
     updates: Partial<Pick<Relationship, 'type' | 'description' | 'attitudeScore'>>
   ) => {
-    let previousRelationship: Relationship | undefined;
-    let nextRelationship: Relationship | undefined;
+    const previousRelationship = relationshipsRef.current.find(rel => rel.id === id);
 
-    setRelationships(prev => prev.map(rel => {
-      if (rel.id !== id) {
-        return rel;
-      }
-
-      previousRelationship = rel;
-      nextRelationship = {
-        ...rel,
-        ...updates,
-      };
-
-      return nextRelationship;
-    }));
-
-    if (!previousRelationship || !nextRelationship) {
+    if (!previousRelationship) {
       return;
     }
+
+    const nextRelationship: Relationship = { ...previousRelationship, ...updates };
+
+    setRelationships(prev => prev.map(rel => rel.id === id ? nextRelationship : rel));
 
     try {
       const relationshipTypeId = getRelationshipTypeId(nextRelationship.type);
@@ -295,7 +286,7 @@ const [error, setError] = useState<string | null>(null);
       console.log('[useNPCData] Updated relationship:', id, updates);
     } catch (err) {
       console.error('[useNPCData] Failed to update relationship:', id, err);
-      setRelationships(prev => prev.map(rel => rel.id === id ? previousRelationship as Relationship : rel));
+      setRelationships(prev => prev.map(rel => rel.id === id ? previousRelationship : rel));
       throw err;
     }
   }, []);
