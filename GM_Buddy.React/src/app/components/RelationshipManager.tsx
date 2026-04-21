@@ -3,8 +3,6 @@ import {
   NPC,
   Relationship,
   RelationshipType,
-  CUSTOM_RELATIONSHIP_SENTINEL,
-  DEFAULT_CUSTOM_RELATIONSHIP_TYPE,
 } from "@/types/npc";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
 import { Button } from "@/app/components/ui/button";
@@ -42,7 +40,6 @@ const relationshipColors: Record<string, string> = {
   rival: 'bg-orange-500',
   stranger: 'bg-zinc-500',
   'vassal/follower': 'bg-stone-500',
-  custom: 'bg-lime-500',
   neutral: 'bg-gray-500',
 };
 
@@ -56,10 +53,9 @@ export function RelationshipManager({
   onDeleteRelationship
 }: RelationshipManagerProps) {
   const [selectedNPCId, setSelectedNPCId] = useState<string>("");
-  const [relationshipType, setRelationshipType] = useState<RelationshipType | typeof CUSTOM_RELATIONSHIP_SENTINEL>("ally");
+  const [relationshipType, setRelationshipType] = useState<RelationshipType>("ally");
   const [attitudeScore, setAttitudeScore] = useState(0);
   const [attitudeScoreInput, setAttitudeScoreInput] = useState("0");
-  const [customType, setCustomType] = useState("");
   const [description, setDescription] = useState("");
 
   if (!currentNPC) return null;
@@ -92,17 +88,15 @@ export function RelationshipManager({
       npcId2: numericNPCId,
       entityType1: 'npc',
       entityType2: 'npc',
-      type: relationshipType === CUSTOM_RELATIONSHIP_SENTINEL ? DEFAULT_CUSTOM_RELATIONSHIP_TYPE : relationshipType,
+      type: relationshipType,
       description: description || undefined,
       attitudeScore,
-      customType: relationshipType === CUSTOM_RELATIONSHIP_SENTINEL ? customType.trim() || undefined : undefined,
     });
 
     setSelectedNPCId("");
     setRelationshipType("ally");
     setAttitudeScore(0);
     setAttitudeScoreInput("0");
-    setCustomType("");
     setDescription("");
   };
 
@@ -135,11 +129,8 @@ export function RelationshipManager({
                   return (
                     <div key={rel.id} className="flex items-center justify-between p-3 border rounded-lg">
                       <div className="flex items-center gap-3 flex-1">
-                        <Badge className={rel.customType
-                          ? (relationshipColors.custom ?? relationshipColors.neutral)
-                          : (relationshipColors[rel.type] ?? relationshipColors.neutral)}
-                        >
-                          {rel.customType || rel.type}
+                        <Badge className={relationshipColors[rel.type] ?? relationshipColors.neutral}>
+                          {rel.type}
                         </Badge>
                         <span className={`text-xs font-semibold ${
                           rel.attitudeScore > 0 ? 'text-green-400' : rel.attitudeScore < 0 ? 'text-red-400' : 'text-muted-foreground'
@@ -192,7 +183,7 @@ export function RelationshipManager({
                   <Label htmlFor="type-select">Relationship Type</Label>
                   <Select
                     value={relationshipType}
-                    onValueChange={(val) => setRelationshipType(val as RelationshipType | typeof CUSTOM_RELATIONSHIP_SENTINEL)}
+                    onValueChange={(val) => setRelationshipType(val as RelationshipType)}
                   >
                     <SelectTrigger id="type-select">
                       <SelectValue />
@@ -203,23 +194,9 @@ export function RelationshipManager({
                           {type.split('/').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join('/')}
                         </SelectItem>
                       ))}
-                      <SelectItem value={CUSTOM_RELATIONSHIP_SENTINEL}>Custom...</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-
-                {relationshipType === CUSTOM_RELATIONSHIP_SENTINEL && (
-                  <div className="grid gap-2">
-                    <Label htmlFor="custom-type">Custom Type Name</Label>
-                    <Input
-                      id="custom-type"
-                      value={customType}
-                      onChange={(e) => setCustomType(e.target.value)}
-                      placeholder="e.g. Blood Oath, Sworn Shield"
-                      maxLength={100}
-                    />
-                  </div>
-                )}
 
                 <div className="grid gap-2">
                   <Label htmlFor="attitude-score">Attitude Score (-5 to +5)</Label>
@@ -267,7 +244,7 @@ export function RelationshipManager({
                   />
                 </div>
 
-                <Button onClick={handleAddRelationship} disabled={!selectedNPCId || (relationshipType === CUSTOM_RELATIONSHIP_SENTINEL && !customType.trim())}>
+                <Button onClick={handleAddRelationship} disabled={!selectedNPCId}>
                   Add Relationship
                 </Button>
               </div>

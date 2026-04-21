@@ -2,8 +2,6 @@ import { useState } from "react";
 import {
   Relationship,
   RelationshipType,
-  CUSTOM_RELATIONSHIP_SENTINEL,
-  DEFAULT_CUSTOM_RELATIONSHIP_TYPE,
 } from "@/types/npc";
 import {
   Dialog,
@@ -48,10 +46,9 @@ export function RelationshipAddModal({
   onAdd,
 }: RelationshipAddModalProps) {
   const [targetId, setTargetId] = useState<string>("");
-  const [relationshipType, setRelationshipType] = useState<RelationshipType | typeof CUSTOM_RELATIONSHIP_SENTINEL>("ally");
+  const [relationshipType, setRelationshipType] = useState<RelationshipType>("ally");
   const [attitudeScore, setAttitudeScore] = useState(0);
   const [attitudeScoreInput, setAttitudeScoreInput] = useState("0");
-  const [customType, setCustomType] = useState("");
   const [description, setDescription] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -91,17 +88,15 @@ export function RelationshipAddModal({
         npcId2: numericTargetId,
         entityType1: sourceEntity.entityType,
         entityType2: targetType,
-        type: relationshipType === CUSTOM_RELATIONSHIP_SENTINEL ? DEFAULT_CUSTOM_RELATIONSHIP_TYPE : relationshipType,
+        type: relationshipType,
         description: description || undefined,
         attitudeScore,
-        customType: relationshipType === CUSTOM_RELATIONSHIP_SENTINEL ? customType.trim() || undefined : undefined,
       });
       // Only clear and close on success
       setTargetId("");
       setRelationshipType("ally");
       setAttitudeScore(0);
       setAttitudeScoreInput("0");
-      setCustomType("");
       setDescription("");
       onOpenChange(false);
     } catch (err) {
@@ -169,7 +164,7 @@ export function RelationshipAddModal({
             <Label htmlFor="type-select">Relationship Type</Label>
             <Select
               value={relationshipType}
-              onValueChange={(val) => setRelationshipType(val as RelationshipType | typeof CUSTOM_RELATIONSHIP_SENTINEL)}
+              onValueChange={(val) => setRelationshipType(val as RelationshipType)}
             >
               <SelectTrigger id="type-select">
                 <SelectValue />
@@ -180,26 +175,9 @@ export function RelationshipAddModal({
                     {type.split('/').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join('/')}
                   </SelectItem>
                 ))}
-                <SelectItem value={CUSTOM_RELATIONSHIP_SENTINEL}>Custom...</SelectItem>
               </SelectContent>
             </Select>
           </div>
-
-          {relationshipType === CUSTOM_RELATIONSHIP_SENTINEL && (
-            <div className="grid gap-2">
-              <Label htmlFor="custom-type">Custom Type Name <span className="text-destructive">*</span></Label>
-              <Input
-                id="custom-type"
-                value={customType}
-                onChange={(e) => setCustomType(e.target.value)}
-                placeholder="e.g. Blood Oath, Sworn Shield"
-                maxLength={100}
-              />
-              {relationshipType === CUSTOM_RELATIONSHIP_SENTINEL && !customType.trim() && (
-                <p className="text-xs text-muted-foreground">A custom type name is required.</p>
-              )}
-            </div>
-          )}
 
           <div className="grid gap-2">
             <Label htmlFor="attitude-score">
@@ -263,7 +241,7 @@ export function RelationshipAddModal({
           </Button>
           <Button
             onClick={handleAdd}
-            disabled={!targetId || saving || (relationshipType === CUSTOM_RELATIONSHIP_SENTINEL && !customType.trim())}
+            disabled={!targetId || saving}
             className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
           >
             {saving ? 'Adding...' : 'Add Relationship'}

@@ -17,6 +17,7 @@ const relationshipTypeColors: Record<string, string> = {
   ally: "#10b981",
   child: "#ec4899",
   contact: "#14b8a6",
+  "contact/informant": "#14b8a6",
   employee: "#f59e0b",
   employer: "#d97706",
   enemy: "#ef4444",
@@ -37,7 +38,7 @@ const relationshipTypeColors: Record<string, string> = {
   stranger: "#71717a",
   student: "#06b6d4",
   vassal: "#78716c",
-  custom: "#84cc16",
+  "vassal/follower": "#78716c",
   neutral: "#6b7280",
 };
 
@@ -72,10 +73,7 @@ export function CampaignAnalyticsPanel({
     const counts = new Map<string, number>();
 
     relationships.forEach(relationship => {
-      const typeKey = relationship.type === "custom" && relationship.customType?.trim()
-        ? relationship.customType.trim()
-        : relationship.type;
-      counts.set(typeKey, (counts.get(typeKey) ?? 0) + 1);
+      counts.set(relationship.type, (counts.get(relationship.type) ?? 0) + 1);
     });
 
     return Array.from(counts.entries())

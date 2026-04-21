@@ -216,7 +216,6 @@ const [error, setError] = useState<string | null>(null);
         relationship_type_id: relationshipTypeId,
         description: relationshipData.description,
         attitude_score: relationshipData.attitudeScore ?? 0,
-        custom_type: relationshipData.customType,
         campaign_id: selectedCampaignId,
       };
 

@@ -99,7 +99,6 @@ CREATE TABLE IF NOT EXISTS public.entity_relationship (
     
     -- Relationship metadata
     relationship_type_id int NOT NULL,
-    custom_type varchar(100),
     description text,
     attitude_score int DEFAULT 0 CHECK (attitude_score BETWEEN -5 AND 5),
     is_active boolean DEFAULT true,

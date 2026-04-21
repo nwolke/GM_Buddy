@@ -94,7 +94,6 @@ public class RelationshipRepository : IRelationshipRepository
                 target_entity_id,
                 relationship_type_id,
                 description,
-                custom_type,
                 attitude_score,
                 is_active,
                 campaign_id
@@ -106,7 +105,6 @@ public class RelationshipRepository : IRelationshipRepository
                 @target_entity_id,
                 @relationship_type_id,
                 @description,
-                @custom_type,
                 @attitude_score,
                 @is_active,
                 @campaign_id
@@ -129,7 +127,6 @@ public class RelationshipRepository : IRelationshipRepository
                 er.target_entity_id,
                 er.relationship_type_id,
                 er.description,
-                er.custom_type,
                 er.attitude_score,
                 er.is_active,
                 er.campaign_id,
@@ -317,7 +314,6 @@ public class RelationshipRepository : IRelationshipRepository
         const string sql = @"
             UPDATE public.entity_relationship
             SET description = @description,
-                custom_type = @custom_type,
                 attitude_score = @attitude_score,
                 is_active = @is_active,
                 campaign_id = @campaign_id,
@@ -439,7 +435,6 @@ public class RelationshipRepository : IRelationshipRepository
                 er.target_entity_id,
                 er.relationship_type_id,
                 er.description,
-                er.custom_type,
                 er.attitude_score,
                 er.is_active,
                 er.campaign_id,

@@ -70,19 +70,6 @@ public class RelationshipsController : ControllerBase
             return BadRequest("attitude_score must be between -5 and 5");
         }
 
-        if (relationship.custom_type != null)
-        {
-            relationship.custom_type = relationship.custom_type.Trim();
-            if (relationship.custom_type.Length > 100)
-            {
-                return BadRequest("custom_type must be 100 characters or fewer");
-            }
-            if (relationship.custom_type.Length == 0)
-            {
-                relationship.custom_type = null;
-            }
-        }
-
         // Require campaign_id — account scoping relies on campaign.account_id,
         // so relationships without a campaign would be orphaned/invisible
         if (!relationship.campaign_id.HasValue)
@@ -246,19 +233,6 @@ public class RelationshipsController : ControllerBase
         if (relationship.attitude_score < -5 || relationship.attitude_score > 5)
         {
             return BadRequest("attitude_score must be between -5 and 5");
-        }
-
-        if (relationship.custom_type != null)
-        {
-            relationship.custom_type = relationship.custom_type.Trim();
-            if (relationship.custom_type.Length > 100)
-            {
-                return BadRequest("custom_type must be 100 characters or fewer");
-            }
-            if (relationship.custom_type.Length == 0)
-            {
-                relationship.custom_type = null;
-            }
         }
 
         // Account-scoped fetch — returns null if not owned by this account
