@@ -42,33 +42,33 @@ app.UseCors("AllowSpecificOrigins");
 
 ### Simple GET request
 ```
-Request Metrics: GET /npcs | Status: 200 | Duration: 45ms | Parameters: None
+Request Metrics: GET /npcs | Status: 200 | Duration: 45ms | AllocatedBytes: 16384 | WorkingSetBytes: 110919680 | Parameters: None
 ```
 
 ### GET with query parameters
 ```
-Request Metrics: GET /npcs | Status: 200 | Duration: 52ms | Parameters: QueryString: ?campaignId=123
+Request Metrics: GET /npcs | Status: 200 | Duration: 52ms | AllocatedBytes: 20480 | WorkingSetBytes: 111341568 | Parameters: QueryString: ?campaignId=123
 ```
 
 ### GET with route parameters
 ```
-Request Metrics: GET /npcs/42 | Status: 200 | Duration: 38ms | Parameters: RouteParams: id=42
+Request Metrics: GET /npcs/42 | Status: 200 | Duration: 38ms | AllocatedBytes: 12288 | WorkingSetBytes: 111771648 | Parameters: RouteParams: id=42
 ```
 
 ### POST request
 ```
-Request Metrics: POST /npcs | Status: 201 | Duration: 127ms | Parameters: None
+Request Metrics: POST /npcs | Status: 201 | Duration: 127ms | AllocatedBytes: 32768 | WorkingSetBytes: 112050176 | Parameters: None
 ```
 
 ### Request with sensitive parameters filtered
 ```
-Request Metrics: GET /api/data | Status: 200 | Duration: 41ms | Parameters: QueryString: ?userId=123&includeDetails=true
+Request Metrics: GET /api/data | Status: 200 | Duration: 41ms | AllocatedBytes: 14336 | WorkingSetBytes: 112214016 | Parameters: QueryString: ?userId=123&includeDetails=true
 ```
 Note: A request like `/api/data?userId=123&token=abc123&includeDetails=true` would have the `token` parameter filtered out.
 
 ### Request with both query and route parameters
 ```
-Request Metrics: GET /campaigns/5/npcs | Status: 200 | Duration: 63ms | Parameters: QueryString: ?includeInactive=true, RouteParams: id=5
+Request Metrics: GET /campaigns/5/npcs | Status: 200 | Duration: 63ms | AllocatedBytes: 22528 | WorkingSetBytes: 112394240 | Parameters: QueryString: ?includeInactive=true, RouteParams: id=5
 ```
 
 ## Future Enhancements
