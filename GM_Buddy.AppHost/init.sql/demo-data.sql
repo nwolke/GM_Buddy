@@ -48,11 +48,8 @@ DECLARE
     RT_ACQUAINTANCE INTEGER;
     RT_ALLY         INTEGER;
     RT_CONTACT      INTEGER;
-    RT_EMPLOYEE     INTEGER;
     RT_EMPLOYER     INTEGER;
     RT_ENEMY        INTEGER;
-    RT_FRIEND       INTEGER;
-    RT_INFORMANT    INTEGER;
     RT_MENTOR       INTEGER;
     RT_PATRON       INTEGER;
     RT_RIVAL        INTEGER;
@@ -63,12 +60,9 @@ BEGIN
 
     SELECT relationship_type_id INTO RT_ACQUAINTANCE FROM public.relationship_type WHERE relationship_type_name = 'Acquaintance';
     SELECT relationship_type_id INTO RT_ALLY         FROM public.relationship_type WHERE relationship_type_name = 'Ally';
-    SELECT relationship_type_id INTO RT_CONTACT      FROM public.relationship_type WHERE relationship_type_name = 'Contact';
-    SELECT relationship_type_id INTO RT_EMPLOYEE     FROM public.relationship_type WHERE relationship_type_name = 'Employee';
+    SELECT relationship_type_id INTO RT_CONTACT      FROM public.relationship_type WHERE relationship_type_name = 'Contact/Informant';
     SELECT relationship_type_id INTO RT_EMPLOYER     FROM public.relationship_type WHERE relationship_type_name = 'Employer';
     SELECT relationship_type_id INTO RT_ENEMY        FROM public.relationship_type WHERE relationship_type_name = 'Enemy';
-    SELECT relationship_type_id INTO RT_FRIEND       FROM public.relationship_type WHERE relationship_type_name = 'Friend';
-    SELECT relationship_type_id INTO RT_INFORMANT    FROM public.relationship_type WHERE relationship_type_name = 'Informant';
     SELECT relationship_type_id INTO RT_MENTOR       FROM public.relationship_type WHERE relationship_type_name = 'Mentor';
     SELECT relationship_type_id INTO RT_PATRON       FROM public.relationship_type WHERE relationship_type_name = 'Patron';
     SELECT relationship_type_id INTO RT_RIVAL        FROM public.relationship_type WHERE relationship_type_name = 'Rival';
@@ -211,11 +205,11 @@ BEGIN
 
     -- Seraphine → all PCs (friend / ally)
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
-    VALUES ('npc', v_seraphine_id, 'pc', v_mira_id, RT_FRIEND, 'Has known Mira since she was a street kid stealing scraps near the Flagon. Treats her like a wayward daughter.', 5, true, v_campaign_id)
+    VALUES ('npc', v_seraphine_id, 'pc', v_mira_id, RT_ALLY, 'Has known Mira since she was a street kid stealing scraps near the Flagon. Treats her like a wayward daughter.', 5, true, v_campaign_id)
     ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
-    VALUES ('npc', v_seraphine_id, 'pc', v_caelan_id, RT_FRIEND, 'Rents him a room and feeds him when he forgets to eat. Motherly exasperation, genuine warmth.', 4, true, v_campaign_id)
+    VALUES ('npc', v_seraphine_id, 'pc', v_caelan_id, RT_ALLY, 'Rents him a room and feeds him when he forgets to eat. Motherly exasperation, genuine warmth.', 4, true, v_campaign_id)
     ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
@@ -223,7 +217,7 @@ BEGIN
     ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
-    VALUES ('npc', v_seraphine_id, 'pc', v_dusk_id, RT_FRIEND, 'Dusk''s quiet nature suits her fine. She leaves a plate out and asks no questions.', 3, true, v_campaign_id)
+    VALUES ('npc', v_seraphine_id, 'pc', v_dusk_id, RT_ALLY, 'Dusk''s quiet nature suits her fine. She leaves a plate out and asks no questions.', 3, true, v_campaign_id)
     ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     -- Gretch → PCs (varied)
@@ -253,7 +247,7 @@ BEGIN
     ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
-    VALUES ('npc', v_rowena_id, 'pc', v_tessa_id, RT_FRIEND, 'Sees Tessa''s faith as a mirror of her own — and a warning of what unchecked zeal can become.', 5, true, v_campaign_id)
+    VALUES ('npc', v_rowena_id, 'pc', v_tessa_id, RT_ALLY, 'Sees Tessa''s faith as a mirror of her own — and a warning of what unchecked zeal can become.', 5, true, v_campaign_id)
     ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
@@ -266,7 +260,7 @@ BEGIN
     ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
-    VALUES ('npc', v_harro_id, 'pc', v_caelan_id, RT_INFORMANT, 'Passed Caelan one clue about Greymantle''s disappearance. Does not know how much Caelan already knows.', 2, true, v_campaign_id)
+    VALUES ('npc', v_harro_id, 'pc', v_caelan_id, RT_CONTACT, 'Passed Caelan one clue about Greymantle''s disappearance. Does not know how much Caelan already knows.', 2, true, v_campaign_id)
     ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
@@ -283,7 +277,7 @@ BEGIN
     ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
-    VALUES ('npc', v_whisper_id, 'pc', v_caelan_id, RT_INFORMANT, 'Has sold Caelan fragments of information about Greymantle. Always wants more than coin in return.', 0, true, v_campaign_id)
+    VALUES ('npc', v_whisper_id, 'pc', v_caelan_id, RT_CONTACT, 'Has sold Caelan fragments of information about Greymantle. Always wants more than coin in return.', 0, true, v_campaign_id)
     ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
@@ -304,7 +298,7 @@ BEGIN
     ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
-    VALUES ('npc', v_elara_id, 'pc', v_tessa_id, RT_FRIEND, 'Repaired Tessa''s armor after a brutal fight and refused payment. Quietly admires her principles.', 3, true, v_campaign_id)
+    VALUES ('npc', v_elara_id, 'pc', v_tessa_id, RT_ALLY, 'Repaired Tessa''s armor after a brutal fight and refused payment. Quietly admires her principles.', 3, true, v_campaign_id)
     ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
@@ -338,7 +332,7 @@ BEGIN
     ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)
-    VALUES ('npc', v_brennan_id, 'pc', v_tessa_id, RT_FRIEND, 'Tessa once recovered something precious he had lost. He has been quietly useful to her cause ever since.', 3, true, v_campaign_id)
+    VALUES ('npc', v_brennan_id, 'pc', v_tessa_id, RT_ALLY, 'Tessa once recovered something precious he had lost. He has been quietly useful to her cause ever since.', 3, true, v_campaign_id)
     ON CONFLICT (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, campaign_id) DO NOTHING;
 
     INSERT INTO public.entity_relationship (source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type_id, description, attitude_score, is_active, campaign_id)

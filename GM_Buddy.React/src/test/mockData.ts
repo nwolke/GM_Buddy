@@ -99,6 +99,6 @@ export const mockRelationshipTypes = [
   { id: 3, name: 'family', description: 'Family members' },
   { id: 4, name: 'rival', description: 'Rival characters' },
   { id: 5, name: 'mentor', description: 'Mentor relationship' },
-  { id: 6, name: 'student', description: 'Student relationship' },
+  { id: 6, name: 'stranger', description: 'Stranger relationship' },
   { id: 7, name: 'neutral', description: 'Neutral relationship' },
 ]

@@ -24,13 +24,22 @@ export interface Relationship {
 }
 
 export type RelationshipType =
-  | 'acquaintance' | 'ally' | 'child' | 'contact'
-  | 'employee' | 'employer' | 'enemy' | 'family'
-  | 'follower' | 'friend' | 'informant' | 'leader'
-  | 'lover' | 'member' | 'mentor' | 'parent'
-  | 'patron' | 'protege' | 'rival' | 'sibling'
-  | 'spouse' | 'stranger' | 'student' | 'vassal'
-  | 'custom' | 'neutral';
+  | 'acquaintance'
+  | 'ally'
+  | 'contact/informant'
+  | 'employer'
+  | 'enemy'
+  | 'family'
+  | 'lover'
+  | 'mentor'
+  | 'patron'
+  | 'rival'
+  | 'stranger'
+  | 'vassal/follower'
+  | 'neutral';
+
+export const CUSTOM_RELATIONSHIP_SENTINEL = "__custom__";
+export const DEFAULT_CUSTOM_RELATIONSHIP_TYPE: RelationshipType = 'stranger';
 
 // Auth context types
 export interface User {

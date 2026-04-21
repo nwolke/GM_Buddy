@@ -19,28 +19,16 @@ interface EntityDetailPanelProps {
 const relationshipBadgeColors: Record<string, string> = {
   acquaintance: 'bg-slate-500/20 text-slate-400 border-slate-500/30',
   ally: 'bg-green-500/20 text-green-400 border-green-500/30',
-  child: 'bg-pink-500/20 text-pink-400 border-pink-500/30',
-  contact: 'bg-teal-500/20 text-teal-400 border-teal-500/30',
-  employee: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
+  'contact/informant': 'bg-teal-500/20 text-teal-400 border-teal-500/30',
   employer: 'bg-amber-600/20 text-amber-300 border-amber-600/30',
   enemy: 'bg-red-500/20 text-red-400 border-red-500/30',
   family: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
-  follower: 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30',
-  friend: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-  informant: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-  leader: 'bg-indigo-600/20 text-indigo-300 border-indigo-600/30',
   lover: 'bg-rose-500/20 text-rose-400 border-rose-500/30',
-  member: 'bg-violet-500/20 text-violet-400 border-violet-500/30',
   mentor: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-  parent: 'bg-pink-600/20 text-pink-300 border-pink-600/30',
   patron: 'bg-sky-500/20 text-sky-400 border-sky-500/30',
-  protege: 'bg-sky-600/20 text-sky-300 border-sky-600/30',
   rival: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
-  sibling: 'bg-fuchsia-500/20 text-fuchsia-400 border-fuchsia-500/30',
-  spouse: 'bg-rose-600/20 text-rose-300 border-rose-600/30',
   stranger: 'bg-zinc-500/20 text-zinc-400 border-zinc-500/30',
-  student: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
-  vassal: 'bg-stone-500/20 text-stone-400 border-stone-500/30',
+  'vassal/follower': 'bg-stone-500/20 text-stone-400 border-stone-500/30',
   custom: 'bg-lime-500/20 text-lime-400 border-lime-500/30',
   neutral: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
 };
@@ -81,6 +69,18 @@ export function EntityDetailPanel({
   };
 
   const isNpc = entity.entityType === 'npc';
+  const pcStances = isNpc
+    ? entityRelationships
+        .filter(rel =>
+          rel.entityType1 === 'pc' &&
+          rel.entityType2 === 'npc' &&
+          rel.npcId2 === entity.id
+        )
+        .map(rel => ({
+          relationship: rel,
+          pc: getRelatedEntity(rel),
+        }))
+    : [];
 
   return (
     <div className="flex flex-col h-full min-h-0">
@@ -176,17 +176,19 @@ export function EntityDetailPanel({
                       <div className="flex items-center gap-1.5 shrink-0 mt-0.5">
                         <Badge
                           variant="outline"
-                          className={`text-xs ${relationshipBadgeColors[rel.type] ?? relationshipBadgeColors.neutral}`}
+                          className={`text-xs ${
+                            rel.customType
+                              ? (relationshipBadgeColors.custom ?? relationshipBadgeColors.neutral)
+                              : (relationshipBadgeColors[rel.type] ?? relationshipBadgeColors.neutral)
+                          }`}
                         >
                           {rel.customType || rel.type}
                         </Badge>
-                        {rel.attitudeScore !== 0 && (
-                          <span className={`text-xs font-semibold ${
-                            rel.attitudeScore > 0 ? 'text-green-400' : 'text-red-400'
-                          }`}>
-                            {rel.attitudeScore > 0 ? '+' : ''}{rel.attitudeScore}
-                          </span>
-                        )}
+                        <span className={`text-xs font-semibold ${
+                          rel.attitudeScore > 0 ? 'text-green-400' : rel.attitudeScore < 0 ? 'text-red-400' : 'text-muted-foreground'
+                        }`}>
+                          {rel.attitudeScore > 0 ? '+' : ''}{rel.attitudeScore}
+                        </span>
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">
@@ -216,6 +218,44 @@ export function EntityDetailPanel({
               </div>
             )}
           </div>
+
+          {isNpc && (
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+                PC Stances ({pcStances.length})
+              </p>
+              {pcStances.length === 0 ? (
+                <p className="text-sm text-muted-foreground italic">
+                  No PC stances for this NPC yet.
+                </p>
+              ) : (
+                <div className="rounded-lg border border-border/50 overflow-hidden">
+                  <table className="w-full text-sm">
+                    <thead className="bg-muted/40">
+                      <tr className="text-left text-xs uppercase tracking-wider text-muted-foreground">
+                        <th scope="col" className="px-3 py-2">PC Name</th>
+                        <th scope="col" className="px-3 py-2">Type</th>
+                        <th scope="col" className="px-3 py-2">Attitude</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {pcStances.map(({ relationship, pc }) => (
+                        <tr key={relationship.id} className="border-t border-border/50">
+                          <td className="px-3 py-2">{pc?.name ?? "Unknown PC"}</td>
+                          <td className="px-3 py-2">{relationship.customType || relationship.type}</td>
+                          <td className={`px-3 py-2 font-semibold ${
+                            relationship.attitudeScore > 0 ? 'text-green-400' : relationship.attitudeScore < 0 ? 'text-red-400' : 'text-muted-foreground'
+                          }`}>
+                            {relationship.attitudeScore > 0 ? '+' : ''}{relationship.attitudeScore}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </ScrollArea>
 

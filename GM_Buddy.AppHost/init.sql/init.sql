@@ -124,41 +124,19 @@ CREATE INDEX IF NOT EXISTS idx_entity_relationship_type ON public.entity_relatio
 INSERT INTO public.relationship_type (relationship_type_name, description, is_directional) VALUES
     ('Acquaintance', 'Casual or passing familiarity', false),
     ('Ally', 'Allied, working together', false),
-    ('Child', 'Child-parent relationship', true),
-    ('Contact', 'Useful connection or informant', false),
-    ('Employee', 'Works for another entity', true),
+    ('Contact/Informant', 'Useful connection or informant', false),
     ('Employer', 'Employs or commissions another entity', true),
     ('Enemy', 'Hostile relationship', false),
     ('Family', 'Blood relative or adopted kin', false),
-    ('Follower', 'Vassal, devotee, or loyal follower', true),
-    ('Friend', 'Friendly relationship', false),
-    ('Informant', 'Provides intelligence or secret information', true),
-    ('Leader', 'Leader or authority figure', true),
     ('Lover', 'Romantic relationship', false),
-    ('Member', 'Member of an organization', true),
     ('Mentor', 'Teacher/guide relationship', true),
-    ('Parent', 'Parent-child relationship', true),
     ('Patron', 'Sponsor or benefactor', true),
-    ('Protege', 'Sponsored or supported by a patron', true),
     ('Rival', 'Competitive relationship', false),
-    ('Sibling', 'Brother or sister', false),
-    ('Spouse', 'Married or life partner', false),
     ('Stranger', 'No established relationship yet', false),
-    ('Student', 'Learner', true),
-    ('Vassal', 'Sworn servant or feudal subject', true)
+    ('Vassal/Follower', 'Sworn servant, vassal, devotee, or loyal follower', true)
 ON CONFLICT (relationship_type_name) DO NOTHING;
 
--- Set inverse type pairs for directional relationships
-UPDATE public.relationship_type SET inverse_type_id = (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Student') WHERE relationship_type_name = 'Mentor';
-UPDATE public.relationship_type SET inverse_type_id = (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Mentor') WHERE relationship_type_name = 'Student';
-UPDATE public.relationship_type SET inverse_type_id = (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Child') WHERE relationship_type_name = 'Parent';
-UPDATE public.relationship_type SET inverse_type_id = (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Parent') WHERE relationship_type_name = 'Child';
-UPDATE public.relationship_type SET inverse_type_id = (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Follower') WHERE relationship_type_name = 'Leader';
-UPDATE public.relationship_type SET inverse_type_id = (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Leader') WHERE relationship_type_name = 'Follower';
-UPDATE public.relationship_type SET inverse_type_id = (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Employee') WHERE relationship_type_name = 'Employer';
-UPDATE public.relationship_type SET inverse_type_id = (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Employer') WHERE relationship_type_name = 'Employee';
-UPDATE public.relationship_type SET inverse_type_id = (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Protege') WHERE relationship_type_name = 'Patron';
-UPDATE public.relationship_type SET inverse_type_id = (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Patron') WHERE relationship_type_name = 'Protege';
+-- No inverse pairs are seeded for the condensed directional set
 
 
 -- Seed data
@@ -300,11 +278,11 @@ INSERT INTO public.entity_relationship (
     relationship_type_id, description, attitude_score, is_active, campaign_id
 )
 VALUES
-  -- Marcus Blackwood (NPC) is Friends with Lyanna Swift (NPC) in Shadows Over Millhaven
+  -- Marcus Blackwood (NPC) is Allied with Lyanna Swift (NPC) in Shadows Over Millhaven
   (
     'npc', (SELECT npc_id FROM public.npc WHERE name = 'Marcus Blackwood' LIMIT 1),
     'npc', (SELECT npc_id FROM public.npc WHERE name = 'Lyanna Swift' LIMIT 1),
-    (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Friend' LIMIT 1),
+    (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Ally' LIMIT 1),
     'The magistrate trusts the merchant for advice on regional affairs',
     4,
     true,
@@ -350,42 +328,42 @@ VALUES
     true,
     (SELECT campaign_id FROM public.campaign WHERE name = 'The Northern Frontier' LIMIT 1)
   ),
-  -- Thorin Ironforge (PC) is Member of The Regional Alliance (Org)
+  -- Thorin Ironforge (PC) is Vassal/Follower of The Regional Alliance (Org)
   -- Note: PC-to-Organization memberships use NULL campaign_id as they are campaign-agnostic
   (
     'pc', (SELECT pc_id FROM public.pc WHERE name = 'Thorin Ironforge' LIMIT 1),
     'organization', (SELECT organization_id FROM public.organization WHERE name = 'The Regional Alliance' LIMIT 1),
-    (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Member' LIMIT 1),
+    (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Vassal/Follower' LIMIT 1),
     'Dwarven cleric serving as a liaison for the Alliance',
     2,
     true,
     NULL
   ),
-  -- Lyra Shadowstep (PC) is Member of The Archivists
+  -- Lyra Shadowstep (PC) is Vassal/Follower of The Archivists
   (
     'pc', (SELECT pc_id FROM public.pc WHERE name = 'Lyra Shadowstep' LIMIT 1),
     'organization', (SELECT organization_id FROM public.organization WHERE name = 'The Archivists' LIMIT 1),
-    (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Member' LIMIT 1),
+    (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Vassal/Follower' LIMIT 1),
     'Half-elf rogue working as a secret agent and researcher',
     3,
     true,
     NULL
   ),
-  -- Aldric the Brave (PC) is Member of The Regional Alliance
+  -- Aldric the Brave (PC) is Vassal/Follower of The Regional Alliance
   (
     'pc', (SELECT pc_id FROM public.pc WHERE name = 'Aldric the Brave' LIMIT 1),
     'organization', (SELECT organization_id FROM public.organization WHERE name = 'The Regional Alliance' LIMIT 1),
-    (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Member' LIMIT 1),
+    (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Vassal/Follower' LIMIT 1),
     'Paladin recently inducted into the Alliance',
     1,
     true,
     NULL
   ),
-  -- Zephyr Windwhisper (PC) is Member of The Archivists (Org)
+  -- Zephyr Windwhisper (PC) is Vassal/Follower of The Archivists (Org)
   (
     'pc', (SELECT pc_id FROM public.pc WHERE name = 'Zephyr Windwhisper' LIMIT 1),
     'organization', (SELECT organization_id FROM public.organization WHERE name = 'The Archivists' LIMIT 1),
-    (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Member' LIMIT 1),
+    (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Vassal/Follower' LIMIT 1),
     'Elven ranger gathering intelligence and preserving lore',
     2,
     true,
@@ -452,12 +430,12 @@ VALUES
     true,
     NULL
   ),
-  -- Thorin Ironforge (PC) and Lyra Shadowstep (PC) are Friends
+  -- Thorin Ironforge (PC) and Lyra Shadowstep (PC) are Allies
   -- Note: PC-to-PC friendships use NULL campaign_id as they persist across campaigns
   (
     'pc', (SELECT pc_id FROM public.pc WHERE name = 'Thorin Ironforge' LIMIT 1),
     'pc', (SELECT pc_id FROM public.pc WHERE name = 'Lyra Shadowstep' LIMIT 1),
-    (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Friend' LIMIT 1),
+    (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Ally' LIMIT 1),
     'Adventuring companions who trust each other completely',
     5,
     true,
@@ -473,11 +451,11 @@ VALUES
     true,
     NULL
   ),
-  -- Thorin Ironforge (PC) is Member of Stonepeak Mining Consortium (Org)
+  -- Thorin Ironforge (PC) is Vassal/Follower of Stonepeak Mining Consortium (Org)
   (
     'pc', (SELECT pc_id FROM public.pc WHERE name = 'Thorin Ironforge' LIMIT 1),
     'organization', (SELECT organization_id FROM public.organization WHERE name = 'Stonepeak Mining Consortium' LIMIT 1),
-    (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Member' LIMIT 1),
+    (SELECT relationship_type_id FROM public.relationship_type WHERE relationship_type_name = 'Vassal/Follower' LIMIT 1),
     'Fellow dwarf invested in the mining consortium ventures',
     1,
     true,

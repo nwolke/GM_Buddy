@@ -30,14 +30,15 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const relationshipLegend: { type: string; color: string; label: string }[] = [
   { type: 'ally', color: '#10b981', label: 'Ally' },
-  { type: 'friend', color: '#34d399', label: 'Friend' },
+  { type: 'contact/informant', color: '#14b8a6', label: 'Contact/Informant' },
   { type: 'enemy', color: '#ef4444', label: 'Enemy' },
   { type: 'rival', color: '#f97316', label: 'Rival' },
   { type: 'family', color: '#a855f7', label: 'Family' },
   { type: 'mentor', color: '#3b82f6', label: 'Mentor' },
   { type: 'patron', color: '#0ea5e9', label: 'Patron' },
-  { type: 'leader', color: '#4f46e5', label: 'Leader' },
+  { type: 'employer', color: '#d97706', label: 'Employer' },
   { type: 'lover', color: '#f43f5e', label: 'Lover' },
+  { type: 'vassal/follower', color: '#78716c', label: 'Vassal/Follower' },
   { type: 'neutral', color: '#6b7280', label: 'Other' },
 ];
 
