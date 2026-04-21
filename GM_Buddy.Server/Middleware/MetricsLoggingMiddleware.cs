@@ -1,5 +1,7 @@
 using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using System.Text;
+using Microsoft.AspNetCore.Routing;
 
 namespace GM_Buddy.Server.Middleware;
 
@@ -8,6 +10,24 @@ namespace GM_Buddy.Server.Middleware;
 /// </summary>
 public class MetricsLoggingMiddleware
 {
+    public const string MeterName = "GM_Buddy.Server.Diagnostics";
+
+    private static readonly Meter Meter = new(MeterName);
+    private static readonly Histogram<double> RequestDurationMilliseconds = Meter.CreateHistogram<double>(
+        "gm_buddy.request.duration",
+        unit: "ms",
+        description: "Duration of inbound HTTP requests.");
+    private static readonly Histogram<long> ProcessAllocatedBytesDelta = Meter.CreateHistogram<long>(
+        "gm_buddy.process.allocated_bytes_delta",
+        unit: "By",
+        description: "Process-wide managed allocation delta sampled across request execution.");
+    private static readonly Histogram<long> RequestWorkingSetBytes = Meter.CreateHistogram<long>(
+        "gm_buddy.request.working_set_bytes",
+        unit: "By",
+        description: "Process working set memory sampled at the end of each HTTP request.");
+    private static readonly Counter<long> RequestCounter = Meter.CreateCounter<long>(
+        "gm_buddy.request.count",
+        description: "Number of inbound HTTP requests.");
     private readonly RequestDelegate _next;
     private readonly ILogger<MetricsLoggingMiddleware> _logger;
 
@@ -19,21 +39,67 @@ public class MetricsLoggingMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
+        var request = context.Request;
+        var totalAllocatedBytesAtStart = GC.GetTotalAllocatedBytes();
         var stopwatch = Stopwatch.StartNew();
+        Exception? requestException = null;
 
+        var activity = Activity.Current;
         try
         {
             // Continue processing the request
             await _next(context);
         }
+        catch (Exception ex)
+        {
+            requestException = ex;
+            activity?.SetTag("error.type", ex.GetType().FullName);
+            activity?.SetTag("error.message", ex.Message);
+            throw;
+        }
         finally
         {
             stopwatch.Stop();
-            LogRequestMetrics(context, stopwatch.ElapsedMilliseconds);
+
+            var elapsedMilliseconds = stopwatch.Elapsed.TotalMilliseconds;
+            var requestStatusCode = context.Response.StatusCode;
+            var requestMethod = request.Method;
+            var routeTemplate = (context.GetEndpoint() as RouteEndpoint)?.RoutePattern?.RawText;
+            var requestPath = request.Path.ToString();
+            var routeTagValue = string.IsNullOrWhiteSpace(routeTemplate) ? "unmatched" : routeTemplate;
+            var allocatedBytesDelta = Math.Max(0, GC.GetTotalAllocatedBytes() - totalAllocatedBytesAtStart);
+            var workingSetBytes = Environment.WorkingSet;
+            var requestTags = new TagList
+            {
+                { "http.method", requestMethod },
+                { "http.route", routeTagValue },
+                { "http.status_code", requestStatusCode },
+                { "error", requestException is not null }
+            };
+
+            RequestDurationMilliseconds.Record(elapsedMilliseconds, requestTags);
+            ProcessAllocatedBytesDelta.Record(allocatedBytesDelta, requestTags);
+            RequestWorkingSetBytes.Record(workingSetBytes, requestTags);
+            RequestCounter.Add(1, requestTags);
+
+            activity?.SetTag("http.method", requestMethod);
+            if (!string.IsNullOrWhiteSpace(routeTemplate))
+            {
+                activity?.SetTag("http.route", routeTemplate);
+            }
+
+            activity?.SetTag("url.path", requestPath);
+            activity?.SetTag("http.status_code", requestStatusCode);
+            activity?.SetTag("gm_buddy.request.duration_ms", elapsedMilliseconds);
+            activity?.SetTag("gm_buddy.process.allocated_bytes_delta", allocatedBytesDelta);
+            activity?.SetTag("gm_buddy.request.working_set_bytes", workingSetBytes);
+            activity?.SetTag("error", requestException is not null);
+
+            LogRequestMetrics(context, elapsedMilliseconds, allocatedBytesDelta, workingSetBytes);
         }
     }
 
-    private void LogRequestMetrics(HttpContext context, long elapsedMilliseconds)
+    private void LogRequestMetrics(HttpContext context, double elapsedMilliseconds, long allocatedBytesDelta, long workingSetBytes)
     {
         var request = context.Request;
         var response = context.Response;
@@ -73,11 +139,13 @@ public class MetricsLoggingMiddleware
         var parameters = parametersBuilder.Length > 0 ? parametersBuilder.ToString() : "None";
 
         _logger.LogInformation(
-            "Request Metrics: {Method} {Path} | Status: {StatusCode} | Duration: {DurationMs}ms | Parameters: {Parameters}",
+            "Request Metrics: {Method} {Path} | Status: {StatusCode} | Duration: {DurationMs}ms | AllocatedBytesDelta: {AllocatedBytesDelta} | WorkingSetBytes: {WorkingSetBytes} | Parameters: {Parameters}",
             request.Method,
             request.Path,
             response.StatusCode,
-            elapsedMilliseconds,
+            Math.Round(elapsedMilliseconds, 2),
+            allocatedBytesDelta,
+            workingSetBytes,
             parameters);
     }
 

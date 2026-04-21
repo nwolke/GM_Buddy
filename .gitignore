@@ -354,6 +354,9 @@ ASALocalRun/
 # MSBuild Binary and Structured Log
 *.binlog
 
+# Temporary malformed obj path occasionally generated under React project
+GM_Buddy.React/obj\\Debug/
+
 # NVidia Nsight GPU debugger configuration file
 *.nvuser
 

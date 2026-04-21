@@ -57,6 +57,8 @@ public static class Extensions
             {
                 metrics.AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation()
+                    .AddProcessInstrumentation()
+                    .AddMeter("GM_Buddy.Server.Diagnostics")
                     .AddRuntimeInstrumentation();
             })
             .WithTracing(tracing =>
