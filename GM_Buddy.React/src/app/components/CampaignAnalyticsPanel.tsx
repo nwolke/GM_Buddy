@@ -17,6 +17,7 @@ const relationshipTypeColors: Record<string, string> = {
   ally: "#10b981",
   child: "#ec4899",
   contact: "#14b8a6",
+  "contact/informant": "#14b8a6",
   employee: "#f59e0b",
   employer: "#d97706",
   enemy: "#ef4444",
@@ -37,6 +38,7 @@ const relationshipTypeColors: Record<string, string> = {
   stranger: "#71717a",
   student: "#06b6d4",
   vassal: "#78716c",
+  "vassal/follower": "#78716c",
   neutral: "#6b7280",
 };
 
