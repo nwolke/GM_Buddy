@@ -10,7 +10,7 @@ Located in `GM_Buddy.Server/Middleware/MetricsLoggingMiddleware.cs`
 
 This middleware:
 - Uses `System.Diagnostics.Stopwatch` to measure request execution time
-- Records request duration, per-request allocated memory, and working set memory into OpenTelemetry metrics
+- Records request duration, process-wide managed allocation delta, and working set memory into OpenTelemetry metrics
 - Enriches OpenTelemetry trace spans with request diagnostics tags
 - Captures query string parameters (with sensitive parameter filtering)
 - Captures route parameters (excluding controller/action)
@@ -40,37 +40,37 @@ app.UseCors("AllowSpecificOrigins");
 
 ## Example Log Output
 
-Sample memory values below are illustrative and will vary by request payload, endpoint behavior, and runtime conditions.
+Sample memory values below are illustrative and will vary by request payload, endpoint behavior, runtime conditions, and concurrent process activity.
 
 ### Simple GET request
 ```
-Request Metrics: GET /npcs | Status: 200 | Duration: 45ms | AllocatedBytes: 16384 | WorkingSetBytes: 110919680 | Parameters: None
+Request Metrics: GET /npcs | Status: 200 | Duration: 45ms | AllocatedBytesDelta: 16384 | WorkingSetBytes: 110919680 | Parameters: None
 ```
 
 ### GET with query parameters
 ```
-Request Metrics: GET /npcs | Status: 200 | Duration: 52ms | AllocatedBytes: 20480 | WorkingSetBytes: 111341568 | Parameters: QueryString: ?campaignId=123
+Request Metrics: GET /npcs | Status: 200 | Duration: 52ms | AllocatedBytesDelta: 20480 | WorkingSetBytes: 111341568 | Parameters: QueryString: ?campaignId=123
 ```
 
 ### GET with route parameters
 ```
-Request Metrics: GET /npcs/42 | Status: 200 | Duration: 38ms | AllocatedBytes: 12288 | WorkingSetBytes: 111771648 | Parameters: RouteParams: id=42
+Request Metrics: GET /npcs/42 | Status: 200 | Duration: 38ms | AllocatedBytesDelta: 12288 | WorkingSetBytes: 111771648 | Parameters: RouteParams: id=42
 ```
 
 ### POST request
 ```
-Request Metrics: POST /npcs | Status: 201 | Duration: 127ms | AllocatedBytes: 32768 | WorkingSetBytes: 112050176 | Parameters: None
+Request Metrics: POST /npcs | Status: 201 | Duration: 127ms | AllocatedBytesDelta: 32768 | WorkingSetBytes: 112050176 | Parameters: None
 ```
 
 ### Request with sensitive parameters filtered
 ```
-Request Metrics: GET /api/data | Status: 200 | Duration: 41ms | AllocatedBytes: 14336 | WorkingSetBytes: 112214016 | Parameters: QueryString: ?userId=123&includeDetails=true
+Request Metrics: GET /api/data | Status: 200 | Duration: 41ms | AllocatedBytesDelta: 14336 | WorkingSetBytes: 112214016 | Parameters: QueryString: ?userId=123&includeDetails=true
 ```
 Note: A request like `/api/data?userId=123&token=abc123&includeDetails=true` would have the `token` parameter filtered out.
 
 ### Request with both query and route parameters
 ```
-Request Metrics: GET /campaigns/5/npcs | Status: 200 | Duration: 63ms | AllocatedBytes: 22528 | WorkingSetBytes: 112394240 | Parameters: QueryString: ?includeInactive=true, RouteParams: id=5
+Request Metrics: GET /campaigns/5/npcs | Status: 200 | Duration: 63ms | AllocatedBytesDelta: 22528 | WorkingSetBytes: 112394240 | Parameters: QueryString: ?includeInactive=true, RouteParams: id=5
 ```
 
 ## Future Enhancements

@@ -18,10 +18,10 @@ public class MetricsLoggingMiddleware
         "gm_buddy.request.duration",
         unit: "ms",
         description: "Duration of inbound HTTP requests.");
-    private static readonly Histogram<long> RequestAllocatedBytes = Meter.CreateHistogram<long>(
-        "gm_buddy.request.allocated_bytes",
+    private static readonly Histogram<long> ProcessAllocatedBytesDelta = Meter.CreateHistogram<long>(
+        "gm_buddy.process.allocated_bytes_delta",
         unit: "By",
-        description: "Managed memory allocated while handling an HTTP request.");
+        description: "Process-wide managed allocation delta sampled across request execution.");
     private static readonly Histogram<long> RequestWorkingSetBytes = Meter.CreateHistogram<long>(
         "gm_buddy.request.working_set_bytes",
         unit: "By",
@@ -43,7 +43,7 @@ public class MetricsLoggingMiddleware
     public async Task InvokeAsync(HttpContext context)
     {
         var request = context.Request;
-        var allocatedBytesAtStart = GC.GetTotalAllocatedBytes();
+        var totalAllocatedBytesAtStart = GC.GetTotalAllocatedBytes();
         var stopwatch = Stopwatch.StartNew();
         Exception? requestException = null;
 
@@ -68,7 +68,7 @@ public class MetricsLoggingMiddleware
             var requestStatusCode = context.Response.StatusCode;
             var requestMethod = request.Method;
             var requestPath = request.Path.ToString();
-            var allocatedBytes = Math.Max(0, GC.GetTotalAllocatedBytes() - allocatedBytesAtStart);
+            var allocatedBytesDelta = Math.Max(0, GC.GetTotalAllocatedBytes() - totalAllocatedBytesAtStart);
             var workingSetBytes = Environment.WorkingSet;
             var requestTags = new TagList
             {
@@ -79,7 +79,7 @@ public class MetricsLoggingMiddleware
             };
 
             RequestDurationMilliseconds.Record(elapsedMilliseconds, requestTags);
-            RequestAllocatedBytes.Record(allocatedBytes, requestTags);
+            ProcessAllocatedBytesDelta.Record(allocatedBytesDelta, requestTags);
             RequestWorkingSetBytes.Record(workingSetBytes, requestTags);
             RequestCounter.Add(1, requestTags);
 
@@ -87,15 +87,15 @@ public class MetricsLoggingMiddleware
             activity?.SetTag("http.route", requestPath);
             activity?.SetTag("http.status_code", requestStatusCode);
             activity?.SetTag("gm_buddy.request.duration_ms", elapsedMilliseconds);
-            activity?.SetTag("gm_buddy.request.allocated_bytes", allocatedBytes);
+            activity?.SetTag("gm_buddy.process.allocated_bytes_delta", allocatedBytesDelta);
             activity?.SetTag("gm_buddy.request.working_set_bytes", workingSetBytes);
             activity?.SetTag("error", requestException is not null);
 
-            LogRequestMetrics(context, elapsedMilliseconds, allocatedBytes, workingSetBytes);
+            LogRequestMetrics(context, elapsedMilliseconds, allocatedBytesDelta, workingSetBytes);
         }
     }
 
-    private void LogRequestMetrics(HttpContext context, double elapsedMilliseconds, long allocatedBytes, long workingSetBytes)
+    private void LogRequestMetrics(HttpContext context, double elapsedMilliseconds, long allocatedBytesDelta, long workingSetBytes)
     {
         var request = context.Request;
         var response = context.Response;
@@ -135,12 +135,12 @@ public class MetricsLoggingMiddleware
         var parameters = parametersBuilder.Length > 0 ? parametersBuilder.ToString() : "None";
 
         _logger.LogInformation(
-            "Request Metrics: {Method} {Path} | Status: {StatusCode} | Duration: {DurationMs}ms | AllocatedBytes: {AllocatedBytes} | WorkingSetBytes: {WorkingSetBytes} | Parameters: {Parameters}",
+            "Request Metrics: {Method} {Path} | Status: {StatusCode} | Duration: {DurationMs}ms | AllocatedBytesDelta: {AllocatedBytesDelta} | WorkingSetBytes: {WorkingSetBytes} | Parameters: {Parameters}",
             request.Method,
             request.Path,
             response.StatusCode,
             Math.Round(elapsedMilliseconds, 2),
-            allocatedBytes,
+            allocatedBytesDelta,
             workingSetBytes,
             parameters);
     }
