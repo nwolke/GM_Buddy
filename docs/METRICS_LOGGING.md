@@ -40,6 +40,8 @@ app.UseCors("AllowSpecificOrigins");
 
 ## Example Log Output
 
+Sample memory values below are illustrative and will vary by request payload, endpoint behavior, and runtime conditions.
+
 ### Simple GET request
 ```
 Request Metrics: GET /npcs | Status: 200 | Duration: 45ms | AllocatedBytes: 16384 | WorkingSetBytes: 110919680 | Parameters: None
