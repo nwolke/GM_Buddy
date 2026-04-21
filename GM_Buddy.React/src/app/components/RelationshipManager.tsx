@@ -223,11 +223,25 @@ export function RelationshipManager({
                     min={-5}
                     max={5}
                     step={1}
-                    value={attitudeScore}
+                    defaultValue={attitudeScore}
                     onChange={(e) => {
-                      const next = Number(e.target.value);
+                      const rawValue = e.target.value;
+                      if (rawValue === "" || rawValue === "-") return;
+
+                      const next = Number(rawValue);
                       if (Number.isNaN(next)) return;
+
                       setAttitudeScore(Math.max(-5, Math.min(5, Math.trunc(next))));
+                    }}
+                    onBlur={(e) => {
+                      const rawValue = e.target.value;
+                      const next = Number(rawValue);
+                      const normalized = Number.isNaN(next)
+                        ? attitudeScore
+                        : Math.max(-5, Math.min(5, Math.trunc(next)));
+
+                      setAttitudeScore(normalized);
+                      e.target.value = String(normalized);
                     }}
                   />
                 </div>
